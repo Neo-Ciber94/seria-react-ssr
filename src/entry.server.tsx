@@ -10,6 +10,7 @@ import { matchRoute } from "./$routes";
 import path from "path";
 import { fileURLToPath } from "url";
 import * as seria from "seria";
+import { LoaderContext, LoaderFunctionArgs } from "./core/server/loader";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -42,10 +43,17 @@ app.get("*", async (ctx) => {
 
   const { params = {}, ...route } = match;
   let loaderData: any = undefined;
+  const loaderContext = new LoaderContext();
 
   if (route.loader) {
+    const loaderArgs: LoaderFunctionArgs = {
+      request: request.raw,
+      context: loaderContext,
+      params,
+    };
+
     try {
-      loaderData = await route.loader({ params, request });
+      loaderData = await route.loader(loaderArgs);
       if (loaderData instanceof Response) {
         return loaderData;
       }
@@ -59,11 +67,12 @@ app.get("*", async (ctx) => {
   }
 
   const appContext: AppContext = { loaderData, pathname, url: request.url };
-  const response = await createResponse(appContext);
+  const responseInit = loaderContext.getResponseInit();
+  const response = await createResponse(appContext, responseInit);
   return response;
 });
 
-function createResponse(appContext: AppContext) {
+function createResponse(appContext: AppContext, responseInit?: ResponseInit) {
   let didError = false;
   const { json, resumeStream } = seria.stringifyToResumableStream(
     appContext.loaderData || {}
@@ -118,8 +127,10 @@ function createResponse(appContext: AppContext) {
 
           resolve(
             new Response(stream, {
+              ...responseInit,
               status: didError ? 500 : 200,
               headers: {
+                ...responseInit?.headers,
                 "content-type": "text/html",
                 ...(isResumable ? { "cache-control": "no-cache" } : {}),
               },
