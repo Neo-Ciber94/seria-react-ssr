@@ -22,7 +22,15 @@ const hostname = process.env.HOST ?? "localhost";
 const app = new Hono();
 
 app.use(`${CLIENT_DIR}/*`, serveStatic({ root: rootDir }));
-app.use("/public/*", serveStatic({ root: "./" }));
+app.use(
+  "/*",
+  serveStatic({
+    root: "./",
+    rewriteRequestPath(requestPath) {
+      return path.join("public", requestPath);
+    },
+  })
+);
 
 app.get("*", async (ctx) => {
   const request = ctx.req;
@@ -124,6 +132,7 @@ function createResponse(appContext: AppContext) {
               status: didError ? 500 : 200,
               headers: {
                 "content-type": "text/html",
+                ...(isResumable ? { "cache-control": "no-cache" } : {}),
               },
             })
           );
