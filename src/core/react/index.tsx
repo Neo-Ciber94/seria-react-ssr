@@ -27,8 +27,8 @@ type EntryServerProps = {
 export function EntryServer({ appContext }: EntryServerProps) {
   const { pathname, loaderData } = appContext;
 
-  const jsonPayload =
-    loaderData === undefined ? "'{}'" : `'${JSON.stringify(loaderData)}'`;
+  const raw = loaderData === undefined ? "{}" : `${JSON.stringify(loaderData)}`;
+  const jsonPayload = JSON.stringify(raw);
 
   return (
     <ServerContextProvider appContext={appContext}>
