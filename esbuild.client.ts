@@ -7,7 +7,7 @@ const isDev = process.env.NODE_ENV === "development";
 
 const SERVER_FUNCTIONS = ["loader"];
 
-function replaceFunctionBody(source: string) {
+function trimServerFunctionBody(source: string) {
   const sourceFile = ts.createSourceFile(
     "source.tsx",
     source,
@@ -111,7 +111,7 @@ const removeServerFunctionsPlugin: esbuild.Plugin = {
             : "js";
 
         const source = await fs.readFile(args.path, "utf8");
-        const modifiedCode = replaceFunctionBody(source);
+        const modifiedCode = trimServerFunctionBody(source);
 
         return {
           contents: modifiedCode,
