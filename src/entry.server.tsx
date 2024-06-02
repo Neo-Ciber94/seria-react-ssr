@@ -7,6 +7,7 @@ import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { PassThrough } from "stream";
 import { matchRoute } from "./$routes";
+import path from "path";
 
 const port = Number(process.env.PORT ?? 5000);
 const hostname = process.env.HOST ?? "localhost";
@@ -14,6 +15,13 @@ const app = new Hono();
 
 app.use(
   "/dist/client/*",
+  serveStatic({
+    root: "./",
+  })
+);
+
+app.use(
+  "/public/*",
   serveStatic({
     root: "./",
   })
@@ -28,12 +36,12 @@ app.get("*", async (ctx) => {
     return ctx.notFound();
   }
 
-  const { id, params = {} } = match;
-  const importPath = `./routes${id}`.replaceAll(":", "$");
-  const module = await import(importPath);
+  const { routePath, params = {} } = match;
+  const importPath = path.join("routes", routePath).replaceAll(path.sep, "/");
+  const module = await import(`./${importPath}`);
 
   if (typeof module.default !== "function") {
-    console.error(`Not default export component found on: ${id}`);
+    console.error(`Not default export component found on: ${importPath}`);
     return ctx.notFound();
   }
 

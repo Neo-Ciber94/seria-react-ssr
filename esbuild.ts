@@ -52,8 +52,8 @@ const removeServerFunctions: esbuild.Plugin = {
         const loader = args.path.endsWith(".tsx")
           ? "tsx"
           : args.path.endsWith(".jsx")
-          ? "jsx"
-          : "js";
+            ? "jsx"
+            : "js";
 
         const source = await fs.readFile(args.path, "utf8");
         const modifiedCode = replaceLoaderFunction(source);

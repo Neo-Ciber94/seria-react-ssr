@@ -35,6 +35,14 @@ async function generateRoutes() {
       .replaceAll(/(index)$/g, "");
 
     const id = `/${routeId}`;
+    const segments = id.split("/").filter(Boolean);
+    const isValidRoute = segments
+      .map((s) => s.replaceAll(":", "$"))
+      .every(isValidRouteSegment);
+
+    if (!isValidRoute) {
+      throw new Error(`Invalid route: '${path.join("routes", routePath)}'`);
+    }
 
     routes.push({
       id,
@@ -53,14 +61,17 @@ async function generateRoutes() {
   });
 
   const routesMap = routes
-    .map((r) => `"${r.id}": { id: "${r.id}", Component: ${r.componentName} },`)
+    .map(
+      (r) =>
+        `"${r.id}": { id: "${r.id}", Component: ${r.componentName}, routePath: ${JSON.stringify(r.routePath)} },`
+    )
     .join("\t\n");
 
   let code = "";
   code += 'import { createRouter } from "radix3";\n';
   code += imports.join("\n");
   code += "\n\n";
-  code += `const router = createRouter<{ id: string, Component: any }>({ routes: { ${routesMap} }})\n\n`;
+  code += `const router = createRouter<{ id: string, Component: any, routePath: string }>({ routes: { ${routesMap} }})\n\n`;
   code += `export const matchRoute = (pathname: string) => router.lookup(pathname)`;
 
   const generatedFilePath = path.join(__dirname, "$routes.ts");
@@ -69,6 +80,20 @@ async function generateRoutes() {
   });
 
   await fs.writeFile(generatedFilePath, formattedCode);
+}
+
+function isValidRouteSegment(segment: string) {
+  const s = segment.trim();
+
+  if (s.length === 0) {
+    return false;
+  }
+
+  if (s.startsWith("$")) {
+    return s.slice(1).length > 0;
+  }
+
+  return true;
 }
 
 function generateComponentName(filePath: string) {

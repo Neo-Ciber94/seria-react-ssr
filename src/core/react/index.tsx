@@ -12,6 +12,13 @@ declare global {
   };
 }
 
+// if (typeof window !== "undefined") {
+//   const context = document.getElementById("app-data")?.innerText;
+//   const data = JSON.parse(context || "{}");
+//   window.APP_CONTEXT = data;
+//   console.log(data);
+// }
+
 export function EntryClient() {
   return (
     <ServerContextProvider appContext={APP_CONTEXT}>
@@ -25,24 +32,33 @@ type EntryServerProps = {
 };
 
 export function EntryServer({ appContext }: EntryServerProps) {
-  const { pathname, loaderData } = appContext;
+  const { pathname, loaderData, url } = appContext;
+  const raw = JSON.stringify(loaderData || {});
 
-  const raw = loaderData === undefined ? "{}" : `${JSON.stringify(loaderData)}`;
-  const jsonPayload = JSON.stringify(raw);
+  // const ctx = JSON.stringify({
+  //   loaderData: loaderData || {},
+  //   pathname,
+  //   url,
+  // });
 
   return (
     <ServerContextProvider appContext={appContext}>
       <App />
       <script
-        id="server-props"
+        id="app-context"
         dangerouslySetInnerHTML={{
           __html: `window.APP_CONTEXT = {
-            loaderData: JSON.parse(${jsonPayload}),
+            loaderData: JSON.parse(${JSON.stringify(raw)}),
             pathname: ${JSON.stringify(pathname)},
-            url: ${JSON.stringify(appContext.url)}
+            url: ${JSON.stringify(url)}
           }`,
         }}
       />
+      {/* <script
+        type="application/json"
+        id="app-data"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(ctx) }}
+      /> */}
     </ServerContextProvider>
   );
 }
