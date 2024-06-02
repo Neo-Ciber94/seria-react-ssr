@@ -1,11 +1,14 @@
 import * as esbuild from "esbuild";
-import fs from "fs/promises";
-import path from "path";
+import { glob } from "glob";
 
 const isDev = process.env.NODE_ENV === "development";
 
+const entryPoints = await glob(["./src/**/*"], {
+  ignore: ["./src/generateRoutes.ts", "./src/**/*.client.(ts|js|tsx|jsx)"],
+});
+
 const options: esbuild.BuildOptions = {
-  entryPoints: ["./src/**/*"],
+  entryPoints,
   bundle: true,
   format: "esm",
   splitting: true,
