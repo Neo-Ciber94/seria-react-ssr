@@ -41,7 +41,7 @@ app.get("*", async (ctx) => {
     return ctx.notFound();
   }
 
-  const { params, ...route } = match;
+  const { params = {}, ...route } = match;
 
   let loaderData: any = undefined;
 
