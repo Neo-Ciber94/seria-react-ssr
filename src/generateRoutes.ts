@@ -29,7 +29,8 @@ async function generateRoutes() {
 
     const filePath = path.join(file.parentPath, file.name);
     const hasDefaultExport = await isDefaultExportComponent(filePath);
-    if (!hasDefaultExport) {
+    const isIgnored = await isIgnoredFilePath(routesDir, filePath);
+    if (!hasDefaultExport || isIgnored) {
       continue;
     }
 
@@ -131,6 +132,21 @@ function isValidRouteSegment(segment: string) {
   }
 
   return true;
+}
+
+async function isIgnoredFilePath(routesDir: string, filePath: string) {
+  const fileName = path.basename(filePath);
+
+  if (fileName.startsWith("_")) {
+    return true;
+  }
+
+  return path
+    .relative(routesDir, filePath)
+    .replaceAll(path.sep, "/")
+    .split("/")
+    .filter(Boolean)
+    .some((s) => s.startsWith("_"));
 }
 
 function generateComponentName(filePath: string) {
