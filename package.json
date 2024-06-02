@@ -13,8 +13,8 @@
     "build:seria": "esbuild ./src/core/client/seria.ts --bundle --format=esm --minify --outfile=./build/client/seria.js",
     "clean": "rimraf build",
     "typecheck": "tsc --noEmit",
-    "generate-routes:watch": "cross-env WATCH=true npm run generate-routes",
-    "generate-routes": "tsx ./src/generateRoutes.ts"
+    "generate-routes": "tsx ./src/generateRoutes.ts",
+    "generate-routes:watch": "nodemon --exec \"npm run generate-routes\" --watch ./src/generateRoutes.ts --watch ./src/routes --ext js,jsx,ts,tsx"
   },
   "dependencies": {
     "@hono/node-server": "^1.11.2",
@@ -32,6 +32,7 @@
     "cross-env": "^7.0.3",
     "esbuild": "^0.21.4",
     "glob": "^10.4.1",
+    "nodemon": "^3.1.2",
     "prettier": "^3.3.0",
     "rimraf": "^5.0.7",
     "tsx": "^4.11.0",

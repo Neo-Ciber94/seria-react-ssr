@@ -26,7 +26,7 @@ async function generateRoutes() {
   // We add a dummy export because some routes throw due $routes.tsx `matchRoute` not being defined
   await fs.writeFile(
     GENERATED_FILE_PATH,
-    `export const matchRoute = (pathname: string) => {
+    `export const matchRoute = (pathname: string): any => {
       throw new Error('Not implemented')
     }`
   );
@@ -141,7 +141,10 @@ async function generateRouterCode(routes: RouteEntry[]) {
 }
 
 async function getRouteExports(routePath: string) {
-  const mod = await import(`./${ROUTES_FOLDER_NAME}/${routePath}`);
+  // imports may fail if any module import fails
+  const mod = await import(`./${ROUTES_FOLDER_NAME}/${routePath}`).catch(
+    () => null
+  );
 
   if (!mod) {
     return null;
@@ -207,22 +210,17 @@ function generateComponentName(filePath: string) {
   return parts.map(capizalize).join("") + "Page";
 }
 
-async function main() {
-  const isWatch = Boolean(process.env.WATCH);
-
-  if (isWatch) {
-    const routesPath = path.join(__dirname, ROUTES_FOLDER_NAME);
-    const changes = fs.watch(routesPath, { recursive: true });
-    for await (const _ of changes) {
-      try {
-        await generateRoutes();
-      } catch (err) {
-        console.error(err);
-      }
-    }
-  } else {
-    await generateRoutes();
+async function exists(p: string) {
+  try {
+    fs.stat(p);
+    return true;
+  } catch {
+    return false;
   }
+}
+
+async function main() {
+  await generateRoutes();
 }
 
 main().catch(console.error);

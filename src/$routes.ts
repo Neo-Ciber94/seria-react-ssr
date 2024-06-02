@@ -1,5 +1,5 @@
 import { createRouter } from "radix3";
-import $$404Page from "./routes/$$404";
+import $$404Page, { loader as loader$1 } from "./routes/$$404";
 import IndexPage, { loader as loader$2 } from "./routes/index";
 import TodosPage, { loader as loader$3 } from "./routes/todos";
 import Todos$idPage, { loader as loader$4 } from "./routes/todos/$id";
@@ -17,7 +17,7 @@ const router = createRouter<Route>({
       id: "/**:404",
       component: $$404Page,
       routePath: "$$404.tsx",
-      loader: undefined,
+      loader: loader$1,
     },
     "/": {
       id: "/",
