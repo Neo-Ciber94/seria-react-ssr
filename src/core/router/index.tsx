@@ -23,9 +23,8 @@ export function Router() {
   const { pathname, searchParams } = useUrl();
   const { Component, params } = useMemo(() => {
     const match = matchRoute(pathname);
-    const Component = match?.Component ?? NotFoundComponent;
+    const Component = match?.component ?? NotFoundComponent;
     const params = match?.params || {};
-
     return { Component, params };
   }, [pathname]);
 

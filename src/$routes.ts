@@ -1,16 +1,41 @@
 import { createRouter } from "radix3";
 import $$404Page from "./routes/$$404";
-import TodosPage from "./routes/todos";
-import Todos$idPage from "./routes/todos/$id";
+import IndexPage, { loader as loader$2 } from "./routes/index";
+import TodosPage, { loader as loader$3 } from "./routes/todos";
+import Todos$idPage, { loader as loader$4 } from "./routes/todos/$id";
 
-const router = createRouter<{ id: string; Component: any; routePath: string }>({
+interface Route {
+  id: string;
+  routePath: string;
+  component?: () => any;
+  loader?: (...args: any[]) => any | Promise<any>;
+}
+
+const router = createRouter<Route>({
   routes: {
-    "/**:404": { id: "/**:404", Component: $$404Page, routePath: "$$404.tsx" },
-    "/todos": { id: "/todos", Component: TodosPage, routePath: "todos.tsx" },
+    "/**:404": {
+      id: "/**:404",
+      component: $$404Page,
+      routePath: "$$404.tsx",
+      loader: undefined,
+    },
+    "/": {
+      id: "/",
+      component: IndexPage,
+      routePath: "index.tsx",
+      loader: loader$2,
+    },
+    "/todos": {
+      id: "/todos",
+      component: TodosPage,
+      routePath: "todos.tsx",
+      loader: loader$3,
+    },
     "/todos/:id": {
       id: "/todos/:id",
-      Component: Todos$idPage,
+      component: Todos$idPage,
       routePath: "todos\\$id.tsx",
+      loader: loader$4,
     },
   },
 });

@@ -41,31 +41,22 @@ app.get("*", async (ctx) => {
     return ctx.notFound();
   }
 
-  const { routePath, params = {} } = match;
-  const importPath = path.join("routes", routePath).replaceAll(path.sep, "/");
-  const module = await import(`./${importPath}`);
+  const { params, ...route } = match;
 
-  if (typeof module.default !== "function") {
-    console.error(`Not default export component found on: ${importPath}`);
-    return ctx.notFound();
-  }
-
-  const { loader } = module;
   let loaderData: any = undefined;
 
-  if (loader) {
-    if (typeof loader !== "function") {
-      console.error("Loader must be a function");
-    } else {
-      try {
-        loaderData = await loader({ params, request });
-      } catch (err) {
-        if (err instanceof Response) {
-          return err;
-        }
-
-        throw err;
+  if (route.loader) {
+    try {
+      loaderData = await route.loader({ params, request });
+      if (loaderData instanceof Response) {
+        return loaderData;
       }
+    } catch (err) {
+      if (err instanceof Response) {
+        return err;
+      }
+
+      throw err;
     }
   }
 

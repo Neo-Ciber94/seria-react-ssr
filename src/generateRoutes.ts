@@ -1,26 +1,37 @@
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
-import ts from "typescript";
 import prettier from "prettier";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROUTES_FOLDER_NAME = "routes";
+const GENERATED_FILE_PATH = path.join(__dirname, "$routes.ts");
 
-type FileRoute = {
+type RouteEntry = {
   id: string;
   routePath: string;
   componentName: string;
+  component?: Function;
+  loader?: Function;
 };
 
 async function generateRoutes() {
   const routesDir = path.join(__dirname, ROUTES_FOLDER_NAME);
+
   const files = await fs.readdir(routesDir, {
     recursive: true,
     withFileTypes: true,
   });
 
-  const routes: FileRoute[] = [];
+  // We add a dummy export because some routes throw due $routes.tsx `matchRoute` not being defined
+  await fs.writeFile(
+    GENERATED_FILE_PATH,
+    `export const matchRoute = (pathname: string) => {
+      throw new Error('Not implemented')
+    }`
+  );
+
+  const routes: RouteEntry[] = [];
 
   for (const file of files) {
     if (!file.isFile()) {
@@ -28,13 +39,18 @@ async function generateRoutes() {
     }
 
     const filePath = path.join(file.parentPath, file.name);
-    const hasDefaultExport = await isDefaultExportComponent(filePath);
     const isIgnored = await isIgnoredFilePath(routesDir, filePath);
-    if (!hasDefaultExport || isIgnored) {
+    if (isIgnored) {
       continue;
     }
 
     const routePath = path.relative(routesDir, filePath);
+    const routeExports = await getRouteExports(routePath);
+
+    if (routeExports == null || routeExports.component == null) {
+      continue;
+    }
+
     const componentName = generateComponentName(routePath);
     const routeId = routePath
       .replaceAll(path.sep, "/")
@@ -60,64 +76,88 @@ async function generateRoutes() {
       id,
       routePath,
       componentName,
+      component: routeExports.component,
+      loader: routeExports.loader,
     });
   }
 
-  const imports = routes.map((route) => {
+  const code = await generateRouterCode(routes);
+  await fs.writeFile(GENERATED_FILE_PATH, code);
+}
+
+async function generateRouterCode(routes: RouteEntry[]) {
+  const imports = routes.map((r, i) => {
     const importPath = path
-      .join(ROUTES_FOLDER_NAME, route.routePath)
+      .join(ROUTES_FOLDER_NAME, r.routePath)
       .replaceAll(path.sep, "/")
       .replaceAll(/(.tsx|.jsx|.js)$/g, "");
 
-    return `import ${route.componentName} from "./${importPath}";`;
+    const additionalImports: string[] = [];
+
+    if (r.loader) {
+      additionalImports.push(`loader as loader$${i + 1}`);
+    }
+
+    const routeImports = additionalImports
+      ? `,{ ${additionalImports.join(",")} }`
+      : "";
+
+    return `import ${r.componentName} ${routeImports} from "./${importPath}";`;
   });
 
   const routesMap = routes
-    .map(
-      (r) =>
-        `"${r.id}": { id: "${r.id}", Component: ${r.componentName}, routePath: ${JSON.stringify(r.routePath)} },`
-    )
+    .map((r, i) => {
+      const loader = r.loader ? `loader$${i + 1}` : "undefined";
+
+      return `"${r.id}": { 
+        id: "${r.id}", 
+        component: ${r.componentName}, 
+        routePath: ${JSON.stringify(r.routePath)},
+        loader: ${loader}
+      },`;
+    })
     .join("\t\n");
 
   let code = "";
   code += 'import { createRouter } from "radix3";\n';
   code += imports.join("\n");
+  code += `\n
+    interface Route {
+      id: string,
+      routePath: string
+      component?: () => any,
+      loader?: (...args: any[]) => any | Promise<any>,
+    }
+  `;
   code += "\n\n";
-  code += `const router = createRouter<{ id: string, Component: any, routePath: string }>({ routes: { ${routesMap} }})\n\n`;
+  code += `const router = createRouter<Route>({ routes: { ${routesMap} }})\n\n`;
   code += `export const matchRoute = (pathname: string) => router.lookup(pathname)`;
 
-  const generatedFilePath = path.join(__dirname, "$routes.ts");
-  const formattedCode = await prettier.format(code, {
-    filepath: generatedFilePath,
+  const formatted = await prettier.format(code, {
+    filepath: GENERATED_FILE_PATH,
   });
 
-  await fs.writeFile(generatedFilePath, formattedCode);
+  return formatted;
 }
 
-async function isDefaultExportComponent(filePath: string) {
-  const contents = await fs.readFile(filePath, "utf8");
-  const source = ts.createSourceFile(
-    filePath,
-    contents,
-    ts.ScriptTarget.ESNext
-  );
+async function getRouteExports(routePath: string) {
+  const mod = await import(`./${ROUTES_FOLDER_NAME}/${routePath}`);
 
-  return new Promise<boolean>((resolve) => {
-    function visit(node: any) {
-      if (
-        ts.isFunctionDeclaration(node) &&
-        node.modifiers &&
-        node.modifiers.some((m) => m.kind === ts.SyntaxKind.ExportKeyword) &&
-        node.modifiers.some((m) => m.kind === ts.SyntaxKind.DefaultKeyword)
-      ) {
-        return resolve(true);
-      }
+  if (!mod) {
+    return null;
+  }
 
-      ts.forEachChild(node, visit);
-    }
+  const { default: component, loader } = mod;
 
-    visit(source);
-  });
+  if (component && typeof component !== "function") {
+    throw new Error(`exported component should be a function: ${routePath}`);
+  }
+
+  if (loader && typeof component !== "function") {
+    throw new Error(`exported loader should be a function: ${routePath}`);
+  }
+
+  return { component, loader };
 }
 
 function isValidRouteSegment(segment: string) {
