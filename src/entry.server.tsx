@@ -90,6 +90,9 @@ function createResponse(appContext: AppContext) {
           const body = new PassThrough();
           pipe(body);
 
+          let index = 0;
+          const nextId = () => ++index;
+
           const stream = new ReadableStream({
             async start(controller) {
               for await (const chunk of body) {
@@ -98,15 +101,21 @@ function createResponse(appContext: AppContext) {
 
               if (resumeStream) {
                 for await (const chunk of resumeStream) {
-                  const id = genId();
+                  const id = nextId();
                   controller.enqueue(
-                    `<script data-stream-resume="${id}">$seria_stream_writer.write(${JSON.stringify(chunk)})</script>`
+                    `<script data-seria-stream-resume="${id}">
+                      $seria_stream_writer.write(${JSON.stringify(chunk)});
+                      document.querySelector('[data-seria-stream-resume="${id}"]').remove();
+                    </script>`
                   );
                 }
 
-                const id = genId();
+                const id = nextId();
                 controller.enqueue(
-                  `<script data-stream-resume="${id}">window.$seria_stream_writer.close()</script>`
+                  `<script data-seria-stream-resume="${id}">
+                    window.$seria_stream_writer.close();
+                    document.querySelector('[data-seria-stream-resume="${id}"]').remove();
+                  </script>`
                 );
               }
 
@@ -133,10 +142,6 @@ function createResponse(appContext: AppContext) {
       }
     );
   });
-}
-
-function genId() {
-  return btoa(crypto.randomUUID()).replaceAll("=", "");
 }
 
 serve(
