@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently npm:dev:* \"npm:generate-routes:watch\"",
-    "dev:server": "tsx --watch src/entry.server.tsx --ignore ./src/routes/**/* --ignore ./src/generateRoutes.ts",
-    "dev:client": "cross-env WATCH=true npm run build:client",
+    "dev:server": "cross-env NODE_ENV=development tsx --watch src/entry.server.tsx --ignore ./src/routes/**/* --ignore ./src/generateRoutes.ts",
+    "dev:client": "cross-env WATCH=true NODE_ENV=development npm run build:client",
     "build": "npm run clean && npm run generate-routes && npm run build:client && npm run build:server",
     "build:client": "npm run build:seria && tsx esbuild.client.ts",
     "build:server": "tsx esbuild.server.ts",

@@ -1,13 +1,11 @@
 import { createRouter } from "radix3";
 import $$404Page from "./routes/$$404";
-import IndexPage from "./routes/index";
 import TodosPage from "./routes/todos";
 import Todos$idPage from "./routes/todos/$id";
 
 const router = createRouter<{ id: string; Component: any; routePath: string }>({
   routes: {
     "/**:404": { id: "/**:404", Component: $$404Page, routePath: "$$404.tsx" },
-    "/": { id: "/", Component: IndexPage, routePath: "index.tsx" },
     "/todos": { id: "/todos", Component: TodosPage, routePath: "todos.tsx" },
     "/todos/:id": {
       id: "/todos/:id",

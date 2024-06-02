@@ -7,7 +7,7 @@ const isDev = process.env.NODE_ENV === "development";
 
 const SERVER_FUNCTIONS = ["loader"];
 
-function replaceLoaderFunction(source: string) {
+function replaceFunctionBody(source: string) {
   const sourceFile = ts.createSourceFile(
     "source.tsx",
     source,
@@ -17,24 +17,69 @@ function replaceLoaderFunction(source: string) {
 
   let modifiedSource = source;
 
-  const visit = (node) => {
+  function getExportedFunctionName(node) {
+    // export function <ident>
     if (
       ts.isFunctionDeclaration(node) &&
       node.name &&
       node.modifiers &&
       node.modifiers.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)
     ) {
-      const isServerFunction = SERVER_FUNCTIONS.find(
-        (n) => node.name?.escapedText === n
-      );
+      return { name: node.name.escapedText, body: node.body };
+    }
 
-      if (!isServerFunction) {
+    // export const <ident> = () => {}
+    if (
+      ts.isVariableStatement(node) &&
+      node.modifiers &&
+      node.modifiers.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)
+    ) {
+      const declaration = node.declarationList.declarations[0];
+      if (
+        declaration.initializer &&
+        ts.isArrowFunction(declaration.initializer)
+      ) {
+        return {
+          name: (declaration.name as ts.Identifier).escapedText,
+          body: declaration.initializer.body,
+        };
+      }
+    }
+
+    // export const <ident> =function() {}
+    if (
+      ts.isVariableStatement(node) &&
+      node.modifiers &&
+      node.modifiers.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)
+    ) {
+      const declaration = node.declarationList.declarations[0];
+      if (
+        declaration.initializer &&
+        ts.isFunctionExpression(declaration.initializer)
+      ) {
+        return {
+          name: (declaration.name as ts.Identifier).escapedText,
+          body: declaration.initializer.body,
+        };
+      }
+    }
+
+    return null;
+  }
+
+  const visit = (node) => {
+    const func = getExportedFunctionName(node);
+
+    if (func) {
+      const serverFunctionName = SERVER_FUNCTIONS.find((n) => func.name === n);
+
+      if (!serverFunctionName) {
         return;
       }
 
-      const start = node.body?.pos;
-      const end = node.body?.end;
-      const replacement = `{ throw new Error("${isServerFunction} is not available client side"); }`;
+      const start = func.body?.pos;
+      const end = func.body?.end;
+      const replacement = `{ throw new Error("${serverFunctionName} is not available client side"); }`;
 
       modifiedSource =
         modifiedSource.slice(0, start) +
@@ -66,7 +111,7 @@ const removeServerFunctionsPlugin: esbuild.Plugin = {
             : "js";
 
         const source = await fs.readFile(args.path, "utf8");
-        const modifiedCode = replaceLoaderFunction(source);
+        const modifiedCode = replaceFunctionBody(source);
 
         return {
           contents: modifiedCode,
