@@ -118,20 +118,21 @@ async function generateRouterCode(routes: RouteEntry[]) {
     })
     .join("\t\n");
 
-  let code = "";
-  code += 'import { createRouter } from "radix3";\n';
-  code += imports.join("\n");
-  code += `\n
+  const code = `
+    import { createRouter } from "radix3";
+    ${imports.join("\n")}
+
     interface Route {
       id: string,
       routePath: string
       component?: () => any,
       loader?: (...args: any[]) => any | Promise<any>,
     }
+
+    const router = createRouter<Route>({ routes: { ${routesMap} }});
+
+    export const matchRoute = (pathname: string) => router.lookup(pathname);
   `;
-  code += "\n\n";
-  code += `const router = createRouter<Route>({ routes: { ${routesMap} }})\n\n`;
-  code += `export const matchRoute = (pathname: string) => router.lookup(pathname)`;
 
   const formatted = await prettier.format(code, {
     filepath: GENERATED_FILE_PATH,
@@ -141,10 +142,8 @@ async function generateRouterCode(routes: RouteEntry[]) {
 }
 
 async function getRouteExports(routePath: string) {
-  // imports may fail if any module import fails
-  const mod = await import(`./${ROUTES_FOLDER_NAME}/${routePath}`).catch(
-    () => null
-  );
+  const importPath = `./${ROUTES_FOLDER_NAME}/${routePath}`;
+  const mod = await import(importPath).catch(() => null);
 
   if (!mod) {
     return null;
