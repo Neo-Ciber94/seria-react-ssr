@@ -2,6 +2,7 @@ import React, { useContext } from "react";
 import { createContext, useMemo } from "react";
 import { useUrl } from "../react/server";
 import { matchRoute } from "../../$routes";
+import NotFoundPage from "./404";
 
 export type Params = Record<string, string | undefined>;
 
@@ -17,13 +18,11 @@ const RouterContext = createContext<RouterContextProps>({
   searchParams: new URLSearchParams(),
 });
 
-const NotFoundComponent = () => <h1>Not Found</h1>;
-
 export function Router() {
   const { pathname, searchParams } = useUrl();
   const { Component, params } = useMemo(() => {
     const match = matchRoute(pathname);
-    const Component = match?.component ?? NotFoundComponent;
+    const Component = match?.component ?? NotFoundPage;
     const params = match?.params || {};
     return { Component, params };
   }, [pathname]);
