@@ -23,7 +23,7 @@ async function generateRoutes() {
     withFileTypes: true,
   });
 
-  // We add a dummy export because some routes throw due $routes.tsx `matchRoute` not being defined
+  // We wipe or recreate the $routes.ts to prevent import errors
   await fs.writeFile(
     GENERATED_FILE_PATH,
     `export const matchRoute = (pathname: string): any => {
