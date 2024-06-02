@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "npm run build:seria && concurrently npm:dev:*",
-    "dev:server": "tsx --watch src/entry.server.tsx --ignore ./src/routes/* --ignore ./src/generateRoutes.ts",
+    "dev:server": "tsx --watch src/entry.server.tsx --ignore ./src/routes/**/* --ignore ./src/generateRoutes.ts",
     "dev:client": "cross-env WATCH=true tsx esbuild.ts",
     "dev:generate-routes": "cross-env WATCH=true npm run generate-routes",
     "build:client": "tsx esbuild.ts",

@@ -1,9 +1,11 @@
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
+import ts from "typescript";
 import prettier from "prettier";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ROUTES_FOLDER_NAME = "routes";
 
 type FileRoute = {
   id: string;
@@ -12,7 +14,7 @@ type FileRoute = {
 };
 
 async function generateRoutes() {
-  const routesDir = path.join(__dirname, "routes");
+  const routesDir = path.join(__dirname, ROUTES_FOLDER_NAME);
   const files = await fs.readdir(routesDir, {
     recursive: true,
     withFileTypes: true,
@@ -26,10 +28,16 @@ async function generateRoutes() {
     }
 
     const filePath = path.join(file.parentPath, file.name);
+    const hasDefaultExport = await isDefaultExportComponent(filePath);
+    if (!hasDefaultExport) {
+      continue;
+    }
+
     const routePath = path.relative(routesDir, filePath);
     const componentName = generateComponentName(routePath);
     const routeId = routePath
       .replaceAll(path.sep, "/")
+      .replaceAll("$$", "**:")
       .replaceAll("$", ":")
       .replaceAll(/(.tsx|.jsx|.js)$/g, "")
       .replaceAll(/(index)$/g, "");
@@ -37,11 +45,14 @@ async function generateRoutes() {
     const id = `/${routeId}`;
     const segments = id.split("/").filter(Boolean);
     const isValidRoute = segments
+      .map((s) => s.replaceAll("**:", "$$"))
       .map((s) => s.replaceAll(":", "$"))
       .every(isValidRouteSegment);
 
     if (!isValidRoute) {
-      throw new Error(`Invalid route: '${path.join("routes", routePath)}'`);
+      throw new Error(
+        `Invalid route: '${path.join(ROUTES_FOLDER_NAME, routePath)}'`
+      );
     }
 
     routes.push({
@@ -53,7 +64,7 @@ async function generateRoutes() {
 
   const imports = routes.map((route) => {
     const importPath = path
-      .join("routes", route.routePath)
+      .join(ROUTES_FOLDER_NAME, route.routePath)
       .replaceAll(path.sep, "/")
       .replaceAll(/(.tsx|.jsx|.js)$/g, "");
 
@@ -80,6 +91,32 @@ async function generateRoutes() {
   });
 
   await fs.writeFile(generatedFilePath, formattedCode);
+}
+
+async function isDefaultExportComponent(filePath: string) {
+  const contents = await fs.readFile(filePath, "utf8");
+  const source = ts.createSourceFile(
+    filePath,
+    contents,
+    ts.ScriptTarget.ESNext
+  );
+
+  return new Promise<boolean>((resolve) => {
+    function visit(node: any) {
+      if (
+        ts.isFunctionDeclaration(node) &&
+        node.modifiers &&
+        node.modifiers.some((m) => m.kind === ts.SyntaxKind.ExportKeyword) &&
+        node.modifiers.some((m) => m.kind === ts.SyntaxKind.DefaultKeyword)
+      ) {
+        return resolve(true);
+      }
+
+      ts.forEachChild(node, visit);
+    }
+
+    visit(source);
+  });
 }
 
 function isValidRouteSegment(segment: string) {
@@ -118,7 +155,7 @@ async function main() {
   const isWatch = Boolean(process.env.WATCH);
 
   if (isWatch) {
-    const routesPath = path.join(__dirname, "routes");
+    const routesPath = path.join(__dirname, ROUTES_FOLDER_NAME);
     const changes = fs.watch(routesPath, { recursive: true });
     for await (const _ of changes) {
       try {
