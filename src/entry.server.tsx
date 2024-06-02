@@ -8,6 +8,7 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { PassThrough } from "stream";
 import { matchRoute } from "./$routes";
 import path from "path";
+import * as seria from "seria";
 
 const port = Number(process.env.PORT ?? 5000);
 const hostname = process.env.HOST ?? "localhost";
@@ -71,6 +72,8 @@ app.get("*", async (ctx) => {
 
 function createResponse(appContext: AppContext) {
   let didError = false;
+
+
 
   return new Promise<Response>((resolve, reject) => {
     const { pipe } = renderToPipeableStream(

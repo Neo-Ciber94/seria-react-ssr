@@ -526,10 +526,10 @@ scheduler@0.25.0-rc-6d3110b4d9-20240531:
   resolved "https://registry.yarnpkg.com/scheduler/-/scheduler-0.25.0-rc-6d3110b4d9-20240531.tgz#fb0f4f7af78426ce0b36922b468bc43de450e3c1"
   integrity sha512-DQp/XrKAuIFX153kxp1yVa8dLuGRcm/z8RAGLLEv97iEMrFlwyOXx+AIvPk3jLrX1Y68oDyNBfXh3Su7LDGcOg==
 
-seria@^0.2.0-beta1:
-  version "0.2.0-beta1"
-  resolved "https://registry.yarnpkg.com/seria/-/seria-0.2.0-beta1.tgz#695551ec9fb551b883f4e830f1a7fdf43c68bd29"
-  integrity sha512-fOgBjd39r3/Y23mG74z+MACpsBhED+YUdLazlr3E0o+8J6yWe9bKDqI9m/D5eTFCMwLLc9JtSPloFYXgatlRrQ==
+seria@^0.2.0-beta2:
+  version "0.2.0-beta2"
+  resolved "https://registry.yarnpkg.com/seria/-/seria-0.2.0-beta2.tgz#36f4f732abe71b5e320bea5780f9af1da3e941ef"
+  integrity sha512-TZMa00q4wW9m9PJvzSlWKIgSNXkuCss9/MwbgQk53NwgkR/0TaIIjRJukcvig7CBJHCyr19u1R0vCy5KvSjv3A==
 
 shebang-command@^2.0.0:
   version "2.0.0"

@@ -19,7 +19,7 @@
     "radix3": "^1.1.2",
     "react": "^19.0.0-rc-6d3110b4d9-20240531",
     "react-dom": "^19.0.0-rc-6d3110b4d9-20240531",
-    "seria": "^0.2.0-beta1"
+    "seria": "^0.2.0-beta2"
   },
   "devDependencies": {
     "@types/node": "^20.13.0",
