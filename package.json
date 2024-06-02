@@ -4,13 +4,14 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "dev": "npm run build:seria && concurrently npm:dev:*",
+    "dev": "npm run build:seria && concurrently npm:dev:* \"generate-routes:watch\"",
     "dev:server": "tsx --watch src/entry.server.tsx --ignore ./src/routes/**/* --ignore ./src/generateRoutes.ts",
     "dev:client": "cross-env WATCH=true tsx esbuild.ts",
-    "dev:generate-routes": "cross-env WATCH=true npm run generate-routes",
     "build:client": "tsx esbuild.ts",
-    "build:seria": "esbuild ./src/core/client/seria.ts --bundle --format=esm --minify --outfile=./dist/client/seria.js",
+    "build:server": "esbuild ./src/**/* --format=esm --splitting --bundle --platform=node --minify --outdir=./build/server",
+    "build:seria": "esbuild ./src/core/client/seria.ts --bundle --format=esm --minify --outfile=./build/client/seria.js",
     "typecheck": "tsc --noEmit",
+    "generate-routes:watch": "cross-env WATCH=true npm run generate-routes",
     "generate-routes": "tsx ./src/generateRoutes.ts"
   },
   "dependencies": {

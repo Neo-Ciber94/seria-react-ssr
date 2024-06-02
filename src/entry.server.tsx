@@ -15,7 +15,7 @@ const hostname = process.env.HOST ?? "localhost";
 const app = new Hono();
 
 app.use(
-  "/dist/client/*",
+  "/build/client/*",
   serveStatic({
     root: "./",
   })
@@ -85,7 +85,7 @@ function createResponse(appContext: AppContext) {
         isResumable={isResumable}
       />,
       {
-        bootstrapModules: ["/dist/client/bundle.js"],
+        bootstrapModules: ["/build/client/bundle.js"],
         onAllReady() {
           const body = new PassThrough();
           pipe(body);

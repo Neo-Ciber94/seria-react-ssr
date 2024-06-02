@@ -3,6 +3,8 @@ import fs from "fs/promises";
 import path from "path";
 import ts from "typescript";
 
+const isDev = process.env.NODE_ENV === "development";
+
 function replaceLoaderFunction(source: string) {
   const sourceFile = ts.createSourceFile(
     "tempFile.tsx",
@@ -71,7 +73,8 @@ const options: esbuild.BuildOptions = {
   entryPoints: ["./src/entry.client.tsx"],
   bundle: true,
   format: "esm",
-  outfile: "./dist/client/bundle.js",
+  minify: !isDev,
+  outfile: "./build/client/bundle.js",
   plugins: [removeServerFunctions],
 };
 
