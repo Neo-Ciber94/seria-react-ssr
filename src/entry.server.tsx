@@ -8,25 +8,21 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { PassThrough } from "stream";
 import { matchRoute } from "./$routes";
 import path from "path";
+import { fileURLToPath } from "url";
 import * as seria from "seria";
+
+const isDev = process.env.NODE_ENV !== "production";
+const CLIENT_DIR = isDev ? "/build/client" : "/client";
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const baseDir = path.resolve(__dirname, "..");
+const rootDir = path.relative(process.cwd(), baseDir) || "./";
 
 const port = Number(process.env.PORT ?? 5000);
 const hostname = process.env.HOST ?? "localhost";
 const app = new Hono();
 
-app.use(
-  "/build/client/*",
-  serveStatic({
-    root: "./",
-  })
-);
-
-app.use(
-  "/public/*",
-  serveStatic({
-    root: "./",
-  })
-);
+app.use(`${CLIENT_DIR}/*`, serveStatic({ root: rootDir }));
+app.use("/public/*", serveStatic({ root: "./" }));
 
 app.get("*", async (ctx) => {
   const request = ctx.req;
@@ -85,7 +81,7 @@ function createResponse(appContext: AppContext) {
         isResumable={isResumable}
       />,
       {
-        bootstrapModules: ["/build/client/bundle.js"],
+        bootstrapModules: [`${CLIENT_DIR}/bundle.js`],
         onAllReady() {
           const body = new PassThrough();
           pipe(body);

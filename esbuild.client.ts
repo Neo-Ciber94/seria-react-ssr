@@ -93,6 +93,7 @@ const options: esbuild.BuildOptions = {
   minify: !isDev,
   outfile: "./build/client/bundle.js",
   plugins: [removeServerFunctionsPlugin, ignoreServerFilesPlugin],
+  logLevel: "info",
 };
 
 if (process.env.WATCH) {
