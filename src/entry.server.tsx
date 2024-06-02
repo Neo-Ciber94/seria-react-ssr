@@ -72,12 +72,18 @@ app.get("*", async (ctx) => {
 
 function createResponse(appContext: AppContext) {
   let didError = false;
+  const { json, resumeStream } = seria.stringifyToResumableStream(
+    appContext.loaderData || {}
+  );
 
-
-
+  const isResumable = !!resumeStream;
   return new Promise<Response>((resolve, reject) => {
     const { pipe } = renderToPipeableStream(
-      <EntryServer appContext={appContext} />,
+      <EntryServer
+        appContext={appContext}
+        json={json}
+        isResumable={isResumable}
+      />,
       {
         bootstrapModules: ["/dist/client/bundle.js"],
         onAllReady() {
@@ -88,6 +94,20 @@ function createResponse(appContext: AppContext) {
             async start(controller) {
               for await (const chunk of body) {
                 controller.enqueue(chunk);
+              }
+
+              if (resumeStream) {
+                for await (const chunk of resumeStream) {
+                  const id = genId();
+                  controller.enqueue(
+                    `<script data-stream-resume="${id}">$seria_stream_writer.write(${JSON.stringify(chunk)})</script>`
+                  );
+                }
+
+                const id = genId();
+                controller.enqueue(
+                  `<script data-stream-resume="${id}">window.$seria_stream_writer.close()</script>`
+                );
               }
 
               controller.close();
@@ -113,6 +133,10 @@ function createResponse(appContext: AppContext) {
       }
     );
   });
+}
+
+function genId() {
+  return btoa(crypto.randomUUID()).replaceAll("=", "");
 }
 
 serve(

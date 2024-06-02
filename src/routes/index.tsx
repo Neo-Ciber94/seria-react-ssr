@@ -1,11 +1,43 @@
 import { useLoaderData } from "@/framework/react";
-import React from "react";
+import React, { useEffect, useState } from "react";
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export function loader() {
-  return { hello: "throw new Error('adios')" };
+  return {
+    text: "hello world",
+    number: Promise.resolve(23),
+    obj: delay(2000).then(() => ({ active: true })),
+  };
 }
 
 export default function HomePage() {
-  const data = useLoaderData<typeof loader>();
-  return <h1>Hello: {data.hello}</h1>;
+  const { number, obj, text } = useLoaderData<typeof loader>();
+  const pendingNumber = usePromise(number);
+  const pendingObj = usePromise(obj);
+
+  useEffect(() => {
+    number.then((x) => console.log(x));
+  }, [number]);
+
+  return (
+    <div>
+      <h1>{text}</h1>
+      <p>{pendingNumber.isPending ? "Loading..." : pendingNumber.value}</p>
+      <p>
+        {pendingObj.isPending ? "Loading..." : JSON.stringify(pendingObj.value)}
+      </p>
+    </div>
+  );
+}
+
+function usePromise<T>(promise: Promise<T>) {
+  const [isPending, setIsPending] = useState(true);
+  const [value, setValue] = useState<T>();
+
+  useEffect(() => {
+    promise.then((x) => setValue(x)).finally(() => setIsPending(false));
+  }, [promise]);
+
+  return { value, isPending };
 }
