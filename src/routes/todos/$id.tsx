@@ -2,11 +2,16 @@ import React from "react";
 import { Todo } from "../../lib/types";
 import { useLoaderData } from "../../core/react/server";
 import { LoaderFunctionArgs } from "../../core/server/loader";
+import { notFound } from "@/framework/server/http";
 
 export async function loader({ params }: LoaderFunctionArgs) {
   const response = await fetch(
     `https://jsonplaceholder.typicode.com/todos/${params.id}`
   );
+
+  if (!response.ok) {
+    throw notFound();
+  }
 
   const data: Todo = await response.json();
   return data;
