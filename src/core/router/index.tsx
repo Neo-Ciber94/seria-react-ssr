@@ -4,7 +4,7 @@ import { useUrl } from "../react/server";
 import { matchRoute } from "../../$routes";
 import NotFoundPage from "./404";
 
-export type Params = Record<string, string | undefined>;
+export type Params = Record<string, string | string[] | undefined>;
 
 type RouterContextProps = {
   params: Params;
