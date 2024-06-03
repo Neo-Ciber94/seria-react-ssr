@@ -2,7 +2,8 @@ import { invariant } from "../internal";
 import { Params } from "../router";
 
 export class LoaderContext {
-  #init: ResponseInit = {};
+  #status: number = 200;
+  #headers = new Headers();
 
   setStatusCode(statusCode: number) {
     invariant(
@@ -10,11 +11,16 @@ export class LoaderContext {
       "Invalid status code, expected value between 100-599"
     );
 
-    this.#init.status = statusCode;
+    this.#status = statusCode;
+  }
+
+  headers() {
+    return this.#headers;
   }
 
   getResponseInit(): ResponseInit {
-    return this.#init;
+    const headers = new Headers(this.#headers);
+    return { status: this.#status, headers };
   }
 }
 

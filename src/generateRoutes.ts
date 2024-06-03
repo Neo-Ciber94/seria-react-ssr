@@ -2,12 +2,13 @@ import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 import prettier from "prettier";
+import { glob } from "glob";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROUTES_FOLDER_NAME = "routes";
 const GENERATED_FILE_PATH = path.join(__dirname, "$routes.ts");
 
-type RouteEntry = {
+type RouteFile = {
   id: string;
   routePath: string;
   componentName: string;
@@ -15,23 +16,134 @@ type RouteEntry = {
   loader?: Function;
 };
 
+type ErrorFile = {
+  id: string;
+  routePath: string;
+  componentName: string;
+  component?: Function;
+};
+
 async function generateRoutes() {
   const routesDir = path.join(__dirname, ROUTES_FOLDER_NAME);
-
-  const files = await fs.readdir(routesDir, {
-    recursive: true,
-    withFileTypes: true,
-  });
 
   // We wipe or recreate the $routes.ts to prevent import errors
   await fs.writeFile(
     GENERATED_FILE_PATH,
     `export const matchRoute = (pathname: string): any => {
       throw new Error('Not implemented')
-    }`
+    }
+    
+    export const matchErrorRoute = (pathname: string): any => {
+      throw new Error('Not implemented')
+    }
+    `
   );
 
-  const routes: RouteEntry[] = [];
+  const [routes, errorRoutes] = await Promise.all([
+    getRoutes(routesDir),
+    getErrorRoutes(routesDir),
+  ]);
+
+  const code = await generateRouterCode(routes, errorRoutes);
+  await fs.writeFile(GENERATED_FILE_PATH, code);
+}
+
+async function generateRouterCode(
+  routes: RouteFile[],
+  errorRoutes: ErrorFile[]
+) {
+  const routeImports = routes.map((r, i) => {
+    const importPath = path
+      .join(ROUTES_FOLDER_NAME, r.routePath)
+      .replaceAll(path.sep, "/")
+      .replaceAll(/(.tsx|.jsx|.js)$/g, "");
+
+    const additionalImports: string[] = [];
+
+    if (r.loader) {
+      additionalImports.push(`loader as loader$${i + 1}`);
+    }
+
+    const routeImports = additionalImports
+      ? `,{ ${additionalImports.join(",")} }`
+      : "";
+
+    return `import ${r.componentName} ${routeImports} from "./${importPath}";`;
+  });
+
+  const errorRouteImports = errorRoutes.map((r, i) => {
+    const importPath = path
+      .join(ROUTES_FOLDER_NAME, r.routePath)
+      .replaceAll(path.sep, "/")
+      .replaceAll(/(.tsx|.jsx|.js)$/g, "");
+
+    return `import ${r.componentName} from "./${importPath}";`;
+  });
+
+  const routesMap = routes
+    .map((r, i) => {
+      const loader = r.loader ? `loader$${i + 1}` : "undefined";
+
+      return `"${r.id}": { 
+        id: "${r.id}", 
+        component: ${r.componentName}, 
+        routePath: ${JSON.stringify(r.routePath)},
+        loader: ${loader}
+      },`;
+    })
+    .join("\t\n");
+
+  const errorRoutesMap = errorRoutes
+    .map((r) => {
+      return `"${r.id}": { 
+        id: "${r.id}", 
+        component: ${r.componentName}, 
+        routePath: ${JSON.stringify(r.routePath)},
+      },`;
+    })
+    .join("\t\n");
+
+  const code = `
+    import { createRouter } from "radix3";
+    ${routeImports.join("\n")}
+    ${errorRouteImports.join("\n")}
+
+    interface Route {
+      id: string,
+      routePath: string
+      component?: () => any,
+      loader?: (...args: any[]) => any | Promise<any>,
+    }
+
+    interface ErrorRoute {
+      id: string;
+      routePath: string;
+      component: () => any;
+    }
+
+    const router = createRouter<Route>({ routes: { ${routesMap} }});
+
+    const errorRouter = createRouter<ErrorRoute>({ routes: { ${errorRoutesMap} }});
+
+    export const matchRoute = (pathname: string) => router.lookup(pathname);
+
+    export const matchErrorRoute = (pathname: string) => errorRouter.lookup(pathname);
+  `;
+
+  const formatted = await prettier.format(code, {
+    filepath: GENERATED_FILE_PATH,
+  });
+
+  return formatted;
+}
+
+async function getRoutes(routesDir: string) {
+  const routes: RouteFile[] = [];
+
+  const files = await fs.readdir(routesDir, {
+    recursive: true,
+    withFileTypes: true,
+  });
 
   for (const file of files) {
     if (!file.isFile()) {
@@ -81,64 +193,54 @@ async function generateRoutes() {
     });
   }
 
-  const code = await generateRouterCode(routes);
-  await fs.writeFile(GENERATED_FILE_PATH, code);
+  return routes;
 }
 
-async function generateRouterCode(routes: RouteEntry[]) {
-  const imports = routes.map((r, i) => {
+async function getErrorRoutes(routesDir: string) {
+  const errorRoutes: ErrorFile[] = [];
+  const errorFiles = await glob([`${routesDir}/**/_error.{js,jsx,tsx}`], {
+    dotRelative: true,
+    posix: true,
+  });
+
+  for (const file of errorFiles) {
+    const routePath = path.relative(routesDir, file);
     const importPath = path
-      .join(ROUTES_FOLDER_NAME, r.routePath)
+      .join(ROUTES_FOLDER_NAME, routePath)
+      .replaceAll(path.sep, "/");
+
+    const mod = await import(`./${importPath}`).catch(() => null);
+    if (mod == null) {
+      continue;
+    }
+
+    const { default: component } = mod;
+
+    if (component == null) {
+      continue;
+    }
+
+    if (typeof component !== "function") {
+      throw new Error(
+        `Error page do not default export a component: ${routePath}`
+      );
+    }
+
+    const componentName = generateComponentName(routePath).replaceAll("_", "$");
+    const routeId = routePath
       .replaceAll(path.sep, "/")
-      .replaceAll(/(.tsx|.jsx|.js)$/g, "");
+      .replace(/_error\.(js|jsx|tsx)$/g, "**");
 
-    const additionalImports: string[] = [];
+    const id = `/${routeId}`;
+    errorRoutes.push({
+      id,
+      routePath,
+      componentName,
+      component,
+    });
+  }
 
-    if (r.loader) {
-      additionalImports.push(`loader as loader$${i + 1}`);
-    }
-
-    const routeImports = additionalImports
-      ? `,{ ${additionalImports.join(",")} }`
-      : "";
-
-    return `import ${r.componentName} ${routeImports} from "./${importPath}";`;
-  });
-
-  const routesMap = routes
-    .map((r, i) => {
-      const loader = r.loader ? `loader$${i + 1}` : "undefined";
-
-      return `"${r.id}": { 
-        id: "${r.id}", 
-        component: ${r.componentName}, 
-        routePath: ${JSON.stringify(r.routePath)},
-        loader: ${loader}
-      },`;
-    })
-    .join("\t\n");
-
-  const code = `
-    import { createRouter } from "radix3";
-    ${imports.join("\n")}
-
-    interface Route {
-      id: string,
-      routePath: string
-      component?: () => any,
-      loader?: (...args: any[]) => any | Promise<any>,
-    }
-
-    const router = createRouter<Route>({ routes: { ${routesMap} }});
-
-    export const matchRoute = (pathname: string) => router.lookup(pathname);
-  `;
-
-  const formatted = await prettier.format(code, {
-    filepath: GENERATED_FILE_PATH,
-  });
-
-  return formatted;
+  return errorRoutes;
 }
 
 async function getRouteExports(routePath: string) {
@@ -207,15 +309,6 @@ function generateComponentName(filePath: string) {
   }
 
   return parts.map(capizalize).join("") + "Page";
-}
-
-async function exists(p: string) {
-  try {
-    fs.stat(p);
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 async function main() {

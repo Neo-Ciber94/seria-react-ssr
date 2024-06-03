@@ -7,6 +7,10 @@ declare global {
     loaderData: any;
     pathname: string;
     url: string;
+    error?: {
+      statusCode: number;
+      message?: string;
+    };
   };
 }
 
@@ -30,6 +34,9 @@ export function EntryServer({
   isResumable,
 }: EntryServerProps) {
   const { pathname, url } = appContext;
+  const appError = appContext.error
+    ? `error: ${JSON.stringify(appContext.error)}`
+    : "";
 
   return (
     <ServerContextProvider appContext={appContext}>
@@ -46,7 +53,8 @@ export function EntryServer({
           window.APP_CONTEXT = {
             loaderData,
             pathname: ${JSON.stringify(pathname)},
-            url: ${JSON.stringify(url)}
+            url: ${JSON.stringify(url)},
+            ${appError}
           }`,
           }}
         />
@@ -55,11 +63,12 @@ export function EntryServer({
           id="app-context"
           dangerouslySetInnerHTML={{
             __html: `
-        window.APP_CONTEXT = {
-          loaderData: $seria_parse(${JSON.stringify(json)}),
-          pathname: ${JSON.stringify(pathname)},
-          url: ${JSON.stringify(url)}
-        }`,
+            window.APP_CONTEXT = {
+              loaderData: $seria_parse(${JSON.stringify(json)}),
+              pathname: ${JSON.stringify(pathname)},
+              url: ${JSON.stringify(url)},
+              ${appError}
+            }`,
           }}
         />
       )}

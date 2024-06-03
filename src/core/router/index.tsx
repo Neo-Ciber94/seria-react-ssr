@@ -1,8 +1,8 @@
 import React, { useContext } from "react";
 import { createContext, useMemo } from "react";
-import { useUrl } from "../react/server";
-import { matchRoute } from "../../$routes";
-import NotFoundPage from "./404";
+import { useHasError, usePageError, useUrl } from "../react/server";
+import { matchErrorRoute, matchRoute } from "../../$routes";
+import { ErrorPage, NotFoundPage } from "./error";
 
 export type Params = Record<string, string | string[] | undefined>;
 
@@ -27,11 +27,25 @@ export function Router() {
     return { Component, params };
   }, [pathname]);
 
+  const hasError = useHasError();
+
   return (
     <RouterContext.Provider value={{ params, pathname, searchParams }}>
-      <Component />
+      {hasError ? <CatchError /> : <Component />}
     </RouterContext.Provider>
   );
+}
+
+function CatchError() {
+  const error = usePageError();
+  const pathname = usePathname();
+  const { ErrorComponent } = useMemo(() => {
+    const match = matchErrorRoute(pathname);
+    const ErrorComponent = match?.component ?? ErrorPage;
+    return { ErrorComponent };
+  }, [pathname, error]);
+
+  return <ErrorComponent />;
 }
 
 export function useParams() {

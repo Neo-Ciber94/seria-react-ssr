@@ -6,6 +6,10 @@ export type AppContext = {
   loaderData: any;
   pathname: string;
   url: string;
+  error?: {
+    statusCode: number;
+    message?: string;
+  };
 };
 
 type ServerContextProps = {
@@ -39,4 +43,24 @@ export function useLoaderData<L extends LoaderFunction<unknown>>() {
 export function useUrl() {
   const url = useContext(ServerContext).appContext.url;
   return useMemo(() => new URL(url, "http://localhost"), [url]);
+}
+
+type UsePageError = {
+  statusCode: number;
+  message?: string;
+};
+
+export function usePageError(): UsePageError {
+  const { error } = useContext(ServerContext).appContext;
+
+  if (error == null) {
+    throw new Error("'usePageError' can only be called on '_error' pages");
+  }
+
+  return error;
+}
+
+export function useHasError() {
+  const { error } = useContext(ServerContext).appContext;
+  return error != null;
 }

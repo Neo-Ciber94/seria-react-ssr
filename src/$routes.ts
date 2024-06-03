@@ -1,8 +1,8 @@
 import { createRouter } from "radix3";
-import $$404Page, { loader as loader$1 } from "./routes/$$404";
-import IndexPage, { loader as loader$2 } from "./routes/index";
-import TodosPage, { loader as loader$3 } from "./routes/todos";
-import Todos$idPage, { loader as loader$4 } from "./routes/todos/$id";
+import IndexPage, { loader as loader$1 } from "./routes/index";
+import TodosPage, { loader as loader$2 } from "./routes/todos";
+import Todos$idPage, { loader as loader$3 } from "./routes/todos/$id";
+import $errorPage from "./routes/_error";
 
 interface Route {
   id: string;
@@ -11,33 +11,46 @@ interface Route {
   loader?: (...args: any[]) => any | Promise<any>;
 }
 
+interface ErrorRoute {
+  id: string;
+  routePath: string;
+  component: () => any;
+}
+
 const router = createRouter<Route>({
   routes: {
-    "/**:404": {
-      id: "/**:404",
-      component: $$404Page,
-      routePath: "$$404.tsx",
-      loader: loader$1,
-    },
     "/": {
       id: "/",
       component: IndexPage,
       routePath: "index.tsx",
-      loader: loader$2,
+      loader: loader$1,
     },
     "/todos": {
       id: "/todos",
       component: TodosPage,
       routePath: "todos.tsx",
-      loader: loader$3,
+      loader: loader$2,
     },
     "/todos/:id": {
       id: "/todos/:id",
       component: Todos$idPage,
       routePath: "todos\\$id.tsx",
-      loader: loader$4,
+      loader: loader$3,
+    },
+  },
+});
+
+const errorRouter = createRouter<ErrorRoute>({
+  routes: {
+    "/**": {
+      id: "/**",
+      component: $errorPage,
+      routePath: "_error.tsx",
     },
   },
 });
 
 export const matchRoute = (pathname: string) => router.lookup(pathname);
+
+export const matchErrorRoute = (pathname: string) =>
+  errorRouter.lookup(pathname);

@@ -46,6 +46,10 @@ class ErrorBoundary extends React.Component<
   }
 
   render() {
+    if (this.state.hasError) {
+      return <h1>Internal Error</h1>;
+    }
+
     return this.props.children;
   }
 }
