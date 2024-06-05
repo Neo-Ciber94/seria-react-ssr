@@ -28,35 +28,19 @@ function trimServerFunctionBody(source: string) {
       return { name: node.name.escapedText, body: node.body };
     }
 
-    // export const <ident> = () => {}
+    // export const <ident> = <function declaration>
     if (
       ts.isVariableStatement(node) &&
       node.modifiers &&
       node.modifiers.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)
     ) {
       const declaration = node.declarationList.declarations[0];
-      if (
+      const isFunction =
         declaration.initializer &&
-        ts.isArrowFunction(declaration.initializer)
-      ) {
-        return {
-          name: (declaration.name as ts.Identifier).escapedText,
-          body: declaration.initializer.body,
-        };
-      }
-    }
+        (ts.isArrowFunction(declaration.initializer) ||
+          ts.isFunctionExpression(declaration.initializer));
 
-    // export const <ident> =function() {}
-    if (
-      ts.isVariableStatement(node) &&
-      node.modifiers &&
-      node.modifiers.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)
-    ) {
-      const declaration = node.declarationList.declarations[0];
-      if (
-        declaration.initializer &&
-        ts.isFunctionExpression(declaration.initializer)
-      ) {
+      if (isFunction) {
         return {
           name: (declaration.name as ts.Identifier).escapedText,
           body: declaration.initializer.body,
