@@ -1,3 +1,9 @@
+import {
+  HEADER_ROUTE_ERROR,
+  HEADER_ROUTE_NOT_FOUND,
+  HEADER_ROUTE_REDIRECT,
+} from "../constants";
+
 type RedirectStatusCode = 301 | 303 | 307 | 308;
 
 /**
@@ -10,7 +16,7 @@ export function redirect(to: string, status: RedirectStatusCode = 303) {
     status,
     headers: {
       location: to,
-      "x-route-redirect": to,
+      [HEADER_ROUTE_REDIRECT]: to,
     },
   });
 }
@@ -23,7 +29,8 @@ export function notFound(message?: string) {
   return new Response(message, {
     status: 404,
     headers: {
-      "x-route-not-found": "1",
+      [HEADER_ROUTE_ERROR]: "1",
+      [HEADER_ROUTE_NOT_FOUND]: "1",
       "content-type": "text/plain",
     },
   });
@@ -37,7 +44,7 @@ export function error(message: string, status: number = 400) {
   return new Response(message, {
     status,
     headers: {
-      "x-route-error": "1",
+      [HEADER_ROUTE_ERROR]: "1",
       "content-type": "text/plain",
     },
   });

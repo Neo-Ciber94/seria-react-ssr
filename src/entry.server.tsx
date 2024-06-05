@@ -11,7 +11,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import * as seria from "seria";
 import { LoaderContext, LoaderFunctionArgs } from "./core/server/loader";
-
+import { HEADER_LOADER_DATA } from "./core/constants";
+import { cors } from "hono/cors";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const IS_DEV = process.env.NODE_ENV !== "production";
@@ -36,14 +37,56 @@ app.get("*", async (ctx) => {
   const request = ctx.req;
   const pathname = ctx.req.path;
   const url = request.url;
+  const loaderContext = new LoaderContext();
   const match = matchRoute(pathname);
+
+  if (ctx.req.header(HEADER_LOADER_DATA)) {
+    if (match == null) {
+      return new Response(null, {
+        status: 404,
+      });
+    }
+
+    const { params = {}, ...route } = match;
+
+    try {
+      const loaderData: any = await getLoaderData({
+        loader: route.loader,
+        context: loaderContext,
+        request: request.raw,
+        params,
+      });
+
+      if (loaderData instanceof Response) {
+        return loaderData;
+      }
+
+      const appContext: AppContext = {
+        loaderData,
+        pathname,
+        url,
+      };
+
+      const stream = seria.stringifyToStream(appContext);
+      return new Response(stream, {
+        headers: {
+          "content-type": "application/json",
+          "x-seria-stream": "1",
+        },
+      });
+    } catch (err) {
+      console.error(err);
+      return new Response(null, {
+        status: 500,
+      });
+    }
+  }
 
   if (match == null) {
     return createPageErrorResponse({ pathname, url, status: 404 });
   }
 
   const { params = {}, ...route } = match;
-  const loaderContext = new LoaderContext();
 
   try {
     const loaderData: any = await getLoaderData({

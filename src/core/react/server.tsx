@@ -1,6 +1,8 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { createContext, PropsWithChildren, useContext } from "react";
 import { LoaderFunction } from "../server/loader";
+import { HEADER_LOADER_DATA } from "../constants";
+import * as seria from "seria";
 
 export type AppContext = {
   loaderData: any;
@@ -14,9 +16,11 @@ export type AppContext = {
 
 type ServerContextProps = {
   appContext: AppContext;
+  setAppContext: (appContext: AppContext) => void;
 };
 
 const ServerContext = createContext<ServerContextProps>({
+  setAppContext: () => {},
   appContext: {
     loaderData: undefined,
     url: "",
@@ -24,13 +28,17 @@ const ServerContext = createContext<ServerContextProps>({
   },
 });
 
-type ServerContextProviderProps = PropsWithChildren<ServerContextProps>;
+type ServerContextProviderProps = PropsWithChildren<{
+  appContext: AppContext;
+}>;
 
 export function ServerContextProvider(props: ServerContextProviderProps) {
-  const { children, ...rest } = props;
+  const [appContext, setAppContext] = useState<AppContext>(props.appContext);
 
   return (
-    <ServerContext.Provider value={rest}>{children}</ServerContext.Provider>
+    <ServerContext.Provider value={{ appContext, setAppContext }}>
+      {props.children}
+    </ServerContext.Provider>
   );
 }
 
@@ -63,4 +71,46 @@ export function usePageError(): UsePageError {
 export function useHasError() {
   const { error } = useContext(ServerContext).appContext;
   return error != null;
+}
+
+type NavigateOptions = {
+  replace: boolean;
+};
+
+export function useNavigation() {
+  const { setAppContext } = useContext(ServerContext);
+  const navigate = useCallback(
+    async (pathname: string, options?: NavigateOptions) => {
+      const { replace = false } = options || {};
+      const response = await fetch(pathname, {
+        headers: {
+          [HEADER_LOADER_DATA]: "1",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Loader data response error");
+      }
+
+      if (response.headers.has("x-seria-stream")) {
+        if (!response.body) {
+          throw new Error("Response body was empty");
+        }
+
+        const stream = response.body.pipeThrough(new TextDecoderStream());
+        const loaderData = await seria.parseFromStream(stream);
+        setAppContext({
+          loaderData,
+          pathname,
+          url: "?",
+          error: undefined,
+        });
+      } else {
+        // nothing?
+      }
+    },
+    []
+  );
+
+  return navigate;
 }
