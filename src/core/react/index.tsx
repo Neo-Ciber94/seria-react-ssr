@@ -171,6 +171,10 @@ export function useNavigation() {
   const { setAppContext } = useContext(ServerContext);
   const [navigationError, setNavigationError] = useState<Error>();
 
+  if (navigationError) {
+    throw navigationError;
+  }
+
   const navigate = useCallback(
     async (pathname: string, options?: NavigateOptions) => {
       const { replace = false } = options || {};
@@ -224,15 +228,6 @@ export function useNavigation() {
       window.removeEventListener("popstate", handlePopState);
     };
   }, []);
-
-  useEffect(() => {
-    if (!navigationError) {
-      return;
-    }
-
-    setNavigationError(undefined);
-    throw navigationError;
-  }, [navigationError]);
 
   return navigate;
 }
