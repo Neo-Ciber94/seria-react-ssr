@@ -42,13 +42,6 @@ type ServerContextProviderProps = PropsWithChildren<{
 export function ServerContextProvider(props: ServerContextProviderProps) {
   const [appContext, setAppContext] = useState<AppContext>(props.appContext);
 
-  // We set the initial state on page load
-  // useEffect(() => {
-  //   if (!history.state) {
-  //     history.replaceState(props.appContext, "", location.href);
-  //   }
-  // }, []);
-
   return (
     <ServerContext.Provider value={{ appContext, setAppContext }}>
       {props.children}
@@ -119,7 +112,8 @@ async function fetchLoaderData(url: string) {
 }
 
 type NavigateOptions = {
-  replace: boolean;
+  replace?: boolean;
+  updateHistory?: boolean;
 };
 
 export function useNavigation() {
@@ -131,20 +125,22 @@ export function useNavigation() {
   }
 
   const navigate = useCallback(
-    async (pathname: string, options?: NavigateOptions) => {
-      const { replace = false } = options || {};
+    async (url: string, options?: NavigateOptions) => {
+      const { replace = false, updateHistory = true } = options || {};
 
       try {
-        const appCtx = await fetchLoaderData(pathname);
+        const appCtx = await fetchLoaderData(url);
 
         if (!appCtx) {
           return;
         }
 
-        if (replace) {
-          history.replaceState(appCtx, "", appCtx.url);
-        } else {
-          history.pushState(appCtx, "", appCtx.url);
+        if (updateHistory) {
+          if (replace) {
+            history.replaceState({}, "", appCtx.url);
+          } else {
+            history.pushState({}, "", appCtx.url);
+          }
         }
 
         setAppContext(appCtx);
@@ -158,23 +154,10 @@ export function useNavigation() {
   );
 
   useEffect(() => {
-    const handlePopState = async (event: PopStateEvent) => {
-      try {
-        const appCtx = event.state as AppContext;
-        setAppContext(appCtx);
-      } catch {
-        // If it fails, we fetch again the loader data
-        const search = location.search
-          ? `?${location.search}`
-          : location.search;
-
-        const url = `${location.pathname}${search}`;
-        const appCtx = await fetchLoaderData(url);
-
-        if (appCtx) {
-          setAppContext(appCtx);
-        }
-      }
+    const handlePopState = async (_event: PopStateEvent) => {
+      const search = location.search ? `?${location.search}` : location.search;
+      const url = `${location.pathname}${search}`;
+      await navigate(url, { updateHistory: false });
     };
 
     window.addEventListener("popstate", handlePopState);

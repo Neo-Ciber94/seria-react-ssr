@@ -40,7 +40,7 @@ async function generateRoutes() {
   );
 
   const [routes, errorRoutes] = await Promise.all([
-    getRoutes(routesDir),
+    getFileRoutes(routesDir),
     getErrorRoutes(routesDir),
   ]);
 
@@ -137,7 +137,7 @@ async function generateRouterCode(
   return formatted;
 }
 
-async function getRoutes(routesDir: string) {
+async function getFileRoutes(routesDir: string) {
   const routes: RouteFile[] = [];
 
   const files = await fs.readdir(routesDir, {
