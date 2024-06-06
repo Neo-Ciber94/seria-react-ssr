@@ -25,25 +25,28 @@ function trimServerFunctionBody(source: string) {
       node.modifiers &&
       node.modifiers.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)
     ) {
-      return { name: node.name.escapedText, body: node.body };
+      return {
+        name: node.name.escapedText,
+        body: node.body,
+        isBody: true,
+      };
     }
 
-    // export const <ident> = <function declaration>
+    // export const <ident> = <declaration>
     if (
       ts.isVariableStatement(node) &&
       node.modifiers &&
       node.modifiers.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)
     ) {
       const declaration = node.declarationList.declarations[0];
-      const isFunction =
-        declaration.initializer &&
-        (ts.isArrowFunction(declaration.initializer) ||
-          ts.isFunctionExpression(declaration.initializer));
-
-      if (isFunction) {
+      if (declaration.initializer) {
         return {
+          isBody: false,
           name: (declaration.name as ts.Identifier).escapedText,
-          body: declaration.initializer.body,
+          body: {
+            pos: declaration.initializer.pos,
+            end: declaration.initializer.end,
+          },
         };
       }
     }
@@ -61,9 +64,10 @@ function trimServerFunctionBody(source: string) {
         return;
       }
 
+      const throwError = `throw new Error("${serverFunctionName} is not available client side");`;
+      const replacement = func.isBody ? throwError : `() => { ${throwError} }`;
       const start = func.body?.pos;
       const end = func.body?.end;
-      const replacement = `{ throw new Error("${serverFunctionName} is not available client side"); }`;
 
       modifiedSource =
         modifiedSource.slice(0, start) +
