@@ -22,30 +22,25 @@ const RouterContext = createContext<RouterContextProps>({
 
 export function Router() {
   const { pathname, searchParams } = useUrl();
-  const page = useMemo(() => {
-    const match = matchRoute(pathname);
-    const Component = match?.component ?? NotFoundPage;
-    const params = match?.params || {};
-    return { Component, params };
-  }, [pathname]);
+  const { params, component: Component = NotFoundPage } = useMatch();
 
   const appError = useError();
   const error = useMemo(() => {
     return appError
-      ? new HttpError(appError.statusCode, appError.message ?? "Internal Error")
+      ? new HttpError(appError.status, appError.message ?? "Internal Error")
       : undefined;
   }, [appError]);
 
   return (
     <RouterContext.Provider
       value={{
-        params: page.params,
+        params,
         pathname,
         searchParams,
       }}
     >
       <ErrorBoundary error={error} fallback={() => <ErrorFallback />}>
-        <page.Component />
+        <Component />
       </ErrorBoundary>
     </RouterContext.Provider>
   );
@@ -59,6 +54,15 @@ function ErrorFallback() {
   }, [pathname]);
 
   return <ErrorComponent />;
+}
+
+function useMatch() {
+  const { pathname } = useUrl();
+  return useMemo(() => {
+    const match = matchRoute(pathname);
+    const params = match?.params || {};
+    return { params, ...match };
+  }, [pathname]);
 }
 
 export function useParams<T extends Params = Params>() {

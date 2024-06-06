@@ -63,20 +63,20 @@ export function useErrorBoundary() {
 }
 
 type UsePageError = {
-  statusCode: number;
+  status: number;
   message?: string;
 };
 
 function getPageError(error: unknown) {
   if (error instanceof HttpError) {
     return {
-      statusCode: error.status,
+      status: error.status,
       message: error.message,
     };
   }
 
   const message = error instanceof Error ? error.message : "Internal Error";
-  return { statusCode: 500, message };
+  return { status: 500, message };
 }
 
 export function usePageError(): UsePageError {

@@ -16,7 +16,7 @@ export type AppContext = {
   pathname: string;
   url: string;
   error?: {
-    statusCode: number;
+    status: number;
     message?: string;
   };
 };

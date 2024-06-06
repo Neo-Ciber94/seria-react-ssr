@@ -312,7 +312,7 @@ function createPageErrorResponse(args: CreateErrorPageArgs) {
     pathname,
     url,
     error: {
-      statusCode: status,
+      status,
       message,
     },
   };

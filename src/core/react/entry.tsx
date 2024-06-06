@@ -8,7 +8,7 @@ declare global {
     pathname: string;
     url: string;
     error?: {
-      statusCode: number;
+      status: number;
       message?: string;
     };
   };
