@@ -201,7 +201,7 @@ async function createLoaderResponse(
       ...responseInit,
       headers: {
         ...responseInit.headers,
-        "content-type": "application/json",
+        "content-type": "application/json; charset=utf-8",
         [HEADER_SERIA_STREAM]: "1",
       },
     });

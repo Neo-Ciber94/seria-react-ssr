@@ -1,12 +1,16 @@
 import { EntryClient, EntryServer } from "./entry";
 export { EntryClient, EntryServer };
-
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { createContext, PropsWithChildren, useContext } from "react";
 import { LoaderFunction } from "../server/loader";
-import { HEADER_LOADER_DATA, HEADER_SERIA_STREAM } from "../constants";
+import {
+  HEADER_LOADER_DATA,
+  HEADER_ROUTE_ERROR,
+  HEADER_SERIA_STREAM,
+} from "../constants";
 import * as seria from "seria";
-import { type TypedJson } from "../server/http";
+import { HttpError, type TypedJson } from "../server/http";
+import { useErrorBoundary } from "./error";
 
 export type AppContext = {
   loaderData: any;
@@ -20,15 +24,15 @@ export type AppContext = {
 
 type ServerContextProps = {
   appContext: AppContext;
-  setAppContext: (appContext: AppContext) => void;
+  setAppContext: (appContext: React.SetStateAction<AppContext>) => void;
 };
 
 const ServerContext = createContext<ServerContextProps>({
   setAppContext: () => {},
   appContext: {
     loaderData: undefined,
-    url: "",
     pathname: "",
+    url: "",
   },
 });
 
@@ -42,8 +46,7 @@ export function ServerContextProvider(props: ServerContextProviderProps) {
   // We set the initial state on page load
   useEffect(() => {
     if (!history.state) {
-      console.log("SET?");
-      history.replaceState(appContext, "", location.href);
+      history.replaceState(props.appContext, "", location.href);
     }
   }, []);
 
@@ -82,14 +85,42 @@ type UsePageError = {
   message?: string;
 };
 
-export function usePageError(): UsePageError {
-  const { error } = useContext(ServerContext).appContext;
+function getPageError(error: unknown) {
+  if (error instanceof HttpError) {
+    return {
+      statusCode: error.status,
+      message: error.message,
+    };
+  }
 
-  if (error == null) {
+  const message = error instanceof Error ? error.message : "Internal Error";
+  return { statusCode: 500, message };
+}
+
+export function usePageError(): UsePageError {
+  const serverContext = useContext(ServerContext);
+  const serverError = serverContext.appContext.error;
+  const { error } = useErrorBoundary();
+
+  // If an error ocurred in a boundary, we update our appContext error
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+
+    const pageError = getPageError(error);
+    serverContext.setAppContext((ctx) => ({ ...ctx, error: pageError }));
+  }, [error]);
+
+  if (error) {
+    return getPageError(error);
+  }
+
+  if (serverError == null) {
     throw new Error("'usePageError' can only be called on '_error' pages");
   }
 
-  return error;
+  return serverError;
 }
 
 export function useHasError() {
@@ -99,13 +130,25 @@ export function useHasError() {
 
 async function fetchLoaderData(url: string) {
   const response = await fetch(url, {
+    redirect: "manual",
     headers: {
       [HEADER_LOADER_DATA]: "1",
     },
   });
 
+  if (response.redirected) {
+    throw new Error("Redirection not implemented");
+  }
+
   if (!response.ok) {
-    // TODO: Parse error from the server
+    if (
+      response.headers.has(HEADER_ROUTE_ERROR) &&
+      response.headers.get("content-type") === "text/plain"
+    ) {
+      const message = await response.text();
+      throw new HttpError(response.status, message);
+    }
+
     throw new Error("Navigation error");
   }
 
@@ -115,8 +158,8 @@ async function fetchLoaderData(url: string) {
     }
 
     const stream = response.body.pipeThrough(new TextDecoderStream());
-    const context = (await seria.parseFromStream(stream)) as AppContext;
-    return context;
+    const context = await seria.parseFromStream(stream);
+    return context as AppContext;
   }
 }
 
@@ -126,23 +169,31 @@ type NavigateOptions = {
 
 export function useNavigation() {
   const { setAppContext } = useContext(ServerContext);
+  const [navigationError, setNavigationError] = useState<Error>();
 
   const navigate = useCallback(
     async (pathname: string, options?: NavigateOptions) => {
       const { replace = false } = options || {};
-      const appCtx = await fetchLoaderData(pathname);
 
-      if (!appCtx) {
-        return;
+      try {
+        const appCtx = await fetchLoaderData(pathname);
+
+        if (!appCtx) {
+          return;
+        }
+
+        if (replace) {
+          history.replaceState(appCtx, "", appCtx.url);
+        } else {
+          history.pushState(appCtx, "", appCtx.url);
+        }
+
+        setAppContext(appCtx);
+      } catch (err) {
+        if (err instanceof Error) {
+          setNavigationError(err);
+        }
       }
-
-      if (replace) {
-        history.replaceState(appCtx, "", appCtx.url);
-      } else {
-        history.pushState(appCtx, "", appCtx.url);
-      }
-
-      setAppContext(appCtx);
     },
     []
   );
@@ -173,6 +224,15 @@ export function useNavigation() {
       window.removeEventListener("popstate", handlePopState);
     };
   }, []);
+
+  useEffect(() => {
+    if (!navigationError) {
+      return;
+    }
+
+    setNavigationError(undefined);
+    throw navigationError;
+  }, [navigationError]);
 
   return navigate;
 }

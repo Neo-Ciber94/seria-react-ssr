@@ -1,4 +1,4 @@
-import { usePageError } from "@/framework/react/server";
+import { usePageError } from "@/framework/react";
 import React from "react";
 
 export default function ErrorPage() {

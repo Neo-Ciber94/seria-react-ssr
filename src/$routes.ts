@@ -2,6 +2,7 @@ import { createRouter } from "radix3";
 import IndexPage, { loader as loader$1 } from "./routes/index";
 import TodosPage, { loader as loader$2 } from "./routes/todos";
 import Todos$idPage, { loader as loader$3 } from "./routes/todos/$id";
+import $errorPage from "./routes/_error";
 
 interface Route {
   id: string;
@@ -39,7 +40,15 @@ const router = createRouter<Route>({
   },
 });
 
-const errorRouter = createRouter<ErrorRoute>({ routes: {} });
+const errorRouter = createRouter<ErrorRoute>({
+  routes: {
+    "/**": {
+      id: "/**",
+      component: $errorPage,
+      routePath: "_error.tsx",
+    },
+  },
+});
 
 export const matchRoute = (pathname: string) => router.lookup(pathname);
 

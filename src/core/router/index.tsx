@@ -3,6 +3,7 @@ import { createContext, useMemo } from "react";
 import { useHasError, usePageError, useUrl } from "../react";
 import { matchErrorRoute, matchRoute } from "../../$routes";
 import { ErrorPage, NotFoundPage } from "./error";
+import { ErrorBoundary } from "../react/error";
 
 export type Params = Record<string, string | string[] | undefined>;
 
@@ -37,7 +38,15 @@ export function Router() {
         searchParams,
       }}
     >
-      {hasError ? <CatchError /> : <page.Component />}
+      <ErrorBoundary
+        fallback={() => {
+          const match = matchErrorRoute(pathname);
+          const ErrorFallback = match?.component ?? ErrorPage;
+          return <ErrorFallback />;
+        }}
+      >
+        {hasError ? <CatchError /> : <page.Component />}
+      </ErrorBoundary>
     </RouterContext.Provider>
   );
 }

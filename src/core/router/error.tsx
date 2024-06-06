@@ -2,7 +2,6 @@ import React from "react";
 import { usePageError } from "../react";
 
 export function NotFoundPage() {
-  const error = usePageError();
   return (
     <div>
       <h1>Not Found</h1>
