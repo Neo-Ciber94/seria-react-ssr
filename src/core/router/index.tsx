@@ -41,17 +41,17 @@ export function Router() {
       <ErrorBoundary
         fallback={() => {
           const match = matchErrorRoute(pathname);
-          const ErrorFallback = match?.component ?? ErrorPage;
-          return <ErrorFallback />;
+          const Fallback = match?.component ?? ErrorPage;
+          return <Fallback />;
         }}
       >
-        {hasError ? <CatchError /> : <page.Component />}
+        {hasError ? <ErrorFallback /> : <page.Component />}
       </ErrorBoundary>
     </RouterContext.Provider>
   );
 }
 
-function CatchError() {
+function ErrorFallback() {
   const error = usePageError();
   const pathname = usePathname();
   const ErrorComponent = useMemo(() => {
