@@ -1,8 +1,21 @@
-import {
-  HEADER_ROUTE_ERROR,
-  HEADER_ROUTE_NOT_FOUND,
-  HEADER_ROUTE_REDIRECT,
-} from "../constants";
+import { HEADER_ROUTE_REDIRECT } from "../constants";
+import { invariant } from "../internal";
+
+export class TypedJson<T> {
+  constructor(
+    readonly data: T,
+    readonly init?: ResponseInit
+  ) {}
+}
+
+/**
+ * Creates a typed JSON response.
+ * @param data The json data to serialize.
+ * @param init The response init data.
+ */
+export function json<T>(data: T, init?: ResponseInit) {
+  return new TypedJson(data, init);
+}
 
 type RedirectStatusCode = 301 | 303 | 307 | 308;
 
@@ -22,30 +35,34 @@ export function redirect(to: string, status: RedirectStatusCode = 303) {
 }
 
 /**
- * Create a 404 not found response.
- * @param message Error message to display
+ * Represents a http error.
  */
-export function notFound(message?: string) {
-  return new Response(message, {
-    status: 404,
-    headers: {
-      [HEADER_ROUTE_ERROR]: "1",
-      [HEADER_ROUTE_NOT_FOUND]: "1",
-      "content-type": "text/plain",
-    },
-  });
+export class HttpError extends Error {
+  constructor(
+    readonly status: number,
+    message: string
+  ) {
+    invariant(
+      status >= 400 && status <= 600,
+      "Invalid error status code, expected code between 400 and 599"
+    );
+
+    super(message);
+  }
 }
 
 /**
- * Create an error response.
+ * Returns a 404 not found error.
  * @param message Error message to display
  */
-export function error(message: string, status: number = 400) {
-  return new Response(message, {
-    status,
-    headers: {
-      [HEADER_ROUTE_ERROR]: "1",
-      "content-type": "text/plain",
-    },
-  });
+export function notFound(message: string = "Not Found") {
+  return new HttpError(404, message);
+}
+
+/**
+ * Returns an error.
+ * @param message Error message to display
+ */
+export function error(status: number, message: string) {
+  return new HttpError(status, message);
 }

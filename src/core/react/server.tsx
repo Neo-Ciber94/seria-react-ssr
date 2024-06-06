@@ -1,8 +1,13 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { createContext, PropsWithChildren, useContext } from "react";
 import { LoaderFunction } from "../server/loader";
-import { HEADER_LOADER_DATA } from "../constants";
+import {
+  HEADER_LOADER_DATA,
+  HEADER_ROUTE_ERROR,
+  HEADER_SERIA_STREAM,
+} from "../constants";
 import * as seria from "seria";
+import { type TypedJson } from "../server/http";
 
 export type AppContext = {
   loaderData: any;
@@ -42,10 +47,22 @@ export function ServerContextProvider(props: ServerContextProviderProps) {
   );
 }
 
+type LoaderDataType<T> =
+  T extends Promise<infer U>
+    ? LoaderDataType<U>
+    : T extends Response
+      ? never
+      : T extends TypedJson<infer O>
+        ? LoaderDataType<O>
+        : T extends (...args: any[]) => unknown
+          ? never
+          : T;
+
+export type LoaderReturnType<T> =
+  T extends LoaderFunction<infer U> ? LoaderDataType<U> : never;
+
 export function useLoaderData<L extends LoaderFunction<unknown>>() {
-  return useContext(ServerContext).appContext.loaderData as Awaited<
-    ReturnType<L>
-  >;
+  return useContext(ServerContext).appContext.loaderData as LoaderReturnType<L>;
 }
 
 export function useUrl() {
@@ -92,21 +109,30 @@ export function useNavigation() {
         throw new Error("Loader data response error");
       }
 
-      if (response.headers.has("x-seria-stream")) {
+      if (response.headers.has(HEADER_ROUTE_ERROR)) {
+        // Throw the error so the error boundary handle it
+      }
+
+      if (!response.headers.has(HEADER_SERIA_STREAM)) {
         if (!response.body) {
           throw new Error("Response body was empty");
         }
 
         const stream = response.body.pipeThrough(new TextDecoderStream());
-        const loaderData = await seria.parseFromStream(stream);
+        const loaderData = (await seria.parseFromStream(stream)) as AppContext;
+
+        if (replace) {
+          window.history.replaceState(loaderData, "", loaderData.url);
+        } else {
+          window.history.pushState(loaderData, "", loaderData.url);
+        }
+
         setAppContext({
           loaderData,
-          pathname,
-          url: "?",
-          error: undefined,
+          pathname: loaderData.pathname,
+          url: loaderData.url,
+          error: loaderData.error,
         });
-      } else {
-        // nothing?
       }
     },
     []
