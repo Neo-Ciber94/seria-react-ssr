@@ -1,6 +1,6 @@
 import React from "react";
 import { App } from "../../app";
-import { ServerContextProvider, AppContext } from "./server";
+import { ServerContextProvider, AppContext } from ".";
 
 declare global {
   var APP_CONTEXT: {

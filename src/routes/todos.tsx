@@ -1,6 +1,6 @@
 import React from "react";
 import { Todo } from "../lib/types";
-import { useLoaderData } from "@/framework/react";
+import { useLoaderData, useNavigation } from "@/framework/react";
 
 export async function loader() {
   const response = await fetch("https://jsonplaceholder.typicode.com/todos");
@@ -10,6 +10,7 @@ export async function loader() {
 
 export default function TodoListPage() {
   const todos = useLoaderData<typeof loader>();
+  const navigation = useNavigation();
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
@@ -40,6 +41,10 @@ export default function TodoListPage() {
                 style={{
                   textDecoration: todo.completed ? "line-through" : "none",
                   flexGrow: 1,
+                }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigation(`/todos/${todo.id}`);
                 }}
               >
                 {todo.title}

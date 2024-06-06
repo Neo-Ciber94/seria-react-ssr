@@ -1,7 +1,7 @@
 import React from "react";
 import { renderToPipeableStream } from "react-dom/server";
 import { EntryServer } from "@/framework/react";
-import { AppContext } from "./core/react/server";
+import { AppContext } from "./core/react";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";

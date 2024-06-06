@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { createContext, useMemo } from "react";
-import { useHasError, usePageError, useUrl } from "../react/server";
+import { useHasError, usePageError, useUrl } from "../react";
 import { matchErrorRoute, matchRoute } from "../../$routes";
 import { ErrorPage, NotFoundPage } from "./error";
 

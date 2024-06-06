@@ -1,8 +1,9 @@
 import React from "react";
 import { Todo } from "../../lib/types";
-import { useLoaderData } from "../../core/react/server";
+
 import { LoaderFunctionArgs } from "../../core/server/loader";
 import { notFound } from "@/framework/server/http";
+import { useLoaderData, useNavigation } from "@/framework/react";
 
 export async function loader({ params }: LoaderFunctionArgs) {
   const response = await fetch(
@@ -19,6 +20,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
 export default function TodoPage() {
   const todo = useLoaderData<typeof loader>();
+  const navigation = useNavigation();
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
@@ -42,7 +44,15 @@ export default function TodoPage() {
           <strong>User ID:</strong> {todo.userId}
         </p>
       </div>
-      <a href="/todos">Back</a>
+      <a
+        href="/todos"
+        onClick={(e) => {
+          e.preventDefault();
+          navigation("/todos");
+        }}
+      >
+        Back
+      </a>
     </div>
   );
 }
