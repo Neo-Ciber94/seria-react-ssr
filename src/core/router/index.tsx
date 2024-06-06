@@ -1,9 +1,10 @@
 import React, { useContext } from "react";
 import { createContext, useMemo } from "react";
-import { useHasError, usePageError, useUrl } from "../react";
+import { useError, useUrl } from "../react";
 import { matchErrorRoute, matchRoute } from "../../$routes";
 import { ErrorPage, NotFoundPage } from "./error";
 import { ErrorBoundary } from "../react/error";
+import { HttpError } from "../server/http";
 
 export type Params = Record<string, string | string[] | undefined>;
 
@@ -28,7 +29,12 @@ export function Router() {
     return { Component, params };
   }, [pathname]);
 
-  const hasError = useHasError();
+  const appError = useError();
+  const error = useMemo(() => {
+    return appError
+      ? new HttpError(appError.statusCode, appError.message ?? "Internal Error")
+      : undefined;
+  }, [appError]);
 
   return (
     <RouterContext.Provider
@@ -38,26 +44,19 @@ export function Router() {
         searchParams,
       }}
     >
-      <ErrorBoundary
-        fallback={() => {
-          const match = matchErrorRoute(pathname);
-          const Fallback = match?.component ?? ErrorPage;
-          return <Fallback />;
-        }}
-      >
-        {hasError ? <ErrorFallback /> : <page.Component />}
+      <ErrorBoundary error={error} fallback={() => <ErrorFallback />}>
+        <page.Component />
       </ErrorBoundary>
     </RouterContext.Provider>
   );
 }
 
 function ErrorFallback() {
-  const error = usePageError();
   const pathname = usePathname();
   const ErrorComponent = useMemo(() => {
     const match = matchErrorRoute(pathname);
     return match?.component ?? ErrorPage;
-  }, [pathname, error]);
+  }, [pathname]);
 
   return <ErrorComponent />;
 }

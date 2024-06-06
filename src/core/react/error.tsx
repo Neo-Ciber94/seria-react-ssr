@@ -1,4 +1,5 @@
 import React, { createContext, useContext } from "react";
+import { HttpError } from "../server/http";
 
 type ErrorBoundaryContextProps = {
   error?: unknown;
@@ -12,6 +13,7 @@ const ErrorBoundaryContext = createContext<ErrorBoundaryContextProps>({
 type ErrorBoundaryState = { error: unknown };
 
 type ErrorBoundaryProps = {
+  error?: unknown;
   children: React.ReactNode;
   fallback: (error: unknown) => React.ReactNode;
   onError?: (error: unknown, info: React.ErrorInfo) => void;
@@ -23,7 +25,7 @@ export class ErrorBoundary extends React.Component<
 > {
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = { error: null };
+    this.state = { error: props.error };
   }
 
   static getDerivedStateFromError(error: unknown) {
@@ -58,4 +60,26 @@ export class ErrorBoundary extends React.Component<
 
 export function useErrorBoundary() {
   return useContext(ErrorBoundaryContext);
+}
+
+type UsePageError = {
+  statusCode: number;
+  message?: string;
+};
+
+function getPageError(error: unknown) {
+  if (error instanceof HttpError) {
+    return {
+      statusCode: error.status,
+      message: error.message,
+    };
+  }
+
+  const message = error instanceof Error ? error.message : "Internal Error";
+  return { statusCode: 500, message };
+}
+
+export function usePageError(): UsePageError {
+  const { error } = useErrorBoundary();
+  return getPageError(error);
 }

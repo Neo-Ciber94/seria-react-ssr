@@ -10,7 +10,6 @@ import {
 } from "../constants";
 import * as seria from "seria";
 import { HttpError, type TypedJson } from "../server/http";
-import { useErrorBoundary } from "./error";
 
 export type AppContext = {
   loaderData: any;
@@ -44,11 +43,11 @@ export function ServerContextProvider(props: ServerContextProviderProps) {
   const [appContext, setAppContext] = useState<AppContext>(props.appContext);
 
   // We set the initial state on page load
-  useEffect(() => {
-    if (!history.state) {
-      history.replaceState(props.appContext, "", location.href);
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (!history.state) {
+  //     history.replaceState(props.appContext, "", location.href);
+  //   }
+  // }, []);
 
   return (
     <ServerContext.Provider value={{ appContext, setAppContext }}>
@@ -80,52 +79,8 @@ export function useUrl() {
   return useMemo(() => new URL(url, "http://localhost"), [url]);
 }
 
-type UsePageError = {
-  statusCode: number;
-  message?: string;
-};
-
-function getPageError(error: unknown) {
-  if (error instanceof HttpError) {
-    return {
-      statusCode: error.status,
-      message: error.message,
-    };
-  }
-
-  const message = error instanceof Error ? error.message : "Internal Error";
-  return { statusCode: 500, message };
-}
-
-export function usePageError(): UsePageError {
-  const serverContext = useContext(ServerContext);
-  const serverError = serverContext.appContext.error;
-  const { error } = useErrorBoundary();
-
-  // If an error ocurred in a boundary, we update our appContext error
-  useEffect(() => {
-    if (!error) {
-      return;
-    }
-
-    const pageError = getPageError(error);
-    serverContext.setAppContext((ctx) => ({ ...ctx, error: pageError }));
-  }, [error]);
-
-  if (error) {
-    return getPageError(error);
-  }
-
-  if (serverError == null) {
-    throw new Error("'usePageError' can only be called on '_error' pages");
-  }
-
-  return serverError;
-}
-
-export function useHasError() {
-  const { error } = useContext(ServerContext).appContext;
-  return error != null;
+export function useError() {
+  return useContext(ServerContext).appContext.error;
 }
 
 async function fetchLoaderData(url: string) {

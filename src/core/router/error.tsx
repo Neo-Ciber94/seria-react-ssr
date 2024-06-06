@@ -1,5 +1,5 @@
 import React from "react";
-import { usePageError } from "../react";
+import { usePageError } from "../react/error";
 
 export function NotFoundPage() {
   return (
