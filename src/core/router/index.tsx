@@ -20,7 +20,7 @@ const RouterContext = createContext<RouterContextProps>({
 
 export function Router() {
   const { pathname, searchParams } = useUrl();
-  const { Component, params } = useMemo(() => {
+  const page = useMemo(() => {
     const match = matchRoute(pathname);
     const Component = match?.component ?? NotFoundPage;
     const params = match?.params || {};
@@ -30,8 +30,14 @@ export function Router() {
   const hasError = useHasError();
 
   return (
-    <RouterContext.Provider value={{ params, pathname, searchParams }}>
-      {hasError ? <CatchError /> : <Component />}
+    <RouterContext.Provider
+      value={{
+        params: page.params,
+        pathname,
+        searchParams,
+      }}
+    >
+      {hasError ? <CatchError /> : <page.Component />}
     </RouterContext.Provider>
   );
 }
@@ -39,17 +45,16 @@ export function Router() {
 function CatchError() {
   const error = usePageError();
   const pathname = usePathname();
-  const { ErrorComponent } = useMemo(() => {
+  const ErrorComponent = useMemo(() => {
     const match = matchErrorRoute(pathname);
-    const ErrorComponent = match?.component ?? ErrorPage;
-    return { ErrorComponent };
+    return match?.component ?? ErrorPage;
   }, [pathname, error]);
 
   return <ErrorComponent />;
 }
 
-export function useParams() {
-  return useContext(RouterContext).params;
+export function useParams<T extends Params = Params>() {
+  return useContext(RouterContext).params as T;
 }
 
 export function useSearchParams() {
