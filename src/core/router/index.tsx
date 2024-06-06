@@ -25,11 +25,9 @@ export function Router() {
   const { params, component: Component = NotFoundPage } = useMatch();
 
   const appError = useError();
-  const error = useMemo(() => {
-    return appError
-      ? new HttpError(appError.status, appError.message ?? "Internal Error")
-      : undefined;
-  }, [appError]);
+  const error = appError
+    ? new HttpError(appError.status, appError.message ?? "Internal Error")
+    : undefined;
 
   return (
     <RouterContext.Provider
