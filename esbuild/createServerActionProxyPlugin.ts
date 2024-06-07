@@ -140,7 +140,6 @@ export const createServerActionProxyPlugin: esbuild.Plugin = {
             ${modified}
           `;
 
-        console.log(modified);
         return {
           contents: modified,
           loader,
