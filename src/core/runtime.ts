@@ -2,12 +2,12 @@ import { encodeAsync } from "seria/form-data";
 import { parseFromStream } from "seria";
 import { HEADER_SERVER_ACTION, SERVER_ACTION_ROUTE } from "./constants";
 
-type ServerActionProxyInput = {
+type CallServerActionProxyInput = {
   id: string;
   args: any[];
 };
 
-export async function createServerActionProxy(input: ServerActionProxyInput) {
+export async function callServerActionProxy(input: CallServerActionProxyInput) {
   const body = await encodeAsync(input.args);
   const res = await fetch(SERVER_ACTION_ROUTE, {
     method: "POST",

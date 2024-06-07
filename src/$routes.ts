@@ -4,6 +4,7 @@ import TodosPage, { loader as loader$1 } from "./routes/todos";
 import Todos$idPage, { loader as loader$2 } from "./routes/todos/$id";
 
 import { add as action$0 } from "./routes/_actions";
+import { mul as action$1 } from "./routes/_actions";
 
 interface Route {
   id: string;
@@ -56,6 +57,11 @@ const actionRouter = createRouter<Action>({
       id: "_actions#add",
       actionPath: "_actions.ts",
       action: action$0,
+    },
+    "_actions#mul": {
+      id: "_actions#mul",
+      actionPath: "_actions.ts",
+      action: action$1,
     },
   },
 });
