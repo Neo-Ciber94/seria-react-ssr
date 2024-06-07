@@ -65,7 +65,7 @@ function trimServerFunctionBody(source: string) {
       }
 
       const throwError = `throw new Error("${serverFunctionName} is not available client side");`;
-      const replacement = func.isBody ? throwError : `() => { ${throwError} }`;
+      const replacement = func.isBody ? `{ ${throwError} }` : `() => { ${throwError} }`;
       const start = func.body?.pos;
       const end = func.body?.end;
 
