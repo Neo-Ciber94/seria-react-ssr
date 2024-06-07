@@ -6,7 +6,7 @@ import { glob } from "glob";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROUTES_FOLDER_NAME = "routes";
-const GENERATED_FILE_PATH = path.join(__dirname, "$routes.ts");
+const ROUTES_FILE_PATH = path.join(__dirname, "$routes.ts");
 
 type RouteFile = {
   id: string;
@@ -23,34 +23,47 @@ type ErrorFile = {
   component?: Function;
 };
 
+type ActionFile = {
+  id: string;
+  actionPath: string;
+  functionName: string;
+  action?: (...args: any[]) => Promise<any>;
+};
+
+const ROUTES_TEMPLATE = `
+export const matchRoute = (pathname: string): any => {
+  throw new Error('Not implemented')
+}
+
+export const matchErrorRoute = (pathname: string): any => {
+  throw new Error('Not implemented')
+}
+
+export const matchAction = (id: string): any => {
+  throw new Error('Not implemented')
+}
+`;
+
 async function generateRoutes() {
   const routesDir = path.join(__dirname, ROUTES_FOLDER_NAME);
 
   // We wipe or recreate the $routes.ts to prevent import errors
-  await fs.writeFile(
-    GENERATED_FILE_PATH,
-    `export const matchRoute = (pathname: string): any => {
-      throw new Error('Not implemented')
-    }
-    
-    export const matchErrorRoute = (pathname: string): any => {
-      throw new Error('Not implemented')
-    }
-    `
-  );
+  await fs.writeFile(ROUTES_FILE_PATH, ROUTES_TEMPLATE);
 
-  const [routes, errorRoutes] = await Promise.all([
+  const [routes, errorRoutes, actions] = await Promise.all([
     getFileRoutes(routesDir),
     getErrorRoutes(routesDir),
+    getServerActions(routesDir),
   ]);
 
-  const code = await generateRouterCode(routes, errorRoutes);
-  await fs.writeFile(GENERATED_FILE_PATH, code);
+  const code = await generateRouterCode(routes, errorRoutes, actions);
+  await fs.writeFile(ROUTES_FILE_PATH, code);
 }
 
 async function generateRouterCode(
   routes: RouteFile[],
-  errorRoutes: ErrorFile[]
+  errorRoutes: ErrorFile[],
+  actions: ActionFile[]
 ) {
   const routeImports = routes.map((r, i) => {
     const importPath = path
@@ -61,7 +74,7 @@ async function generateRouterCode(
     const additionalImports: string[] = [];
 
     if (r.loader) {
-      additionalImports.push(`loader as loader$${i + 1}`);
+      additionalImports.push(`loader as loader$${i}`);
     }
 
     const routeImports = additionalImports
@@ -80,9 +93,18 @@ async function generateRouterCode(
     return `import ${r.componentName} from "./${importPath}";`;
   });
 
+  const actionsRouteImport = actions.map((r, i) => {
+    const importPath = path
+      .join(ROUTES_FOLDER_NAME, r.actionPath)
+      .replaceAll(path.sep, "/")
+      .replaceAll(/.(js|ts|jsx|tsx)$/g, "");
+
+    return `import { ${r.functionName} as action$${i} } from "./${importPath}";`;
+  });
+
   const routesMap = routes
     .map((r, i) => {
-      const loader = r.loader ? `loader$${i + 1}` : "undefined";
+      const loader = r.loader ? `loader$${i}` : "undefined";
 
       return `"${r.id}": { 
         id: "${r.id}", 
@@ -103,10 +125,21 @@ async function generateRouterCode(
     })
     .join("\t\n");
 
+  const actionsMap = actions
+    .map((r, i) => {
+      return `"${r.id}": { 
+        id: "${r.id}", 
+        actionPath: ${JSON.stringify(r.actionPath)}, 
+        action:  action$${i},
+      },`;
+    })
+    .join("\t\n");
+
   const code = `
     import { createRouter } from "radix3";
     ${routeImports.join("\n")}
     ${errorRouteImports.join("\n")}
+    ${actionsRouteImport.join("\n")}
 
     interface Route {
       id: string,
@@ -121,17 +154,28 @@ async function generateRouterCode(
       component: () => any;
     }
 
+    interface Action {
+      id: string;
+      actionPath: string;
+      functionName: string;
+      action: (...args: any[]) => Promise<any>
+    }
+
     const router = createRouter<Route>({ routes: { ${routesMap} }});
 
     const errorRouter = createRouter<ErrorRoute>({ routes: { ${errorRoutesMap} }});
 
+    const actionRouter = createRouter<Action>({ routes: { ${actionsMap} }});
+
     export const matchRoute = (pathname: string) => router.lookup(pathname);
 
     export const matchErrorRoute = (pathname: string) => errorRouter.lookup(pathname);
+
+    export const matchAction = (id: string) => actionRouter.lookup(id);
   `;
 
   const formatted = await prettier.format(code, {
-    filepath: GENERATED_FILE_PATH,
+    filepath: ROUTES_FILE_PATH,
   });
 
   return formatted;
@@ -241,6 +285,44 @@ async function getErrorRoutes(routesDir: string) {
   }
 
   return errorRoutes;
+}
+
+async function getServerActions(routesDir: string) {
+  const actions: ActionFile[] = [];
+
+  const files = await glob(`${routesDir}/**/_actions.{js,jsx,ts,tsx}`, {
+    dotRelative: true,
+    posix: true,
+  });
+
+  for (const file of files) {
+    const actionPath = path.relative(routesDir, file);
+    const importPath = path
+      .join(ROUTES_FOLDER_NAME, actionPath)
+      .replaceAll(path.sep, "/");
+
+    const mod = await import(`./${importPath}`).catch(() => null);
+    if (mod == null) {
+      continue;
+    }
+
+    for (const [ident, item] of Object.entries(mod)) {
+      if (typeof item !== "function") {
+        throw new Error("Server actions can only be functions");
+      }
+
+      const actionId = actionPath.replaceAll(/.(js|jsx|ts|tsx)/g, "");
+      const id = `${actionId}#${ident}`;
+      actions.push({
+        id,
+        actionPath,
+        action: item as any,
+        functionName: ident,
+      });
+    }
+  }
+
+  return actions;
 }
 
 async function getRouteExports(routePath: string) {

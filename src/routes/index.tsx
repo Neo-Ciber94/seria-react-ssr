@@ -1,5 +1,6 @@
 import { useLoaderData } from "@/framework/react";
 import React, { useEffect, useState } from "react";
+import { add } from "./_actions";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -28,6 +29,14 @@ export default function HomePage() {
       <p>
         {pendingObj.isPending ? "Loading..." : JSON.stringify(pendingObj.value)}
       </p>
+      <button
+        onClick={async () => {
+          const result = await add(10, 2);
+          console.log(result);
+        }}
+      >
+        Call Action
+      </button>
     </div>
   );
 }

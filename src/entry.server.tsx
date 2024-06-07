@@ -6,7 +6,7 @@ import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { PassThrough } from "stream";
-import { matchRoute } from "./$routes";
+import { matchAction, matchRoute } from "./$routes";
 import path from "path";
 import { fileURLToPath } from "url";
 import * as seria from "seria";
@@ -15,8 +15,11 @@ import {
   HEADER_LOADER_DATA,
   HEADER_ROUTE_ERROR,
   HEADER_SERIA_STREAM,
+  HEADER_SERVER_ACTION,
+  SERVER_ACTION_ROUTE,
 } from "./core/constants";
 import { HttpError, TypedJson } from "./core/server/http";
+import { decode } from "seria/form-data";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const IS_DEV = process.env.NODE_ENV !== "production";
@@ -36,6 +39,33 @@ app.use(
     },
   })
 );
+
+app.post(SERVER_ACTION_ROUTE, async (ctx) => {
+  const actionId = ctx.req.header(HEADER_SERVER_ACTION) ?? "";
+  const match = matchAction(actionId);
+
+  if (!match) {
+    return ctx.notFound();
+  }
+
+  const formData = await ctx.req.formData();
+
+  try {
+    const args = (decode(formData) || []) as any[];
+    const result = await match.action(...args);
+    const stream = seria.stringifyToStream(result);
+    return ctx.newResponse(stream, {
+      status: 200,
+      headers: {
+        "content-type": "application/json+seria",
+        "cache-control": "no-cache",
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    return ctx.newResponse(null, 500);
+  }
+});
 
 app.get("*", async (ctx) => {
   const request = ctx.req.raw;

@@ -7,6 +7,144 @@ const isDev = process.env.NODE_ENV === "development";
 
 const SERVER_FUNCTIONS = ["loader"];
 
+const getLoader = (path: string) =>
+  path.endsWith(".ts")
+    ? "ts"
+    : path.endsWith(".tsx")
+      ? "tsx"
+      : path.endsWith(".jsx")
+        ? "jsx"
+        : "js";
+
+function replaceBodyWithProxy(
+  node: ts.FunctionLikeDeclaration,
+  functionName: string,
+  actionPath: string,
+  contents: string
+) {
+  // Replace the body with a proxy
+  if (!node.body) {
+    return contents;
+  }
+
+  const actionRoute = actionPath
+    .replace(/.(js|jsx|ts|tsx)$/, "")
+    .replaceAll(path.sep, "/")
+    .replace(/^src\/routes\//, "");
+
+  const actionId = actionRoute + "#" + functionName;
+  const args = node.parameters.map((x) =>
+    contents.slice(x.name.pos, x.name.end)
+  );
+  const replacement = `{
+           return createServerActionProxy({
+              id: ${JSON.stringify(actionId)},
+              args: [${args.join(",")}]
+            })
+          }`;
+
+  contents =
+    contents.slice(0, node.body.pos) +
+    replacement +
+    contents.slice(node.body.end);
+
+  contents = `
+          import { createServerActionProxy } from "@/framework/runtime";\n
+          ${contents}`;
+
+  return contents;
+}
+
+const createServerActionProxyPlugin: esbuild.Plugin = {
+  name: "create-server-action-proxy",
+  setup(build) {
+    build.onLoad(
+      { filter: /_actions\.(js|ts|jsx|tsx)$/, namespace: "file" },
+      async (args) => {
+        if (!args.path.startsWith(path.join(process.cwd(), "src/routes"))) {
+          return;
+        }
+
+        const loader = getLoader(args.path);
+        const source = await fs.readFile(args.path, "utf8");
+        const modified = await (async () => {
+          const tsFile = ts.createSourceFile(
+            `_actions.${loader}`,
+            source,
+            ts.ScriptTarget.Latest
+          );
+
+          const actionPath = path.relative(process.cwd(), args.path);
+          let contents = source;
+
+          function visit(node: any) {
+            if (ts.isVariableStatement(node)) {
+              const declaration = node.declarationList.declarations[0];
+              const functionName = declaration.name.getText(tsFile);
+
+              if (ts.isFunctionLike(declaration.initializer)) {
+                const isAsync = declaration.initializer?.modifiers?.some(
+                  (modifier) => modifier.kind === ts.SyntaxKind.AsyncKeyword
+                );
+
+                if (!isAsync) {
+                  throw new Error(
+                    `'_actions' files can only export async functions: '${functionName}' is not async at on file: ${actionPath}`
+                  );
+                }
+
+                contents = replaceBodyWithProxy(
+                  declaration.initializer,
+                  functionName,
+                  actionPath,
+                  contents
+                );
+              }
+            }
+
+            if (ts.isFunctionDeclaration(node)) {
+              const isAsync = node.modifiers?.some(
+                (modifier) => modifier.kind === ts.SyntaxKind.AsyncKeyword
+              );
+
+              const functionName = node.name?.getText(tsFile) ?? "<unknown>";
+
+              if (!isAsync) {
+                throw new Error(
+                  `'_actions' files can only export async functions: '${functionName}' is not async at on file: ${actionPath}`
+                );
+              }
+
+              contents = replaceBodyWithProxy(
+                node,
+                functionName,
+                actionPath,
+                contents
+              );
+            }
+
+            if (ts.isExportDeclaration(node) && !node.isTypeOnly) {
+              throw new Error(
+                `_actions file can only export async functions: ${actionPath}`
+              );
+            }
+
+            ts.forEachChild(node, visit);
+          }
+
+          visit(tsFile);
+          return contents;
+        })();
+
+        return {
+          contents: modified,
+          loader,
+        };
+      }
+    );
+  },
+};
+
 function trimServerFunctionBody(source: string) {
   const sourceFile = ts.createSourceFile(
     "source.tsx",
@@ -17,7 +155,7 @@ function trimServerFunctionBody(source: string) {
 
   let modifiedSource = source;
 
-  function getExportedFunctionName(node) {
+  function getExportedFunctionName(node: any) {
     // export function <ident>
     if (
       ts.isFunctionDeclaration(node) &&
@@ -54,7 +192,7 @@ function trimServerFunctionBody(source: string) {
     return null;
   }
 
-  const visit = (node) => {
+  const visit = (node: any) => {
     const func = getExportedFunctionName(node);
 
     if (func) {
@@ -65,7 +203,9 @@ function trimServerFunctionBody(source: string) {
       }
 
       const throwError = `throw new Error("${serverFunctionName} is not available client side");`;
-      const replacement = func.isBody ? `{ ${throwError} }` : `() => { ${throwError} }`;
+      const replacement = func.isBody
+        ? `{ ${throwError} }`
+        : `() => { ${throwError} }`;
       const start = func.body?.pos;
       const end = func.body?.end;
 
@@ -86,18 +226,13 @@ const removeServerFunctionsPlugin: esbuild.Plugin = {
   name: "remove-server-functions",
   setup(build) {
     build.onLoad(
-      { filter: /\.(js|jsx|tsx)$/, namespace: "file" },
+      { filter: /\.(jsx|tsx)$/, namespace: "file" },
       async (args) => {
         if (!args.path.startsWith(path.join(process.cwd(), "src/routes"))) {
           return;
         }
 
-        const loader = args.path.endsWith(".tsx")
-          ? "tsx"
-          : args.path.endsWith(".jsx")
-            ? "jsx"
-            : "js";
-
+        const loader = getLoader(args.path);
         const source = await fs.readFile(args.path, "utf8");
         const modifiedCode = trimServerFunctionBody(source);
 
@@ -125,7 +260,11 @@ const options: esbuild.BuildOptions = {
   format: "esm",
   minify: !isDev,
   outfile: "./build/client/bundle.js",
-  plugins: [removeServerFunctionsPlugin, ignoreServerFilesPlugin],
+  plugins: [
+    createServerActionProxyPlugin,
+    removeServerFunctionsPlugin,
+    ignoreServerFilesPlugin,
+  ],
   logLevel: "info",
 };
 
