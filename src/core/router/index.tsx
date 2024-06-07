@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { createContext, useMemo } from "react";
 import { useError, useUrl } from "../react";
 import { matchErrorRoute, matchRoute } from "../../$routes";
-import { ErrorPage, NotFoundPage } from "./error";
+import { ErrorPage, NotFound } from "./error";
 import { ErrorBoundary } from "../react/error";
 import { HttpError } from "../server/http";
 
@@ -22,12 +22,24 @@ const RouterContext = createContext<RouterContextProps>({
 
 export function Router() {
   const { pathname, searchParams } = useUrl();
-  const { params, component: Component = NotFoundPage } = useMatch();
+  const { params, component: Component = NotFound } = useMatch();
 
   const appError = useError();
-  const error = appError
-    ? new HttpError(appError.status, appError.message ?? "Internal Error")
-    : undefined;
+  const error = useMemo(() => {
+    const message = (() => {
+      if (appError?.message) {
+        return appError.message;
+      }
+
+      if (appError?.status === 404) {
+        return "Not Found";
+      }
+
+      return "Internal Error";
+    })();
+
+    return appError ? new HttpError(appError.status, message) : undefined;
+  }, [appError]);
 
   return (
     <RouterContext.Provider

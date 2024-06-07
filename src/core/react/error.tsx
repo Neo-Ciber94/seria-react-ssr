@@ -75,7 +75,7 @@ function getPageError(error: unknown) {
     };
   }
 
-  const message = error instanceof Error ? error.message : "Internal Error";
+  const message = error instanceof Error ? error.message : undefined;
   return { status: 500, message };
 }
 

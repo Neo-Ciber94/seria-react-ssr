@@ -16,7 +16,6 @@ import {
   HEADER_ROUTE_ERROR,
   HEADER_SERIA_STREAM,
 } from "./core/constants";
-import { cors } from "hono/cors";
 import { HttpError, TypedJson } from "./core/server/http";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
