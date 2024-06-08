@@ -12,6 +12,7 @@ import {
   HEADER_ROUTE_REDIRECT,
   HEADER_ROUTE_ERROR,
 } from "../constants";
+import { RouteIdProvider } from "./contexts";
 
 export type Params = Record<string, string | string[] | undefined>;
 
@@ -43,7 +44,7 @@ const RouterContext = createContext<RouterContextProps | null>(null);
 
 function Routes() {
   const { pathname, searchParams } = useUrl();
-  const { params, component: Component = NotFound } = useMatch();
+  const { params, match } = useMatch();
   const { navigate } = useNavigation();
   const error = useRouteError();
 
@@ -60,6 +61,34 @@ function Routes() {
       window.removeEventListener("popstate", handlePopState);
     };
   }, [navigate]);
+
+  const Component = useCallback(() => {
+    if (match?.component == null) {
+      return <NotFound />;
+    }
+
+    let Comp = (
+      <RouteIdProvider routeId={match.id}>
+        <match.component />
+      </RouteIdProvider>
+    );
+
+    const layouts = match.layouts || [];
+    for (const layout of layouts) {
+      const Layout = layout.component;
+      if (Layout == null) {
+        continue;
+      }
+
+      Comp = (
+        <RouteIdProvider routeId={layout.id}>
+          <Layout>{Comp}</Layout>
+        </RouteIdProvider>
+      );
+    }
+
+    return Comp;
+  }, [match]);
 
   return (
     <RouterContext.Provider
@@ -123,7 +152,7 @@ function useMatch() {
   return useMemo(() => {
     const match = matchRoute(pathname);
     const params = match?.params || {};
-    return { params, ...match };
+    return { params, match };
   }, [pathname]);
 }
 

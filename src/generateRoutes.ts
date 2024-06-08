@@ -9,6 +9,15 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const __filename = path.basename(fileURLToPath(import.meta.url));
 const ROUTES_FOLDER_NAME = "routes";
 const ROUTES_FILE_PATH = path.join(__dirname, "$routes.ts");
+const ROUTES_DIR_PATH = path.join(__dirname, ROUTES_FOLDER_NAME);
+
+type RouteLayoutFile = {
+  id: string;
+  layoutPath: string;
+  componentName: string;
+  component: Function;
+  loader?: Function;
+};
 
 type RouteFile = {
   id: string;
@@ -16,6 +25,7 @@ type RouteFile = {
   componentName: string;
   component?: Function;
   loader?: Function;
+  layouts?: RouteLayoutFile[];
 };
 
 type ErrorFile = {
@@ -69,6 +79,14 @@ async function generateRouterCode(
   errorRoutes: ErrorFile[],
   actions: ActionFile[]
 ) {
+  const layoutsMap = new Map<string, RouteLayoutFile>();
+
+  for (const route of routes) {
+    for (const layout of route.layouts || []) {
+      layoutsMap.set(layout.id, layout);
+    }
+  }
+
   const routeImports = routes.map((r, i) => {
     const importPath = path
       .join(ROUTES_FOLDER_NAME, r.routePath)
@@ -88,7 +106,7 @@ async function generateRouterCode(
     return `import ${r.componentName} ${routeImports} from "./${importPath}";`;
   });
 
-  const errorRouteImports = errorRoutes.map((r, i) => {
+  const errorRouteImports = errorRoutes.map((r) => {
     const importPath = path
       .join(ROUTES_FOLDER_NAME, r.routePath)
       .replaceAll(path.sep, "/")
@@ -106,15 +124,34 @@ async function generateRouterCode(
     return `import { ${r.functionName} as action$${i} } from "./${importPath}";`;
   });
 
+  const layoutImports = Array.from(layoutsMap.values()).map((l) => {
+    const importPath = path
+      .join(ROUTES_FOLDER_NAME, l.layoutPath)
+      .replaceAll(path.sep, "/")
+      .replaceAll(/\.(js|ts|jsx|tsx)$/g, "");
+
+    return `import ${l.componentName} from "./${importPath}";`;
+  });
+
   const routesMap = routes
     .map((r, i) => {
       const loader = r.loader ? `loader$${i}` : "undefined";
+      const layouts = (r.layouts || []).map(
+        (l) => `
+        {
+          id: "${l.id}",
+          layoutPath: ${JSON.stringify(l.layoutPath)},
+          component: ${l.componentName},
+          loader: undefined
+        }`
+      );
 
       return `"${r.id}": { 
         id: "${r.id}", 
         component: ${r.componentName}, 
         routePath: ${JSON.stringify(r.routePath)},
-        loader: ${loader}
+        loader: ${loader},
+        layouts: [${layouts.join(",")}]
       },`;
     })
     .join("\t\n");
@@ -144,14 +181,23 @@ async function generateRouterCode(
     
     import { createRouter } from "radix3";
     ${routeImports.join("\n")}
+    ${layoutImports.join("\n")}
     ${errorRouteImports.join("\n")}
     ${actionsRouteImport.join("\n")}
+
+    interface Layout {
+      id: string;
+      layoutPath: string;
+      component?: (props: { children: any }) => any,
+      loader?: (...args: any[]) => any | Promise<any>,
+    }
 
     interface Route {
       id: string,
       routePath: string
       component?: () => any,
       loader?: (...args: any[]) => any | Promise<any>,
+      layouts?: Layout[]
     }
 
     interface ErrorRoute {
@@ -190,17 +236,12 @@ async function generateRouterCode(
 async function getFileRoutes(routesDir: string) {
   const routes: RouteFile[] = [];
 
-  const files = await fs.readdir(routesDir, {
-    recursive: true,
-    withFileTypes: true,
+  const files = await glob([`${routesDir}/**/*.{js,ts,jsx,tsx}`], {
+    dotRelative: true,
+    posix: true,
   });
 
-  for (const file of files) {
-    if (!file.isFile()) {
-      continue;
-    }
-
-    const filePath = path.join(file.parentPath, file.name);
+  for (const filePath of files) {
     const isIgnored = await isIgnoredFilePath(routesDir, filePath);
     if (isIgnored) {
       continue;
@@ -234,16 +275,67 @@ async function getFileRoutes(routesDir: string) {
       );
     }
 
+    const layouts = await getRouteLayouts(routePath);
+
     routes.push({
       id,
       routePath,
       componentName,
       component: routeExports.component,
       loader: routeExports.loader,
+      layouts,
     });
   }
 
   return routes;
+}
+
+async function getRouteLayouts(routePath: string) {
+  const layouts: RouteLayoutFile[] = [];
+  const extensions = ["js", "ts", "tsx", "jsx"];
+
+  const filePath = path.join(ROUTES_DIR_PATH, routePath);
+  const root = path.dirname(ROUTES_DIR_PATH);
+  let dir = path.dirname(filePath);
+
+  while (dir != root) {
+    const layoutPaths = extensions.map((ext) =>
+      path.join(dir, `_layout.${ext}`)
+    );
+
+    const layoutFile = layoutPaths.find((f) => fse.existsSync(f));
+
+    if (layoutFile) {
+      const layoutPath = path.relative(ROUTES_DIR_PATH, layoutFile);
+
+      const mod = await getRouteExports(layoutPath);
+
+      if (!mod) {
+        continue;
+      }
+
+      const { component, loader } = mod;
+      const componentName = generateComponentName(layoutPath);
+      const layoutId = layoutPath
+        .replaceAll(path.sep, "/")
+        .replaceAll(/\.(js|ts|jsx|tsx)$/g, "")
+        .replaceAll(/_layout$/g, "");
+
+      const id = `/${layoutId}`;
+
+      layouts.push({
+        id,
+        componentName,
+        layoutPath,
+        component,
+        loader,
+      });
+    }
+
+    dir = path.dirname(dir);
+  }
+
+  return layouts;
 }
 
 async function getErrorRoutes(routesDir: string) {
