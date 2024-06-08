@@ -9,20 +9,24 @@ const STYLES: React.CSSProperties = {
   alignItems: "center",
 };
 
+type ErrorComponentProps = {
+  status: number;
+  message: string;
+};
+
+function ErrorComponent({ status, message }: ErrorComponentProps) {
+  return (
+    <div style={STYLES}>
+      <h1>{`${status} | ${message}`}</h1>
+    </div>
+  );
+}
+
 export function NotFound() {
-  <div style={STYLES}>
-    <h1>404 | Not Found</h1>
-  </div>;
+  return <ErrorComponent status={404} message="Not Found" />;
 }
 
 export function ErrorPage() {
   const { status, message = "Something went wrong" } = usePageError();
-
-  return (
-    <div style={STYLES}>
-      <h1>
-        {status} | {message}
-      </h1>
-    </div>
-  );
+  return <ErrorComponent status={status} message={message} />;
 }
