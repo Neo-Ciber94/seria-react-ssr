@@ -4,7 +4,7 @@ import { add } from "./_actions";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export function loader() {
+export async function loader() {
   return {
     text: "hello world",
     number: Promise.resolve(23),
