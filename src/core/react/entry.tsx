@@ -5,7 +5,6 @@ import { ServerContextProvider, AppContext } from ".";
 declare global {
   var APP_CONTEXT: {
     loaderData: any;
-    pathname: string;
     url: string;
     error?: {
       status: number;
@@ -33,7 +32,7 @@ export function EntryServer({
   json,
   isResumable,
 }: EntryServerProps) {
-  const { pathname, url } = appContext;
+  const { url } = appContext;
   const appError = appContext.error
     ? `error: ${JSON.stringify(appContext.error)}`
     : "";
@@ -50,12 +49,7 @@ export function EntryServer({
           window.$seria_stream_writer = stream.writable.getWriter();
           const loaderData = $seria_parse_from_resumable_stream(${JSON.stringify(json)}, stream.readable); 
 
-          window.APP_CONTEXT = {
-            loaderData,
-            pathname: ${JSON.stringify(pathname)},
-            url: ${JSON.stringify(url)},
-            ${appError}
-          }`,
+          window.APP_CONTEXT = {loaderData,url:${JSON.stringify(url)},${appError}}`,
           }}
         />
       ) : (
@@ -63,12 +57,7 @@ export function EntryServer({
           id="app-context"
           dangerouslySetInnerHTML={{
             __html: `
-            window.APP_CONTEXT = {
-              loaderData: $seria_parse(${JSON.stringify(json)}),
-              pathname: ${JSON.stringify(pathname)},
-              url: ${JSON.stringify(url)},
-              ${appError}
-            }`,
+            window.APP_CONTEXT = {loaderData:$seria_parse(${JSON.stringify(json)}),url:${JSON.stringify(url)},${appError}}`,
           }}
         />
       )}

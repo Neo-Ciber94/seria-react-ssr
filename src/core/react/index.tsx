@@ -13,7 +13,6 @@ import { HttpError, type TypedJson } from "../server/http";
 
 export type AppContext = {
   loaderData: any;
-  pathname: string;
   url: string;
   error?: {
     status: number;
@@ -30,7 +29,6 @@ const ServerContext = createContext<ServerContextProps>({
   setAppContext: () => {},
   appContext: {
     loaderData: undefined,
-    pathname: "",
     url: "",
   },
 });
@@ -69,7 +67,10 @@ export function useLoaderData<L extends LoaderFunction<unknown>>() {
 
 export function useUrl() {
   const url = useContext(ServerContext).appContext.url;
-  return useMemo(() => new URL(url, "http://localhost"), [url]);
+  return useMemo(() => {
+    const { pathname, searchParams } = new URL(url, "http://origin");
+    return { pathname, searchParams };
+  }, [url]);
 }
 
 export function useError() {

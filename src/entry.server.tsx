@@ -70,7 +70,7 @@ app.post("/_action", async (ctx) => {
 app.get("*", async (ctx) => {
   const request = ctx.req.raw;
   const pathname = ctx.req.path;
-  const url = request.url;
+  const url = ctx.req.url;
   const match = matchRoute(pathname);
 
   if (ctx.req.header(HEADER_LOADER_DATA)) {
@@ -90,7 +90,7 @@ app.get("*", async (ctx) => {
   }
 
   if (match == null) {
-    return renderErrorPage({ pathname, url, status: 404 });
+    return renderErrorPage({ url, status: 404 });
   }
 
   const { params = {}, ...route } = match;
@@ -111,7 +111,6 @@ app.get("*", async (ctx) => {
     else if (loaderData instanceof HttpError) {
       return renderErrorPage({
         url,
-        pathname,
         message: loaderData.message,
         status: loaderData.status,
       });
@@ -122,7 +121,6 @@ app.get("*", async (ctx) => {
         const message = await getResponseErrorMessage(loaderData);
         return renderErrorPage({
           url,
-          pathname,
           message,
           status: loaderData.status,
         });
@@ -131,12 +129,12 @@ app.get("*", async (ctx) => {
       return loaderData;
     }
 
-    const appContext: AppContext = { loaderData, pathname, url };
+    const appContext: AppContext = { loaderData, url };
     const response = await renderPage(appContext, responseInit);
     return response;
   } catch (err) {
     console.error("Failed to create page response", err);
-    return renderErrorPage({ pathname, url, status: 500 });
+    return renderErrorPage({ url, status: 500 });
   }
 });
 
@@ -221,7 +219,6 @@ async function createLoaderResponse(
 
     const appContext: AppContext = {
       loaderData,
-      pathname,
       url,
     };
 
@@ -322,15 +319,13 @@ function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
 type CreateErrorPageArgs = {
   status: number;
   message?: string;
-  pathname: string;
   url: string;
 };
 
 function renderErrorPage(args: CreateErrorPageArgs) {
-  const { pathname, url, status, message } = args;
+  const { url, status, message } = args;
   const appContext: AppContext = {
     loaderData: undefined,
-    pathname,
     url,
     error: {
       status,
