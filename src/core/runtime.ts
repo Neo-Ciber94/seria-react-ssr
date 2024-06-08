@@ -1,6 +1,7 @@
 import { encodeAsync } from "seria/form-data";
 import { parseFromStream } from "seria";
 import { HEADER_SERVER_ACTION } from "./constants";
+import { HttpError } from "./server/http";
 
 type CallServerActionInput = {
   id: string;
@@ -11,11 +12,11 @@ export async function callServerAction(input: CallServerActionInput) {
   const args = input.args;
   const body = await encodeAsync(args);
   const res = await fetch("/_action", {
+    body,
     method: "POST",
     headers: {
       [HEADER_SERVER_ACTION]: input.id,
     },
-    body,
   });
 
   if (res.redirected) {
@@ -23,7 +24,7 @@ export async function callServerAction(input: CallServerActionInput) {
   }
 
   if (!res.ok) {
-    throw new Error("Server action call failed: " + res.status);
+    throw new HttpError(res.status, "Server action call failed");
   }
 
   if (!res.body) {
