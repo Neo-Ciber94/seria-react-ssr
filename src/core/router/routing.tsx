@@ -69,7 +69,11 @@ function Routes() {
         searchParams,
       }}
     >
-      <ErrorBoundary error={error} fallback={() => <ErrorFallback />}>
+      <ErrorBoundary
+        key={pathname}
+        error={error}
+        fallback={() => <ErrorFallback />}
+      >
         <Component />
       </ErrorBoundary>
     </RouterContext.Provider>
