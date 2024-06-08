@@ -1,4 +1,5 @@
 import fs from "fs/promises";
+import fse from "fs-extra";
 import path from "path";
 import { fileURLToPath } from "url";
 import prettier from "prettier";
@@ -47,6 +48,8 @@ export const matchAction = (id: string): any => {
 
 async function generateRoutes() {
   const routesDir = path.join(__dirname, ROUTES_FOLDER_NAME);
+
+  await fse.ensureDir(routesDir);
 
   // We wipe or recreate the $routes.ts to prevent import errors
   await fs.writeFile(ROUTES_FILE_PATH, ROUTES_TEMPLATE);
