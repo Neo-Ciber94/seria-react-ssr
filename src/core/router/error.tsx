@@ -1,29 +1,30 @@
 import React, { createContext, useContext } from "react";
 import { HttpError } from "../server/http";
 
-type ErrorBoundaryContextProps = {
+type RouterErrorBoundaryContextProps = {
   error?: unknown;
   resetBoundary: () => void;
 };
 
-const ErrorBoundaryContext = createContext<ErrorBoundaryContextProps>({
-  resetBoundary: () => {},
-});
+const RouterErrorBoundaryContext =
+  createContext<RouterErrorBoundaryContextProps>({
+    resetBoundary: () => {},
+  });
 
-type ErrorBoundaryState = { error: unknown };
+type RouterErrorBoundaryState = { error: unknown };
 
-type ErrorBoundaryProps = {
+type RouterErrorBoundaryProps = {
   error?: unknown;
   children: React.ReactNode;
   fallback: (error: unknown) => React.ReactNode;
   onError?: (error: unknown, info: React.ErrorInfo) => void;
 };
 
-export class ErrorBoundary extends React.Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
+export class RouteErrorBoundary extends React.Component<
+  RouterErrorBoundaryProps,
+  RouterErrorBoundaryState
 > {
-  constructor(props: ErrorBoundaryProps) {
+  constructor(props: RouterErrorBoundaryProps) {
     super(props);
     this.state = { error: props.error };
   }
@@ -44,7 +45,7 @@ export class ErrorBoundary extends React.Component<
 
   render() {
     return (
-      <ErrorBoundaryContext.Provider
+      <RouterErrorBoundaryContext.Provider
         value={{
           error: this.state.error,
           resetBoundary: this.resetBoundary.bind(this),
@@ -53,13 +54,13 @@ export class ErrorBoundary extends React.Component<
         {this.state.error
           ? this.props.fallback(this.state.error)
           : this.props.children}
-      </ErrorBoundaryContext.Provider>
+      </RouterErrorBoundaryContext.Provider>
     );
   }
 }
 
-export function useErrorBoundary() {
-  return useContext(ErrorBoundaryContext);
+export function useRouterErrorBoundary() {
+  return useContext(RouterErrorBoundaryContext);
 }
 
 type UsePageError = {
@@ -80,6 +81,6 @@ function getPageError(error: unknown) {
 }
 
 export function usePageError(): UsePageError {
-  const { error } = useErrorBoundary();
+  const { error } = useRouterErrorBoundary();
   return getPageError(error);
 }

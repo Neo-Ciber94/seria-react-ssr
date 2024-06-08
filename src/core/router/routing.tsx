@@ -2,7 +2,7 @@ import React, { useCallback, useContext, useEffect, useState } from "react";
 import { createContext, useMemo } from "react";
 import { matchErrorRoute, matchRoute } from "../../$routes";
 import { ErrorPage, NotFound } from "./components";
-import { ErrorBoundary } from "./error";
+import { RouteErrorBoundary } from "./error";
 import { HttpError } from "../server/http";
 import { AppContext, useAppContext } from "../react/entry";
 import * as seria from "seria";
@@ -69,13 +69,13 @@ function Routes() {
         searchParams,
       }}
     >
-      <ErrorBoundary
+      <RouteErrorBoundary
         key={pathname}
         error={error}
         fallback={() => <ErrorFallback />}
       >
         <Component />
-      </ErrorBoundary>
+      </RouteErrorBoundary>
     </RouterContext.Provider>
   );
 }
