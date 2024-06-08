@@ -48,7 +48,6 @@ export function EntryServer({
           const stream = new TransformStream();
           window.$seria_stream_writer = stream.writable.getWriter();
           const loaderData = $seria_parse_from_resumable_stream(${JSON.stringify(json)}, stream.readable); 
-
           window.APP_CONTEXT = {loaderData,url:${JSON.stringify(url)},${appError}}`,
           }}
         />

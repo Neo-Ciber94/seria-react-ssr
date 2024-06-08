@@ -145,10 +145,6 @@ export const createClientServerActionProxy: esbuild.Plugin = {
 
         const output = generate(ast, {});
 
-        if (importInserted) {
-          console.log(output.code);
-        }
-
         return {
           contents: output.code,
           loader,
