@@ -1,90 +1,31 @@
 import * as esbuild from "esbuild";
 import fs from "fs/promises";
 import path from "path";
-import ts from "typescript";
 import { getLoader } from "./utils";
+import { parse } from "@babel/parser";
+import babelTraverse from "@babel/traverse";
+import babelGenerate from "@babel/generator";
+import * as t from "@babel/types";
 
 const SERVER_EXPORTS = ["loader"];
 
-function replaceServerFunctionBody(source: string) {
-  const sourceFile = ts.createSourceFile(
-    "source.tsx",
-    source,
-    ts.ScriptTarget.ESNext,
-    true
-  );
+// @ts-ignore
+const traverse = babelTraverse.default as typeof babelTraverse;
 
-  let modifiedSource = source;
+// @ts-ignore
+const generate = babelGenerate.default as typeof babelGenerate;
 
-  function getExportedFunctionName(node: any) {
-    // export function <ident>
-    if (
-      ts.isFunctionDeclaration(node) &&
-      node.name &&
-      node.modifiers &&
-      node.modifiers.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)
-    ) {
-      return {
-        name: node.name.escapedText,
-        body: node.body,
-        isBody: true,
-      };
-    }
-
-    // export const <ident> = <declaration>
-    if (
-      ts.isVariableStatement(node) &&
-      node.modifiers &&
-      node.modifiers.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)
-    ) {
-      const declaration = node.declarationList.declarations[0];
-      if (declaration.initializer) {
-        return {
-          isBody: false,
-          name: (declaration.name as ts.Identifier).escapedText,
-          body: {
-            pos: declaration.initializer.pos,
-            end: declaration.initializer.end,
-          },
-        };
-      }
-    }
-
-    return null;
-  }
-
-  const visit = (node: any) => {
-    const func = getExportedFunctionName(node);
-
-    if (func) {
-      const serverFunctionName = SERVER_EXPORTS.find((n) => func.name === n);
-
-      if (!serverFunctionName) {
-        return;
-      }
-
-      const throwError = `throw new Error("${serverFunctionName} is not available client side");`;
-      const replacement = func.isBody
-        ? `{ ${throwError} }`
-        : `() => { ${throwError} }`;
-      const start = func.body?.pos;
-      const end = func.body?.end;
-
-      modifiedSource =
-        modifiedSource.slice(0, start) +
-        replacement +
-        modifiedSource.slice(end);
-    }
-    ts.forEachChild(node, visit);
-  };
-
-  visit(sourceFile);
-
-  return modifiedSource;
-}
+const throwErrorReplacement = (identifierName: string) =>
+  t.blockStatement([
+    t.throwStatement(
+      t.newExpression(t.identifier("Error"), [
+        t.stringLiteral(`'${identifierName}' is not available on the client`),
+      ])
+    ),
+  ]);
 
 export const removeServerExports: esbuild.Plugin = {
-  name: "remove-server-functions",
+  name: "remove-server-exports",
   setup(build) {
     build.onLoad(
       { filter: /\.(jsx|tsx)$/, namespace: "file" },
@@ -94,11 +35,56 @@ export const removeServerExports: esbuild.Plugin = {
         }
 
         const loader = getLoader(args.path);
-        const source = await fs.readFile(args.path, "utf8");
-        const modifiedCode = replaceServerFunctionBody(source);
+        const contents = await fs.readFile(args.path, "utf8");
+
+        const ast = parse(contents, {
+          plugins: ["typescript", "jsx"],
+          sourceType: "module",
+        });
+
+        let anyReplaced = false;
+
+        traverse(ast, {
+          FunctionDeclaration(path) {
+            const functionName = path.node.id?.name;
+            if (functionName && SERVER_EXPORTS.includes(functionName)) {
+              path.node.body = throwErrorReplacement(functionName);
+              anyReplaced = true;
+            }
+          },
+          VariableDeclaration(path) {
+            path.node.declarations.forEach((declaration) => {
+              if (!t.isIdentifier(declaration.id)) {
+                return;
+              }
+
+              const functionName = declaration.id.name;
+
+              if (functionName && SERVER_EXPORTS.includes(functionName)) {
+                if (
+                  t.isFunctionExpression(declaration.init) ||
+                  t.isArrowFunctionExpression(declaration.init)
+                ) {
+                  declaration.init.body = throwErrorReplacement(functionName);
+                } else if (t.isIdentifier(declaration.init)) {
+                  declaration.init = t.arrowFunctionExpression(
+                    [],
+                    throwErrorReplacement(functionName)
+                  );
+                }
+              }
+            });
+          },
+        });
+
+        const { code: modified } = generate(ast, {});
+
+        if (anyReplaced) {
+          console.log(modified);
+        }
 
         return {
-          contents: modifiedCode,
+          contents: modified,
           loader,
         };
       }

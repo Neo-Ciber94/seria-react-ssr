@@ -4,13 +4,12 @@ import { add } from "./_actions";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export async function loader() {
-  return {
-    text: "hello world",
-    number: Promise.resolve(23),
-    obj: delay(2000).then(() => ({ active: true })),
-  };
-}
+const __other = () => ({
+  text: "hello world",
+  number: Promise.resolve(23),
+  obj: delay(2000).then(() => ({ active: true })),
+});
+export const loader = __other;
 
 export default function HomePage() {
   const { number, obj, text } = useLoaderData<typeof loader>();

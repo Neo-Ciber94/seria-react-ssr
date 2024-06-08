@@ -25,6 +25,16 @@
     "seria": "^0.2.0-beta3"
   },
   "devDependencies": {
+    "@babel/core": "^7.24.7",
+    "@babel/generator": "^7.24.7",
+    "@babel/parser": "^7.24.7",
+    "@babel/plugin-transform-react-jsx": "^7.24.7",
+    "@babel/plugin-transform-react-jsx-development": "^7.24.7",
+    "@babel/plugin-transform-typescript": "^7.24.7",
+    "@babel/template": "^7.24.7",
+    "@babel/traverse": "^7.24.7",
+    "@babel/types": "^7.24.7",
+    "@types/babel__core": "^7.20.5",
     "@types/node": "^20.13.0",
     "@types/react": "npm:types-react@rc",
     "@types/react-dom": "npm:types-react-dom@rc",

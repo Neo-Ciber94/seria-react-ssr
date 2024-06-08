@@ -17,7 +17,7 @@ const options: esbuild.BuildOptions = {
   entryPoints: ["./src/entry.client.tsx"],
   bundle: true,
   format: "esm",
-  minify: !isDev,
+  //minify: !isDev,
   outfile: "./build/client/bundle.js",
   plugins: [
     createServerActionProxyPlugin,
