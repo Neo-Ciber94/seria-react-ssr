@@ -70,7 +70,7 @@ async function generateRouterCode(
     const importPath = path
       .join(ROUTES_FOLDER_NAME, r.routePath)
       .replaceAll(path.sep, "/")
-      .replaceAll(/.(js|ts|jsx|tsx)$/g, "");
+      .replaceAll(/\.(js|ts|jsx|tsx)$/g, "");
 
     const additionalImports: string[] = [];
 
@@ -240,6 +240,7 @@ async function getFileRoutes(routesDir: string) {
     });
   }
 
+  console.log(routes)
   return routes;
 }
 
@@ -380,7 +381,7 @@ async function isIgnoredFilePath(routesDir: string, filePath: string) {
 
 function generateComponentName(filePath: string) {
   const parts = filePath
-    .replaceAll(/(.tsx|.jsx|.js)$/g, "")
+    .replaceAll(/\.(js|ts)x?$/g, "")
     .replaceAll("\\", "/")
     .split("/")
     .filter(Boolean);
