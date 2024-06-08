@@ -1,16 +1,44 @@
-import React from "react";
+import React, { createContext, PropsWithChildren, useContext } from "react";
 import { App } from "../../app";
-import { ServerContextProvider, AppContext } from ".";
+
+export type AppContext = {
+  loaderData: any;
+  url: string;
+  error?: {
+    status: number;
+    message?: string;
+  };
+};
 
 declare global {
-  var APP_CONTEXT: {
-    loaderData: any;
-    url: string;
-    error?: {
-      status: number;
-      message?: string;
-    };
-  };
+  var APP_CONTEXT: AppContext;
+}
+
+type ServerContextProps = {
+  appContext: AppContext;
+};
+
+const ServerContext = createContext<ServerContextProps>({
+  appContext: {
+    loaderData: undefined,
+    url: "",
+  },
+});
+
+type ServerContextProviderProps = PropsWithChildren<{
+  appContext: AppContext;
+}>;
+
+function ServerContextProvider(props: ServerContextProviderProps) {
+  return (
+    <ServerContext.Provider value={{ appContext: props.appContext }}>
+      {props.children}
+    </ServerContext.Provider>
+  );
+}
+
+export function useAppContext() {
+  return useContext(ServerContext).appContext;
 }
 
 export function EntryClient() {

@@ -1,4 +1,8 @@
-import { useLoaderData, useNavigation } from "@/framework/react";
+import {
+  useLoaderData,
+  useNavigation,
+  useSearchParams,
+} from "@/framework/router";
 import React, { useEffect, useState } from "react";
 import { add } from "./_actions";
 
@@ -15,7 +19,9 @@ export default function HomePage() {
   const { number, obj, text } = useLoaderData<typeof loader>();
   const pendingNumber = usePromise(number);
   const pendingObj = usePromise(obj);
-  const navigation = useNavigation();
+  const { navigate } = useNavigation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     number.then((x) => console.log(x));
@@ -28,11 +34,20 @@ export default function HomePage() {
         href="/todos"
         onClick={(ev) => {
           ev.preventDefault();
-          navigation("/todos");
+          navigate("/todos");
         }}
       >
         Go to todos
       </a>
+      <hr />
+      <input onChange={(e) => setSearch(e.target.value)} />
+      <button
+        onClick={() => {
+          setSearchParams(new URLSearchParams({ search }));
+        }}
+      >
+        Search
+      </button>
       <h1>{text}</h1>
       <p>{pendingNumber.isPending ? "Loading..." : pendingNumber.value}</p>
       <p>
@@ -40,7 +55,7 @@ export default function HomePage() {
       </p>
       <button
         onClick={() => {
-          navigation("/redirect");
+          navigate("/redirect");
         }}
       >
         Redirect

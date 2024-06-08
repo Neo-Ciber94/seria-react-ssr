@@ -1,6 +1,6 @@
 import React from "react";
 import { Todo } from "../lib/types";
-import { useLoaderData, useNavigation } from "@/framework/react";
+import { useLoaderData, useNavigation } from "@/framework/router";
 
 export async function loader() {
   const response = await fetch("https://jsonplaceholder.typicode.com/todos");
@@ -34,7 +34,7 @@ export default function TodoListPage() {
 }
 
 function TodoItem({ todo }: { todo: Todo }) {
-  const navigation = useNavigation();
+  const { navigate } = useNavigation();
 
   return (
     <li
@@ -63,7 +63,7 @@ function TodoItem({ todo }: { todo: Todo }) {
           }}
           onClick={(e) => {
             e.preventDefault();
-            navigation(`/todos/${todo.id}`);
+            navigate(`/todos/${todo.id}`);
           }}
         >
           {todo.title}

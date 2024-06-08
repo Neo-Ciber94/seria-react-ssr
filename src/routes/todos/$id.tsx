@@ -3,7 +3,7 @@ import { Todo } from "../../lib/types";
 
 import { LoaderFunctionArgs } from "../../core/server/loader";
 import { notFound } from "@/framework/server/http";
-import { useLoaderData, useNavigation } from "@/framework/react";
+import { useLoaderData, useNavigation } from "@/framework/router";
 
 export async function loader({ params }: LoaderFunctionArgs) {
   const response = await fetch(
@@ -20,7 +20,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
 export default function TodoPage() {
   const todo = useLoaderData<typeof loader>();
-  const navigation = useNavigation();
+  const { navigate } = useNavigation();
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
@@ -48,7 +48,7 @@ export default function TodoPage() {
         href="/todos"
         onClick={(e) => {
           e.preventDefault();
-          navigation("/todos");
+          navigate("/todos");
         }}
       >
         Back

@@ -1,32 +1,85 @@
-import React from "react";
-import { usePageError } from "../react/error";
+import React, { createContext, useContext } from "react";
+import { HttpError } from "../server/http";
 
-const STYLES: React.CSSProperties = {
-  width: "100%",
-  height: "90vh",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
+type ErrorBoundaryContextProps = {
+  error?: unknown;
+  resetBoundary: () => void;
 };
 
-type ErrorComponentProps = {
+const ErrorBoundaryContext = createContext<ErrorBoundaryContextProps>({
+  resetBoundary: () => {},
+});
+
+type ErrorBoundaryState = { error: unknown };
+
+type ErrorBoundaryProps = {
+  error?: unknown;
+  children: React.ReactNode;
+  fallback: (error: unknown) => React.ReactNode;
+  onError?: (error: unknown, info: React.ErrorInfo) => void;
+};
+
+export class ErrorBoundary extends React.Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { error: props.error };
+  }
+
+  static getDerivedStateFromError(error: unknown) {
+    return { error };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    if (this.props.onError) {
+      this.props.onError(error, info);
+    }
+  }
+
+  resetBoundary() {
+    this.setState({ error: null });
+  }
+
+  render() {
+    return (
+      <ErrorBoundaryContext.Provider
+        value={{
+          error: this.state.error,
+          resetBoundary: this.resetBoundary.bind(this),
+        }}
+      >
+        {this.state.error
+          ? this.props.fallback(this.state.error)
+          : this.props.children}
+      </ErrorBoundaryContext.Provider>
+    );
+  }
+}
+
+export function useErrorBoundary() {
+  return useContext(ErrorBoundaryContext);
+}
+
+type UsePageError = {
   status: number;
-  message: string;
+  message?: string;
 };
 
-function ErrorComponent({ status, message }: ErrorComponentProps) {
-  return (
-    <div style={STYLES}>
-      <h1>{`${status} | ${message}`}</h1>
-    </div>
-  );
+function getPageError(error: unknown) {
+  if (error instanceof HttpError) {
+    return {
+      status: error.status,
+      message: error.message,
+    };
+  }
+
+  const message = error instanceof Error ? error.message : undefined;
+  return { status: 500, message };
 }
 
-export function NotFound() {
-  return <ErrorComponent status={404} message="Not Found" />;
-}
-
-export function ErrorPage() {
-  const { status, message = "Something went wrong" } = usePageError();
-  return <ErrorComponent status={status} message={message} />;
+export function usePageError(): UsePageError {
+  const { error } = useErrorBoundary();
+  return getPageError(error);
 }
