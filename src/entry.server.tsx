@@ -27,6 +27,7 @@ const IS_DEV = process.env.NODE_ENV !== "production";
 const CLIENT_DIR = IS_DEV ? "/build/client" : "/client";
 const BASE_DIR = path.resolve(__dirname, "..");
 const ROOT_DIR = path.relative(process.cwd(), BASE_DIR) || "./";
+const ABORT_DELAY = 10_000;
 
 const app = new Hono();
 
@@ -257,7 +258,7 @@ function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
 
   const isResumable = !!resumeStream;
   return new Promise<Response>((resolve, reject) => {
-    const { pipe } = renderToPipeableStream(
+    const { pipe, abort } = renderToPipeableStream(
       <EntryServer
         appContext={appContext}
         json={json}
@@ -323,6 +324,8 @@ function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
         },
       }
     );
+
+    setTimeout(abort, ABORT_DELAY);
   });
 }
 
