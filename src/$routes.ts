@@ -4,7 +4,7 @@ import { createRouter } from "radix3";
 import TodosPage from "./routes/todos";
 import IndexPage from "./routes/index";
 import Todos$idPage, { loader as loader$2 } from "./routes/todos/$id";
-import _layoutPage from "./routes/_layout";
+import _layoutPage, { loader as _layoutPage_loader } from "./routes/_layout";
 
 interface Layout {
   id: string;
@@ -46,7 +46,7 @@ const router = createRouter<Route>({
           id: "/",
           layoutPath: "_layout.tsx",
           component: _layoutPage,
-          loader: undefined,
+          loader: _layoutPage_loader,
         },
       ],
     },
@@ -60,7 +60,7 @@ const router = createRouter<Route>({
           id: "/",
           layoutPath: "_layout.tsx",
           component: _layoutPage,
-          loader: undefined,
+          loader: _layoutPage_loader,
         },
       ],
     },
@@ -74,7 +74,7 @@ const router = createRouter<Route>({
           id: "/",
           layoutPath: "_layout.tsx",
           component: _layoutPage,
-          loader: undefined,
+          loader: _layoutPage_loader,
         },
       ],
     },

@@ -130,21 +130,33 @@ async function generateRouterCode(
       .replaceAll(path.sep, "/")
       .replaceAll(/\.(js|ts|jsx|tsx)$/g, "");
 
-    return `import ${l.componentName} from "./${importPath}";`;
+    const additionalImports: string[] = [];
+
+    if (l.loader) {
+      additionalImports.push(`loader as ${l.componentName}_loader`);
+    }
+
+    const layoutImports = additionalImports
+      ? `,{ ${additionalImports.join(",")} }`
+      : "";
+
+    return `import ${l.componentName} ${layoutImports} from "./${importPath}";`;
   });
 
   const routesMap = routes
     .map((r, i) => {
       const loader = r.loader ? `loader$${i}` : "undefined";
-      const layouts = (r.layouts || []).map(
-        (l) => `
-        {
-          id: "${l.id}",
-          layoutPath: ${JSON.stringify(l.layoutPath)},
-          component: ${l.componentName},
-          loader: undefined
-        }`
-      );
+      const layouts = (r.layouts || []).map((l) => {
+        const loader = l.loader ? `${l.componentName}_loader` : "undefined";
+
+        return `
+          {
+            id: "${l.id}",
+            layoutPath: ${JSON.stringify(l.layoutPath)},
+            component: ${l.componentName},
+            loader: ${loader}
+          }`;
+      });
 
       return `"${r.id}": { 
         id: "${r.id}", 
