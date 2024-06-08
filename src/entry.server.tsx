@@ -40,7 +40,7 @@ app.use(
   })
 );
 
-app.post(SERVER_ACTION_ROUTE, async (ctx) => {
+app.post("/_action", async (ctx) => {
   const actionId = ctx.req.header(HEADER_SERVER_ACTION) ?? "";
   const match = matchAction(actionId);
 

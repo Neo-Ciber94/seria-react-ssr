@@ -1,5 +1,5 @@
 import * as esbuild from "esbuild";
-import { createServerActionProxyPlugin } from "./esbuild/createServerActionProxyPlugin";
+import { createClientServerActionProxy } from "./esbuild/createClientServerActionProxy";
 import { removeServerExports } from "./esbuild/removeServerExports";
 
 const isDev = process.env.NODE_ENV === "development";
@@ -20,7 +20,7 @@ const options: esbuild.BuildOptions = {
   //minify: !isDev,
   outfile: "./build/client/bundle.js",
   plugins: [
-    createServerActionProxyPlugin,
+    createClientServerActionProxy,
     removeServerExports,
     ignoreServerFilesPlugin,
   ],
