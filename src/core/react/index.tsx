@@ -58,7 +58,7 @@ type LoaderDataType<T> =
           ? never
           : T;
 
-export type LoaderReturnType<T> =
+type LoaderReturnType<T> =
   T extends LoaderFunction<infer U> ? LoaderDataType<U> : never;
 
 export function useLoaderData<L extends LoaderFunction<unknown>>() {
@@ -67,10 +67,7 @@ export function useLoaderData<L extends LoaderFunction<unknown>>() {
 
 export function useUrl() {
   const url = useContext(ServerContext).appContext.url;
-  return useMemo(() => {
-    const { pathname, searchParams } = new URL(url, "http://origin");
-    return { pathname, searchParams };
-  }, [url]);
+  return useMemo(() => new URL(url), [url]);
 }
 
 export function useError() {
