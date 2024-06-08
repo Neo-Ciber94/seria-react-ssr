@@ -1,11 +1,18 @@
 import { EntryClient, EntryServer } from "./entry";
 export { EntryClient, EntryServer };
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createContext, PropsWithChildren, useContext } from "react";
 import { LoaderFunction } from "../server/loader";
 import {
   HEADER_LOADER_DATA,
   HEADER_ROUTE_ERROR,
+  HEADER_ROUTE_REDIRECT,
   HEADER_SERIA_STREAM,
 } from "../constants";
 import * as seria from "seria";
@@ -67,26 +74,45 @@ export function useLoaderData<L extends LoaderFunction<unknown>>() {
 
 export function useUrl() {
   const url = useContext(ServerContext).appContext.url;
-  return useMemo(() => new URL(url), [url]);
+  return useMemo(() => new URL(url, "http://app"), [url]);
 }
 
 export function useError() {
   return useContext(ServerContext).appContext.error;
 }
 
-async function fetchLoaderData(url: string) {
+type FetchLoaderDataResult =
+  | { type: "redirect"; to: string }
+  | { type: "success"; data: AppContext }
+  | undefined;
+
+async function fetchLoaderData(url: string): Promise<FetchLoaderDataResult> {
   const response = await fetch(url, {
-    redirect: "manual",
     headers: {
       [HEADER_LOADER_DATA]: "1",
     },
   });
 
-  if (response.redirected) {
-    throw new Error("Redirection not implemented");
-  }
+  // Data
+  if (response.headers.has(HEADER_SERIA_STREAM)) {
+    if (!response.body) {
+      throw new Error("Response body was empty");
+    }
 
-  if (!response.ok) {
+    const stream = response.body.pipeThrough(new TextDecoderStream());
+    const context = await seria.parseFromStream(stream);
+    return {
+      type: "success",
+      data: context as AppContext,
+    };
+  }
+  // Redirect
+  else if (response.headers.has(HEADER_ROUTE_REDIRECT)) {
+    const to = response.headers.get(HEADER_ROUTE_REDIRECT) ?? "/";
+    return { type: "redirect", to };
+  }
+  // Error
+  else if (response.ok) {
     if (
       response.headers.has(HEADER_ROUTE_ERROR) &&
       response.headers.get("content-type") === "text/plain"
@@ -96,16 +122,8 @@ async function fetchLoaderData(url: string) {
     }
 
     throw new Error("Navigation error");
-  }
-
-  if (response.headers.has(HEADER_SERIA_STREAM)) {
-    if (!response.body) {
-      throw new Error("Response body was empty");
-    }
-
-    const stream = response.body.pipeThrough(new TextDecoderStream());
-    const context = await seria.parseFromStream(stream);
-    return context as AppContext;
+  } else {
+    return undefined;
   }
 }
 
@@ -113,6 +131,8 @@ type NavigateOptions = {
   replace?: boolean;
   updateHistory?: boolean;
 };
+
+const MAX_REDIRECTS = 20;
 
 export function useNavigation() {
   const { setAppContext } = useContext(ServerContext);
@@ -122,26 +142,46 @@ export function useNavigation() {
     throw navigationError;
   }
 
-  const navigate = useCallback(
-    async (url: string, options?: NavigateOptions) => {
+  const navigateToUrl = useCallback(
+    async (url: string, redirectCount: number, options?: NavigateOptions) => {
       const { replace = false, updateHistory = true } = options || {};
 
       try {
-        const appCtx = await fetchLoaderData(url);
+        if (redirectCount > MAX_REDIRECTS) {
+          throw new Error("Too many redirects");
+        }
 
-        if (!appCtx) {
+        const result = await fetchLoaderData(url);
+
+        if (!result) {
           return;
         }
 
-        if (updateHistory) {
-          if (replace) {
-            history.replaceState({}, "", appCtx.url);
-          } else {
-            history.pushState({}, "", appCtx.url);
+        switch (result.type) {
+          case "success": {
+            const { data: appCtx } = result;
+
+            if (updateHistory) {
+              if (replace) {
+                history.replaceState({}, "", appCtx.url);
+              } else {
+                history.pushState({}, "", appCtx.url);
+              }
+            }
+
+            setAppContext(appCtx);
+            break;
+          }
+          case "redirect": {
+            // If the url is absolute, we send the user outside the app
+            if (/^https?:\/\//i.test(result.to)) {
+              window.location.href = result.to;
+            } else {
+              navigateToUrl(result.to, redirectCount, options);
+            }
+            break;
           }
         }
-
-        setAppContext(appCtx);
       } catch (err) {
         if (err instanceof Error) {
           setNavigationError(err);
@@ -149,6 +189,13 @@ export function useNavigation() {
       }
     },
     []
+  );
+
+  const navigate = useCallback(
+    async (url: string, options?: NavigateOptions) => {
+      return navigateToUrl(url, 0, options);
+    },
+    [navigateToUrl]
   );
 
   useEffect(() => {

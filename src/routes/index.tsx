@@ -1,4 +1,4 @@
-import { useLoaderData } from "@/framework/react";
+import { useLoaderData, useNavigation } from "@/framework/react";
 import React, { useEffect, useState } from "react";
 import { add } from "./_actions";
 
@@ -15,6 +15,7 @@ export default function HomePage() {
   const { number, obj, text } = useLoaderData<typeof loader>();
   const pendingNumber = usePromise(number);
   const pendingObj = usePromise(obj);
+  const navigation = useNavigation();
 
   useEffect(() => {
     number.then((x) => console.log(x));
@@ -28,6 +29,13 @@ export default function HomePage() {
       <p>
         {pendingObj.isPending ? "Loading..." : JSON.stringify(pendingObj.value)}
       </p>
+      <button
+        onClick={() => {
+          navigation("/redirect");
+        }}
+      >
+        Redirect
+      </button>
       <button
         onClick={async () => {
           const result = await add(10, 2);

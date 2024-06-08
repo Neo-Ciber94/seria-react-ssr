@@ -2,8 +2,9 @@
 
 import { createRouter } from "radix3";
 import IndexPage, { loader as loader$0 } from "./routes/index";
-import TodosPage, { loader as loader$1 } from "./routes/todos";
-import Todos$idPage, { loader as loader$2 } from "./routes/todos/$id";
+import RedirectPage, { loader as loader$1 } from "./routes/redirect";
+import TodosPage, { loader as loader$2 } from "./routes/todos";
+import Todos$idPage, { loader as loader$3 } from "./routes/todos/$id";
 
 import { add as action$0 } from "./routes/_actions";
 import { mul as action$1 } from "./routes/_actions";
@@ -36,17 +37,23 @@ const router = createRouter<Route>({
       routePath: "index.tsx",
       loader: loader$0,
     },
+    "/redirect": {
+      id: "/redirect",
+      component: RedirectPage,
+      routePath: "redirect.tsx",
+      loader: loader$1,
+    },
     "/todos": {
       id: "/todos",
       component: TodosPage,
       routePath: "todos.tsx",
-      loader: loader$1,
+      loader: loader$2,
     },
     "/todos/:id": {
       id: "/todos/:id",
       component: Todos$idPage,
       routePath: "todos\\$id.tsx",
-      loader: loader$2,
+      loader: loader$3,
     },
   },
 });

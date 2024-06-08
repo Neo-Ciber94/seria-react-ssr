@@ -240,7 +240,6 @@ async function getFileRoutes(routesDir: string) {
     });
   }
 
-  console.log(routes)
   return routes;
 }
 

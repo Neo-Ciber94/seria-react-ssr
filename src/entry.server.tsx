@@ -14,6 +14,7 @@ import { LoaderFunctionArgs } from "./core/server/loader";
 import {
   HEADER_LOADER_DATA,
   HEADER_ROUTE_ERROR,
+  HEADER_ROUTE_REDIRECT,
   HEADER_SERIA_STREAM,
   HEADER_SERVER_ACTION,
   SERVER_ACTION_ROUTE,
@@ -85,7 +86,6 @@ app.get("*", async (ctx) => {
       loader: route.loader,
       params,
       request,
-      pathname,
     });
   }
 
@@ -173,10 +173,8 @@ async function getLoaderData(args: GetLoaderDataArgs) {
   return undefined;
 }
 
-async function createLoaderResponse(
-  args: GetLoaderDataArgs & { pathname: string }
-) {
-  const { loader, params, request, pathname } = args;
+async function createLoaderResponse(args: GetLoaderDataArgs) {
+  const { loader, params, request } = args;
   const url = request.url;
 
   try {
@@ -214,15 +212,27 @@ async function createLoaderResponse(
         });
       }
 
+      if (
+        loaderData.status >= 300 &&
+        loaderData.status < 400 &&
+        loaderData.headers.has(HEADER_ROUTE_REDIRECT)
+      ) {
+        // We strip the `Location` header, we don't need it when the client request loader data
+        const to = loaderData.headers.get(HEADER_ROUTE_REDIRECT)!;
+        return new Response(null, {
+          status: loaderData.status,
+          headers: {
+            [HEADER_ROUTE_REDIRECT]: to,
+          },
+        });
+      }
+
       return loaderData;
     }
 
-    const appContext: AppContext = {
-      loaderData,
-      url,
-    };
-
+    const appContext: AppContext = { loaderData, url };
     const stream = seria.stringifyToStream(appContext);
+
     return new Response(stream, {
       ...responseInit,
       headers: {
