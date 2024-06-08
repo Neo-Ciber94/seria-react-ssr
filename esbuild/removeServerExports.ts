@@ -4,9 +4,9 @@ import path from "path";
 import ts from "typescript";
 import { getLoader } from "./utils";
 
-const SERVER_FUNCTIONS = ["loader"];
+const SERVER_EXPORTS = ["loader"];
 
-function trimServerFunctionBody(source: string) {
+function replaceServerFunctionBody(source: string) {
   const sourceFile = ts.createSourceFile(
     "source.tsx",
     source,
@@ -57,7 +57,7 @@ function trimServerFunctionBody(source: string) {
     const func = getExportedFunctionName(node);
 
     if (func) {
-      const serverFunctionName = SERVER_FUNCTIONS.find((n) => func.name === n);
+      const serverFunctionName = SERVER_EXPORTS.find((n) => func.name === n);
 
       if (!serverFunctionName) {
         return;
@@ -83,7 +83,7 @@ function trimServerFunctionBody(source: string) {
   return modifiedSource;
 }
 
-export const trimServerFunctionsPlugin: esbuild.Plugin = {
+export const removeServerExports: esbuild.Plugin = {
   name: "remove-server-functions",
   setup(build) {
     build.onLoad(
@@ -95,7 +95,7 @@ export const trimServerFunctionsPlugin: esbuild.Plugin = {
 
         const loader = getLoader(args.path);
         const source = await fs.readFile(args.path, "utf8");
-        const modifiedCode = trimServerFunctionBody(source);
+        const modifiedCode = replaceServerFunctionBody(source);
 
         return {
           contents: modifiedCode,

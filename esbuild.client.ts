@@ -1,7 +1,17 @@
 import * as esbuild from "esbuild";
-import seriaReactClientPlugin from "./esbuild/seriaReactClientPlugin";
+import { createServerActionProxyPlugin } from "./esbuild/createServerActionProxyPlugin";
+import { removeServerExports } from "./esbuild/removeServerExports";
 
 const isDev = process.env.NODE_ENV === "development";
+
+const ignoreServerFilesPlugin: esbuild.Plugin = {
+  name: "ignore-server-files",
+  setup(build) {
+    build.onResolve({ filter: /\.server\.(ts|js|tsx|jsx)$/ }, () => ({
+      external: true,
+    }));
+  },
+};
 
 const options: esbuild.BuildOptions = {
   entryPoints: ["./src/entry.client.tsx"],
@@ -9,7 +19,11 @@ const options: esbuild.BuildOptions = {
   format: "esm",
   minify: !isDev,
   outfile: "./build/client/bundle.js",
-  plugins: [...seriaReactClientPlugin()],
+  plugins: [
+    createServerActionProxyPlugin,
+    removeServerExports,
+    ignoreServerFilesPlugin,
+  ],
   logLevel: "info",
 };
 
