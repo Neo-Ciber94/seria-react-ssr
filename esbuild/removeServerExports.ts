@@ -7,13 +7,13 @@ import babelTraverse from "@babel/traverse";
 import babelGenerate from "@babel/generator";
 import * as t from "@babel/types";
 
-const SERVER_EXPORTS = ["loader"];
-
 // @ts-ignore
 const traverse = babelTraverse.default as typeof babelTraverse;
 
 // @ts-ignore
 const generate = babelGenerate.default as typeof babelGenerate;
+
+const SERVER_EXPORTS = ["loader"];
 
 const throwErrorReplacement = (identifierName: string) =>
   t.blockStatement([
@@ -42,14 +42,11 @@ export const removeServerExports: esbuild.Plugin = {
           sourceType: "module",
         });
 
-        let anyReplaced = false;
-
         traverse(ast, {
           FunctionDeclaration(path) {
             const functionName = path.node.id?.name;
             if (functionName && SERVER_EXPORTS.includes(functionName)) {
               path.node.body = throwErrorReplacement(functionName);
-              anyReplaced = true;
             }
           },
           VariableDeclaration(path) {
@@ -78,10 +75,6 @@ export const removeServerExports: esbuild.Plugin = {
         });
 
         const { code: modified } = generate(ast, {});
-
-        if (anyReplaced) {
-          console.log(modified);
-        }
 
         return {
           contents: modified,
