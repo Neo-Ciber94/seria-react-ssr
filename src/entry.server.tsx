@@ -51,7 +51,7 @@ app.post("/_action", async (ctx) => {
   const formData = await ctx.req.formData();
 
   try {
-    const args = (decode(formData) || []) as any[];
+    const args = decode(formData) as any[];
     const result = await match.action(...args);
     const stream = seria.stringifyToStream(result);
     return ctx.newResponse(stream, {
@@ -90,7 +90,7 @@ app.get("*", async (ctx) => {
   }
 
   if (match == null) {
-    return createPageErrorResponse({ pathname, url, status: 404 });
+    return renderErrorPage({ pathname, url, status: 404 });
   }
 
   const { params = {}, ...route } = match;
@@ -109,7 +109,7 @@ app.get("*", async (ctx) => {
     }
     //
     else if (loaderData instanceof HttpError) {
-      return createPageErrorResponse({
+      return renderErrorPage({
         url,
         pathname,
         message: loaderData.message,
@@ -120,7 +120,7 @@ app.get("*", async (ctx) => {
     else if (loaderData instanceof Response) {
       if (loaderData.status >= 400) {
         const message = await getResponseErrorMessage(loaderData);
-        return createPageErrorResponse({
+        return renderErrorPage({
           url,
           pathname,
           message,
@@ -132,11 +132,11 @@ app.get("*", async (ctx) => {
     }
 
     const appContext: AppContext = { loaderData, pathname, url };
-    const response = await createResponse(appContext, responseInit);
+    const response = await renderPage(appContext, responseInit);
     return response;
   } catch (err) {
     console.error("Failed to create page response", err);
-    return createPageErrorResponse({ pathname, url, status: 500 });
+    return renderErrorPage({ pathname, url, status: 500 });
   }
 });
 
@@ -242,7 +242,7 @@ async function createLoaderResponse(
   }
 }
 
-function createResponse(appContext: AppContext, responseInit?: ResponseInit) {
+function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
   let didError = false;
   const { json, resumeStream } = seria.stringifyToResumableStream(
     appContext.loaderData || {}
@@ -319,14 +319,6 @@ function createResponse(appContext: AppContext, responseInit?: ResponseInit) {
   });
 }
 
-function getResponseErrorMessage(response: Response) {
-  if (response.headers.get("content-type") === "text/plain") {
-    return response.text();
-  }
-
-  return undefined;
-}
-
 type CreateErrorPageArgs = {
   status: number;
   message?: string;
@@ -334,7 +326,7 @@ type CreateErrorPageArgs = {
   url: string;
 };
 
-function createPageErrorResponse(args: CreateErrorPageArgs) {
+function renderErrorPage(args: CreateErrorPageArgs) {
   const { pathname, url, status, message } = args;
   const appContext: AppContext = {
     loaderData: undefined,
@@ -346,8 +338,17 @@ function createPageErrorResponse(args: CreateErrorPageArgs) {
     },
   };
 
-  return createResponse(appContext, { status });
+  return renderPage(appContext, { status });
 }
+
+function getResponseErrorMessage(response: Response) {
+  if (response.headers.get("content-type") === "text/plain") {
+    return response.text();
+  }
+
+  return undefined;
+}
+
 const port = Number(process.env.PORT ?? 5000);
 const hostname = process.env.HOST ?? "localhost";
 

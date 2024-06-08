@@ -14,7 +14,6 @@ function cache<F extends (...args: any[]) => unknown>(f: F) {
 }
 
 export const add = cache(async (x: number, y: number) => {
-  console.log({ x, y, isServer: typeof window === "undefined" });
   return x + y;
 });
 
