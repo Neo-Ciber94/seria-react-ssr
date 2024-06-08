@@ -300,9 +300,7 @@ export function useNavigation() {
     [navigateToUrl]
   );
 
-  return useMemo(() => {
-    return { navigate, status };
-  }, [navigate, status]);
+  return useMemo(() => ({ navigate, status }), [navigate, status]);
 }
 
 export function useParams<T extends Params = Params>() {
