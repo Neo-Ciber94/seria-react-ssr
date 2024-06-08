@@ -1,6 +1,6 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { createContext, useMemo } from "react";
-import { useError, useUrl } from "../react";
+import { useError, useNavigation, useUrl } from "../react";
 import { matchErrorRoute, matchRoute } from "../../$routes";
 import { ErrorPage, NotFound } from "./error";
 import { ErrorBoundary } from "../react/error";
@@ -23,23 +23,22 @@ const RouterContext = createContext<RouterContextProps>({
 export function Router() {
   const { pathname, searchParams } = useUrl();
   const { params, component: Component = NotFound } = useMatch();
+  const error = useRouteError();
+  const navigation = useNavigation();
 
-  const appError = useError();
-  const error = useMemo(() => {
-    const message = (() => {
-      if (appError?.message) {
-        return appError.message;
-      }
+  useEffect(() => {
+    const handlePopState = async (_event: PopStateEvent) => {
+      const search = location.search ? `?${location.search}` : "";
+      const url = `${location.pathname}${search}`;
+      await navigation(url, { updateHistory: false });
+    };
 
-      if (appError?.status === 404) {
-        return "Not Found";
-      }
+    window.addEventListener("popstate", handlePopState);
 
-      return "Internal Error";
-    })();
-
-    return appError ? new HttpError(appError.status, message) : undefined;
-  }, [appError]);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [navigation]);
 
   return (
     <RouterContext.Provider
@@ -73,6 +72,25 @@ function useMatch() {
     const params = match?.params || {};
     return { params, ...match };
   }, [pathname]);
+}
+
+function useRouteError() {
+  const error = useError();
+  return useMemo(() => {
+    const message = (() => {
+      if (error?.message) {
+        return error.message;
+      }
+
+      if (error?.status === 404) {
+        return "Not Found";
+      }
+
+      return "Internal Error";
+    })();
+
+    return error ? new HttpError(error.status, message) : undefined;
+  }, [error]);
 }
 
 export function useParams<T extends Params = Params>() {

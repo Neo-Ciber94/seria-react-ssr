@@ -23,7 +23,16 @@ export default function HomePage() {
 
   return (
     <div>
-      <a href="/todos">Go to todos</a>
+      <title>Home</title>
+      <a
+        href="/todos"
+        onClick={(ev) => {
+          ev.preventDefault();
+          navigation("/todos");
+        }}
+      >
+        Go to todos
+      </a>
       <h1>{text}</h1>
       <p>{pendingNumber.isPending ? "Loading..." : pendingNumber.value}</p>
       <p>

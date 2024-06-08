@@ -1,12 +1,6 @@
 import { EntryClient, EntryServer } from "./entry";
 export { EntryClient, EntryServer };
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { createContext, PropsWithChildren, useContext } from "react";
 import { LoaderFunction } from "../server/loader";
 import {
@@ -112,7 +106,7 @@ async function fetchLoaderData(url: string): Promise<FetchLoaderDataResult> {
     return { type: "redirect", to };
   }
   // Error
-  else if (response.ok) {
+  else if (!response.ok) {
     if (
       response.headers.has(HEADER_ROUTE_ERROR) &&
       response.headers.get("content-type") === "text/plain"
@@ -132,7 +126,7 @@ type NavigateOptions = {
   updateHistory?: boolean;
 };
 
-const MAX_REDIRECTS = 20;
+const MAX_REDIRECTS = 10;
 
 export function useNavigation() {
   const { setAppContext } = useContext(ServerContext);
@@ -147,7 +141,7 @@ export function useNavigation() {
       const { replace = false, updateHistory = true } = options || {};
 
       try {
-        if (redirectCount > MAX_REDIRECTS) {
+        if (redirectCount >= MAX_REDIRECTS) {
           throw new Error("Too many redirects");
         }
 
@@ -177,7 +171,7 @@ export function useNavigation() {
             if (/^https?:\/\//i.test(result.to)) {
               window.location.href = result.to;
             } else {
-              navigateToUrl(result.to, redirectCount, options);
+              navigateToUrl(result.to, redirectCount + 1, options);
             }
             break;
           }
@@ -197,20 +191,6 @@ export function useNavigation() {
     },
     [navigateToUrl]
   );
-
-  useEffect(() => {
-    const handlePopState = async (_event: PopStateEvent) => {
-      const search = location.search ? `?${location.search}` : location.search;
-      const url = `${location.pathname}${search}`;
-      await navigate(url, { updateHistory: false });
-    };
-
-    window.addEventListener("popstate", handlePopState);
-
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, []);
 
   return navigate;
 }
