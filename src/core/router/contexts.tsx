@@ -1,22 +1,22 @@
 import React, { useContext } from "react";
 import { createContext, PropsWithChildren } from "react";
 
-const RouteIdContext = createContext<string | null>(null);
+const RouteContext = createContext<string | null>(null);
 
 type RouteIdProps = {
-  routeId: string;
+  routePath: string;
 };
 
-export function RouteIdProvider(props: PropsWithChildren<RouteIdProps>) {
-  return <RouteIdContext.Provider value={props.routeId}>{props.children}</RouteIdContext.Provider>;
+export function RouteProvider(props: PropsWithChildren<RouteIdProps>) {
+  return <RouteContext.Provider value={props.routePath}>{props.children}</RouteContext.Provider>;
 }
 
-export function useRouteId() {
-  const routeId = useContext(RouteIdContext);
+export function useRoutePath() {
+  const routePath = useContext(RouteContext);
 
-  if (!routeId) {
-    throw new Error("Unable to resolve route id");
+  if (!routePath) {
+    throw new Error("Unable to resolve route path");
   }
 
-  return routeId;
+  return routePath;
 }

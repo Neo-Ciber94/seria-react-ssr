@@ -12,7 +12,7 @@ import {
   HEADER_ROUTE_REDIRECT,
   HEADER_ROUTE_ERROR,
 } from "../constants";
-import { RouteIdProvider } from "./contexts";
+import { RouteProvider } from "./contexts";
 
 export type Params = Record<string, string | string[] | undefined>;
 
@@ -68,9 +68,9 @@ function Routes() {
     }
 
     let Comp = (
-      <RouteIdProvider routeId={match.routePath}>
+      <RouteProvider routePath={match.routePath}>
         <match.component />
-      </RouteIdProvider>
+      </RouteProvider>
     );
 
     const layouts = match.layouts || [];
@@ -81,9 +81,9 @@ function Routes() {
       }
 
       Comp = (
-        <RouteIdProvider routeId={layout.layoutPath}>
+        <RouteProvider routePath={layout.layoutPath}>
           <Layout>{Comp}</Layout>
-        </RouteIdProvider>
+        </RouteProvider>
       );
     }
 
