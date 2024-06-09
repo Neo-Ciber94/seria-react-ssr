@@ -15,23 +15,22 @@ class FileSystemJsonStorage {
     await ensureDatabaseFileIsCreated(this.#filePath);
 
     const json = await this.#readJson();
-    json[key] = seria.stringify(value);
-    await fs.writeFile(this.#filePath, json);
+    json[key] = value;
+    await fs.writeFile(this.#filePath, seria.stringify(json));
   }
 
   async get(key: string) {
     await ensureDatabaseFileIsCreated(this.#filePath);
 
     const json = await this.#readJson();
-    const value = json[key];
-    return value;
+    return json[key];
   }
 
   async getAll() {
     await ensureDatabaseFileIsCreated(this.#filePath);
 
     const json = await this.#readJson();
-    return Object.values(json);
+    return Object.values(json) as any[];
   }
 
   async delete(key: string) {
@@ -43,13 +42,13 @@ class FileSystemJsonStorage {
     }
 
     delete json[key];
-    await fs.writeFile(this.#filePath, json);
+    await fs.writeFile(this.#filePath, seria.stringify(json));
     return true;
   }
 
   async #readJson() {
     const raw = await fs.readFile(this.#filePath, "utf-8");
-    const json = seria.parse(raw) as any;
+    const json = seria.parse(raw) as Record<string, any>;
     return json;
   }
 }
@@ -65,7 +64,7 @@ async function ensureDatabaseFileIsCreated(filePath: string) {
 
   const dir = path.dirname(filePath);
   await fs.mkdir(dir, { recursive: true });
-  await fs.writeFile(filePath, "{}");
+  await fs.writeFile(filePath, seria.stringify({}));
 }
 
 async function exists(filePath: string) {

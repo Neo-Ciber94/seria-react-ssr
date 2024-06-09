@@ -17,6 +17,16 @@ export async function createTodo(newTodo: Pick<Todo, "description">) {
   await db.set(id, todo);
 }
 
+export async function updateTodo(updateTodo: Todo) {
+  const todo: Todo = {
+    id: updateTodo.id,
+    done: updateTodo.done,
+    description: updateTodo.description,
+  };
+
+  await db.set(updateTodo.id, todo);
+}
+
 export async function deleteTodo(todoId: string) {
   const wasDeleted = await db.delete(todoId);
   return wasDeleted;

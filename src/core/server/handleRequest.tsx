@@ -347,7 +347,7 @@ async function handlePageRequest(request: Request) {
 export async function handleRequest(request: Request): Promise<Response> {
   const { pathname } = new URL(request.url);
 
-  if (pathname.startsWith("/_server") && request.method === "POST") {
+  if (pathname.startsWith("/_action") && request.method === "POST") {
     return handleAction(request);
   }
 

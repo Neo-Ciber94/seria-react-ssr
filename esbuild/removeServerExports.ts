@@ -36,8 +36,9 @@ export const removeServerExports: esbuild.Plugin = {
 
         const loader = getLoader(args.path);
         const contents = await fs.readFile(args.path, "utf8");
+        const { code } = await esbuild.transform(contents, { loader });
 
-        const ast = parse(contents, {
+        const ast = parse(code, {
           plugins: ["typescript", "jsx"],
           sourceType: "module",
         });

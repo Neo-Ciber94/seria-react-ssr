@@ -8,6 +8,7 @@ import _layoutPage, { loader as _layoutPage_loader } from "./routes/_layout";
 import { createTodo as action$0 } from "./routes/_actions";
 import { deleteTodo as action$1 } from "./routes/_actions";
 import { toggleTodo as action$2 } from "./routes/_actions";
+import { updateTodo as action$3 } from "./routes/_actions";
 
 export interface Layout {
   id: string;
@@ -88,6 +89,11 @@ const actionRouter = createRouter<ServerAction>({
       id: "_actions#toggleTodo",
       actionPath: "_actions.ts",
       action: action$2,
+    },
+    "_actions#updateTodo": {
+      id: "_actions#updateTodo",
+      actionPath: "_actions.ts",
+      action: action$3,
     },
   },
 });

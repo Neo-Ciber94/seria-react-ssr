@@ -200,7 +200,7 @@ async function fetchRouteData(url: string): Promise<FetchLoaderDataResult> {
 
     const stream = response.body.pipeThrough(new TextDecoderStream());
     const context = await seria.parseFromStream(stream);
-    console.log(context);
+
     return {
       type: "success",
       data: context as AppContext,
@@ -227,8 +227,15 @@ async function fetchRouteData(url: string): Promise<FetchLoaderDataResult> {
   }
 }
 
-function isAbsoluteUrl(url: string) {
-  return /^https?:\/\//i.test(url);
+function isExternalUrl(url: string) {
+  const isAbsolute = /^https?:\/\//i.test(url);
+
+  if (isAbsolute) {
+    const { origin } = new URL(url);
+    return origin !== location.origin;
+  }
+
+  return false;
 }
 
 type NavigateOptions = {
@@ -251,7 +258,10 @@ export function useNavigation() {
     throw new Error("RouterDataContext is not available");
   }
 
-  const { setRouteData } = routeDataContext;
+  const {
+    setRouteData,
+    routeData: { url },
+  } = routeDataContext;
   const [navigationError, setNavigationError] = useState<Error>();
   const [status, setStatus] = useState<NavigationStatus>("loaded");
 
@@ -263,7 +273,7 @@ export function useNavigation() {
     async (url: string, redirectCount: number, options?: NavigateOptions) => {
       const { replace = false, updateHistory = true } = options || {};
 
-      if (isAbsoluteUrl(url)) {
+      if (isExternalUrl(url)) {
         window.location.href = url;
       }
 
@@ -298,7 +308,7 @@ export function useNavigation() {
           }
           case "redirect": {
             // If the url is absolute, we send the user outside the app
-            if (isAbsoluteUrl(result.to)) {
+            if (isExternalUrl(result.to)) {
               window.location.href = result.to;
             } else {
               navigateToUrl(result.to, redirectCount + 1, options);
@@ -330,7 +340,12 @@ export function useNavigation() {
     [navigateToUrl]
   );
 
-  return useMemo(() => ({ navigate, status }), [navigate, status]);
+  const refresh = useCallback(() => navigate(url), [navigate]);
+
+  return useMemo(
+    () => ({ navigate, refresh, status }),
+    [navigate, refresh, status]
+  );
 }
 
 export function useParams<T extends Params = Params>() {
