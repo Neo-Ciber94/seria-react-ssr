@@ -5,6 +5,7 @@ import { createClientServerActionProxyFromPath } from "./esbuild/createClientSer
 import { removeServerExportsFromSource } from "./esbuild/removeServerExports";
 import { getLoader } from "./esbuild/utils";
 import path from "path";
+import fs from "fs/promises";
 
 export default defineConfig((config) => {
   console.log(config);
@@ -19,23 +20,22 @@ export default defineConfig((config) => {
       minify: false,
       rollupOptions: {
         input: "./src/entry.client.tsx",
-        plugins: [frameworkPlugin()],
       },
     },
   };
 });
 
+const routesDir = path.join(process.cwd(), "src/routes").replaceAll(path.sep, "/");
+
+function isInRoutes(filePath: string) {
+  return filePath.startsWith(routesDir);
+}
+
 function frameworkPlugin(): PluginOption {
-  const routesDir = path.join(process.cwd(), "src/routes").replaceAll(path.sep, "/");
-
-  function isInRoutes(filePath: string) {
-    return filePath.startsWith(routesDir);
-  }
-
   return [
     {
       name: "create-server-action-proxy",
-      async transform(_code, id, options) {
+      async load(id, options) {
         if (!/_actions\.(js|ts|jsx|tsx)$/.test(id) || !isInRoutes(id) || options?.ssr) {
           return;
         }
@@ -49,13 +49,14 @@ function frameworkPlugin(): PluginOption {
     },
     {
       name: "remove-server-exports",
-      async transform(code, id, options) {
+      async load(id, options) {
         if (!/\.(js|ts|jsx|tsx)$/.test(id) || !isInRoutes(id) || options?.ssr) {
           return;
         }
 
+        const contents = await fs.readFile(id, "utf8");
         const loader = getLoader(id);
-        const result = await removeServerExportsFromSource(code, loader);
+        const result = await removeServerExportsFromSource(contents, loader);
 
         return {
           code: result.code,
