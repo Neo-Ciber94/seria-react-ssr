@@ -3,11 +3,11 @@ import { createContext, PropsWithChildren } from "react";
 
 const RouteContext = createContext<string | null>(null);
 
-type RouteIdProps = {
+type RouteProviderProps = {
   routePath: string;
 };
 
-export function RouteProvider(props: PropsWithChildren<RouteIdProps>) {
+export function RouteProvider(props: PropsWithChildren<RouteProviderProps>) {
   return <RouteContext.Provider value={props.routePath}>{props.children}</RouteContext.Provider>;
 }
 
