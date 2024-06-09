@@ -65,7 +65,7 @@ function frameworkPlugin(): PluginOption {
     {
       name: "ignore-server-files",
       resolveId(source) {
-        if (/\.(server\.(ts|js|tsx|jsx))$/.test(source)) {
+        if (/\.server\.(ts|js|tsx|jsx)$/.test(source)) {
           return { id: source, external: true };
         }
         return null;
