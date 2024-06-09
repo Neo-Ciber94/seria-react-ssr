@@ -1,7 +1,7 @@
 import * as esbuild from "esbuild";
 import fs from "fs/promises";
 import path from "path";
-import { getLoader, JavascriptLoader } from "./utils";
+import { getLoader } from "./utils";
 import { parse } from "@babel/parser";
 import babelTraverse from "@babel/traverse";
 import babelGenerate from "@babel/generator";
