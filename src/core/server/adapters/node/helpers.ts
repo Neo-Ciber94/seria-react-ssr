@@ -87,9 +87,9 @@ function getBody(req: http.IncomingMessage) {
   });
 }
 
-export async function setResponse(response: Response, target: http.ServerResponse) {
+export function setResponse(response: Response, target: http.ServerResponse) {
   for (const [name, value] of response.headers) {
-    target.setHeader(name, value);
+    target.appendHeader(name, value);
   }
 
   target.writeHead(response.status);
@@ -111,36 +111,37 @@ export async function setResponse(response: Response, target: http.ServerRespons
     return;
   }
 
-  function onCancel(error: any) {
-    target.off("close", onCancel);
-    target.off("error", onCancel);
+  target.on("close", cancel);
+  target.on("error", cancel);
+  reader.read().then(flow, cancel);
 
-    reader.cancel(error).catch(() => null);
-    target.destroy();
-  }
+  return reader.closed.finally(() => {
+    target.off("close", cancel);
+    target.off("error", cancel);
+  });
 
-  target.on("close", onCancel);
-  target.on("error", onCancel);
-
-  async function next() {
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) {
-          target.end();
-          break;
-        }
-
-        if (!target.write(value)) {
-          target.once("drain", next);
-          return;
-        }
-      }
-    } catch (error) {
-      onCancel(error);
+  function cancel(error?: any) {
+    reader.cancel(error).catch(() => {});
+    if (error) {
+      target.destroy(error);
     }
   }
 
-  next();
+  function onDrain() {
+    reader.read().then(flow, cancel);
+  }
+
+  function flow({ done, value }: ReadableStreamReadResult<Uint8Array>): void | Promise<void> {
+    try {
+      if (done) {
+        target.end();
+      } else if (!target.write(value)) {
+        target.once("drain", onDrain);
+      } else {
+        return reader.read().then(flow, cancel);
+      }
+    } catch (e) {
+      cancel(e);
+    }
+  }
 }

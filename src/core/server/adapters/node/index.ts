@@ -10,7 +10,7 @@ type Next = () => void;
 type RequestHandler = (req: http.IncomingMessage, res: http.ServerResponse, next: Next) => void;
 
 function serveDir(dir: string) {
-  return sirv(dir, { brotli: true, etag: true, gzip: true });
+  return sirv(dir, { brotli: true, etag: true, gzip: true, dev: true });
 }
 
 async function ssr(req: http.IncomingMessage, res: http.ServerResponse) {
@@ -18,7 +18,7 @@ async function ssr(req: http.IncomingMessage, res: http.ServerResponse) {
     const baseUrl = process.env.ORIGIN ?? getOrigin(req);
     const request = await createRequest({ req, baseUrl });
     const response = await handleRequest(request);
-    await setResponse(response, res);
+    setResponse(response, res);
   } catch (err) {
     console.error(err);
     res.statusCode = 500;
@@ -60,7 +60,6 @@ function getOrigin(req: http.IncomingMessage) {
 }
 
 const clientDir = path.join(process.cwd(), isDev ? "./build/client" : "./client");
-
 const publicDir = path.join(process.cwd(), "./public");
 
-export const handle = createMiddleware(serveDir(clientDir), serveDir(publicDir), ssr);
+export const handle = createMiddleware(serveDir("./"), ssr);

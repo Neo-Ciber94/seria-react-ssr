@@ -135,6 +135,7 @@ async function createLoaderResponse(args: CreateLoaderResponseArgs) {
 function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
   let didError = false;
   const { json, resumeStream } = seria.stringifyToResumableStream(appContext.loaderData || {});
+  console.log({ json });
 
   const isResumable = !!resumeStream;
   return new Promise<Response>((resolve, reject) => {
@@ -186,6 +187,7 @@ function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
               headers: {
                 ...responseInit?.headers,
                 "content-type": "text/html",
+                "transfer-encoding": "chunked",
                 ...(isResumable ? { "cache-control": "no-cache" } : {}),
               },
             }),
@@ -201,7 +203,7 @@ function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
       },
     );
 
-    setTimeout(abort, ABORT_DELAY);
+    //setTimeout(abort, ABORT_DELAY);
   });
 }
 

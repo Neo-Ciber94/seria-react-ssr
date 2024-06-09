@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense, use } from "react";
 import { usePageError } from "./error";
 import { useNavigation } from "./routing";
 
@@ -50,5 +50,33 @@ export function Link(props: LinkProps) {
         navigate(to, { replace });
       }}
     />
+  );
+}
+
+type AwaitProps<T> = {
+  promise: Promise<T>;
+  fallback?: React.ReactNode;
+  resolved: (value: T) => React.ReactNode;
+};
+
+export function Await<T>(props: AwaitProps<T>) {
+  return props.fallback ? (
+    // @ts-ignore
+    <AwaitWithSuspense {...props} />
+  ) : (
+    <AwaitWithUse {...props} />
+  );
+}
+
+function AwaitWithUse<T>(props: AwaitProps<T>) {
+  const result = use(props.promise);
+  return props.resolved(result);
+}
+
+function AwaitWithSuspense<T>(props: AwaitProps<T> & { fallback: React.ReactNode }) {
+  return (
+    <Suspense fallback={props.fallback}>
+      <Await promise={props.promise} resolved={props.resolved} />
+    </Suspense>
   );
 }

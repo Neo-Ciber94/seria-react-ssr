@@ -100,6 +100,7 @@ const actionRouter = createRouter<ServerAction>({
 
 export const matchRoute = (pathname: string) => router.lookup(pathname);
 
-export const matchErrorRoute = (pathname: string) => errorRouter.lookup(pathname);
+export const matchErrorRoute = (pathname: string) =>
+  errorRouter.lookup(pathname);
 
 export const matchAction = (id: string) => actionRouter.lookup(id);

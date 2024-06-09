@@ -1,15 +1,21 @@
 import { Link, useLoaderData, useNavigation } from "@/framework/router";
-import React from "react";
+import React, { useEffect } from "react";
 import { db } from "./_lib/db";
 import { createTodo, Todo } from "./_actions";
+import { Await } from "@/framework/router/components";
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function loader() {
   const todos: Todo[] = await db.getAll();
-  return todos;
+  return {
+    todos,
+    pending: delay(5000).then(() => "Pending Resolved!"),
+  };
 }
 
 export default function TodoLayout({ children }: { children: React.ReactNode }) {
-  const todos = useLoaderData<typeof loader>();
+  const { todos, pending } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
 
   return (
@@ -76,6 +82,7 @@ export default function TodoLayout({ children }: { children: React.ReactNode }) 
           })}
         </div>
       </aside>
+      <Await promise={pending} fallback={"Loading..."} resolved={(value) => value} />
 
       <main
         style={{
