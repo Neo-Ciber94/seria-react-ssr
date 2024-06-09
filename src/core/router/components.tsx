@@ -1,4 +1,4 @@
-import React, { Suspense, use, useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { usePageError } from "./error";
 import { useNavigation } from "./routing";
 
@@ -68,11 +68,6 @@ export function Await<T>(props: AwaitProps<T>) {
   );
 }
 
-function AwaitWithUse<T>(props: AwaitProps<T>) {
-  const result = use(props.promise);
-  return props.resolved(result);
-}
-
 function AwaitWithSuspense<T>(props: AwaitProps<T> & { fallback: React.ReactNode }) {
   const [isMounted, setIsMounted] = useState(false);
 
@@ -86,7 +81,45 @@ function AwaitWithSuspense<T>(props: AwaitProps<T> & { fallback: React.ReactNode
 
   return (
     <Suspense fallback={props.fallback}>
-      <Await promise={props.promise} resolved={props.resolved} />
+      <AwaitWithUse promise={props.promise} resolved={props.resolved} />
     </Suspense>
   );
+}
+
+type PromiseState<T> =
+  | { status: "pending" }
+  | { status: "resolved"; data: T }
+  | { status: "rejected"; error: unknown };
+
+function AwaitWithUse<T>(props: AwaitProps<T>) {
+  const promise = props.promise;
+
+  if ("state" in promise) {
+    const state = promise.state as PromiseState<T>;
+    if (state.status === "resolved") {
+      return props.resolved(state.data);
+    } else if (state.status === "rejected") {
+      throw state.error;
+    }
+  } else {
+    const tracked = Object.assign(promise, { state: { status: "pending" } }) as Promise<T> & {
+      state: PromiseState<T>;
+    };
+
+    tracked
+      .then((data) => {
+        tracked.state = {
+          status: "resolved",
+          data,
+        };
+      })
+      .catch((error) => {
+        tracked.state = {
+          status: "rejected",
+          error,
+        };
+      });
+  }
+
+  throw promise;
 }

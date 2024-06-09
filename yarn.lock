@@ -536,11 +536,6 @@
   resolved "https://registry.yarnpkg.com/@esbuild/win32-x64/-/win32-x64-0.21.4.tgz#11ef0398f9abee161193461910a507ef0d4c0c32"
   integrity sha512-sywLRD3UK/qRJt0oBwdpYLBibk7KiRfbswmWRDabuncQYSlf8aLEEUor/oP6KRz8KEG+HoiVLBhPRD5JWjS8Sg==
 
-"@hono/node-server@^1.11.2":
-  version "1.11.2"
-  resolved "https://registry.yarnpkg.com/@hono/node-server/-/node-server-1.11.2.tgz#260df84dece220a50ee2c2a469d24df223095b9d"
-  integrity sha512-JhX0nUC66GeDxpIdMKWDRMEwtQBa64CY907iAF1sYqb4m2p2PdSU7zkbnNhAZLg/6IjSlTuj6CF307JlBXVvpg==
-
 "@isaacs/cliui@^8.0.2":
   version "8.0.2"
   resolved "https://registry.yarnpkg.com/@isaacs/cliui/-/cliui-8.0.2.tgz#b37667b7bc181c168782259bab42474fbf52b550"
@@ -1157,11 +1152,6 @@ has-flag@^4.0.0:
   resolved "https://registry.yarnpkg.com/has-flag/-/has-flag-4.0.0.tgz#944771fd9c81c81265c4d6941860da06bb59479b"
   integrity sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==
 
-hono@^4.4.4:
-  version "4.4.4"
-  resolved "https://registry.yarnpkg.com/hono/-/hono-4.4.4.tgz#60eda24bd63dfb379735b9d924016c3c7b1bb329"
-  integrity sha512-zO5+4K8yf1iuKhBZhwmpZ/0LzPMr8Zt1RugEGM1xvOqgh9DyLb7tslOtoBks4bmm5bIcLtzLCXUpYpXOkwpABA==
-
 ignore-by-default@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/ignore-by-default/-/ignore-by-default-1.0.1.tgz#48ca6d72f6c6a3af00a9ad4ae6876be3889e2b09"
@@ -1422,10 +1412,10 @@ semver@^7.5.3:
   resolved "https://registry.yarnpkg.com/semver/-/semver-7.6.2.tgz#1e3b34759f896e8f14d6134732ce798aeb0c6e13"
   integrity sha512-FNAIBWCx9qcRhoHcgcJ0gvU7SN1lYU2ZXuSfl04bSC5OpvDHFyJCjdNHomPXxjQlCBU67YW64PzY7/VIEH7F2w==
 
-seria@^0.2.0-beta3:
-  version "0.2.0-beta3"
-  resolved "https://registry.yarnpkg.com/seria/-/seria-0.2.0-beta3.tgz#baf08c19ff0826384db36700b1ab17d9cf7d18e5"
-  integrity sha512-QnIzupngJg7qIai5lUnnLXWXVu/pndWmXzR/ME52Paad6q2kyyTNMepKpXyS3LECBZHuAIuokNNmBetMk5nZZQ==
+seria@^0.2.0-beta4:
+  version "0.2.0-beta4"
+  resolved "https://registry.yarnpkg.com/seria/-/seria-0.2.0-beta4.tgz#5e380780d74d618ebe577841ec835cdc54a8f296"
+  integrity sha512-O0jxjFv6oEAfG8FOpLXUg7z6oUBYf6FmSB38uHB4B7UgqxvtEcBTcaQpMc1LuguMixVcdJNZ2Aghv/P9cEliDA==
 
 shebang-command@^2.0.0:
   version "2.0.0"
