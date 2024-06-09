@@ -1,27 +1,29 @@
 import React from "react";
-import { renderToPipeableStream } from "react-dom/server";
 import { PassThrough } from "stream";
-import { matchRoute, Route } from "../../$routes";
+import { matchAction, matchRoute, Route } from "../../$routes";
 import {
   HEADER_LOADER_DATA,
   HEADER_ROUTE_ERROR,
   HEADER_ROUTE_REDIRECT,
   HEADER_SERIA_STREAM,
+  HEADER_SERVER_ACTION,
 } from "../constants";
 import { untilAll } from "../internal";
 import { AppContext, EntryServer } from "../react";
 import { HttpError, TypedJson } from "./http";
 import { LoaderFunctionArgs } from "./loader";
 import * as seria from "seria";
-import { handleAction } from "./handleAction";
-
-type GetLoaderDataArgs = {
-  loader: any;
-  params: Record<string, string>;
-  request: Request;
-};
+import { render, type RenderFunction } from "./render";
+import { decode } from "seria/form-data";
+import { Params } from "../router";
 
 const ABORT_DELAY = 10_000;
+
+type GetLoaderDataArgs = {
+  loader: (...args: any[]) => any;
+  params: Params;
+  request: Request;
+};
 
 async function getLoaderData(args: GetLoaderDataArgs) {
   const { loader, params, request } = args;
@@ -134,10 +136,10 @@ async function createLoaderResponse(args: CreateLoaderResponseArgs) {
 function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
   let didError = false;
   const { json, resumeStream } = seria.stringifyToResumableStream(appContext.loaderData || {});
-
   const isResumable = !!resumeStream;
+
   return new Promise<Response>((resolve, reject) => {
-    const { pipe, abort } = renderToPipeableStream(
+    const { pipe, abort } = render(
       <EntryServer appContext={appContext} json={json} isResumable={isResumable} />,
       {
         bootstrapModules: ["/bundle.js"],
@@ -204,13 +206,13 @@ function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
   });
 }
 
-type CreateErrorPageArgs = {
+type RenderErrorPageArgs = {
   status: number;
   message?: string;
   url: string;
 };
 
-function renderErrorPage(args: CreateErrorPageArgs) {
+function renderErrorPage(args: RenderErrorPageArgs) {
   const { url, status, message } = args;
   const appContext: AppContext = {
     loaderData: {},
@@ -234,7 +236,7 @@ function getResponseErrorMessage(response: Response) {
 
 type GetRouteDataArgs = {
   route: Route;
-  params: Record<string, string>;
+  params: Params;
   request: Request;
 };
 
@@ -243,13 +245,23 @@ async function getRouteData(args: GetRouteDataArgs) {
   const routeData: Record<string, any> = {};
   const promises: Record<string, Promise<any>> = {};
 
-  promises[route.routePath] = getLoaderData({
-    loader: route.loader,
-    request,
-    params,
-  });
+  promises[route.routePath] = (() => {
+    if (!route.loader) {
+      return Promise.resolve();
+    }
+
+    return getLoaderData({
+      loader: route.loader,
+      request,
+      params,
+    });
+  })();
 
   for (const layout of route.layouts || []) {
+    if (!layout.loader) {
+      continue;
+    }
+
     promises[layout.layoutPath] = getLoaderData({
       loader: layout.loader,
       request,
@@ -333,18 +345,55 @@ async function handlePageRequest(request: Request) {
   }
 }
 
-export async function handleRequest(request: Request): Promise<Response> {
-  const { pathname } = new URL(request.url);
+async function handleAction(request: Request) {
+  const actionId = request.headers.get(HEADER_SERVER_ACTION) ?? "";
+  const match = matchAction(actionId);
 
-  if (pathname.startsWith("/_action") && request.method === "POST") {
-    return handleAction(request);
+  if (!match) {
+    return new Response(null, {
+      status: 404,
+    });
   }
 
-  if (request.method === "GET") {
-    return handlePageRequest(request);
-  }
+  const formData = await request.formData();
 
-  return new Response(null, {
-    status: 404,
-  });
+  try {
+    const args = decode(formData) as any[];
+    const result = await match.action(...args);
+    const stream = seria.stringifyToStream(result);
+    return new Response(stream, {
+      status: 200,
+      headers: {
+        "content-type": "application/json+seria",
+        "cache-control": "no-cache",
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    return new Response(null, {
+      status: 500,
+    });
+  }
+}
+
+type CreateRequestHandlerOptions = {
+  render?: RenderFunction;
+};
+
+export function createRequestHandler(options?: CreateRequestHandlerOptions) {
+  return async function (request: Request): Promise<Response> {
+    const { pathname } = new URL(request.url);
+
+    if (pathname.startsWith("/_action") && request.method === "POST") {
+      return handleAction(request);
+    }
+
+    if (request.method === "GET") {
+      return handlePageRequest(request);
+    }
+
+    return new Response(null, {
+      status: 404,
+    });
+  };
 }
