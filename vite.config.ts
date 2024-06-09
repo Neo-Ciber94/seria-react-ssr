@@ -6,18 +6,6 @@ import { removeServerExportsFromSource } from "./esbuild/removeServerExports";
 import { getLoader } from "./esbuild/utils";
 import path from "path";
 
-function ignoreServerFilesPlugin(): PluginOption {
-  return {
-    name: "ignore-server-files",
-    resolveId(source) {
-      if (/\.(server\.(ts|js|tsx|jsx))$/.test(source)) {
-        return { id: source, external: true };
-      }
-      return null;
-    },
-  };
-}
-
 export default defineConfig((config) => {
   console.log(config);
 
@@ -74,6 +62,14 @@ function frameworkPlugin(): PluginOption {
         };
       },
     },
-    ignoreServerFilesPlugin(),
+    {
+      name: "ignore-server-files",
+      resolveId(source) {
+        if (/\.(server\.(ts|js|tsx|jsx))$/.test(source)) {
+          return { id: source, external: true };
+        }
+        return null;
+      },
+    },
   ];
 }
