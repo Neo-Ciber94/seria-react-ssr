@@ -35,8 +35,8 @@ function frameworkPlugin(): PluginOption {
   return [
     {
       name: "create-server-action-proxy",
-      async transform(_code, id) {
-        if (!/_actions\.(js|ts|jsx|tsx)$/.test(id) || !isInRoutes(id)) {
+      async transform(_code, id, options) {
+        if (!/_actions\.(js|ts|jsx|tsx)$/.test(id) || !isInRoutes(id) || options?.ssr) {
           return;
         }
 
@@ -49,8 +49,8 @@ function frameworkPlugin(): PluginOption {
     },
     {
       name: "remove-server-exports",
-      async transform(code, id) {
-        if (!/\.(js|ts|jsx|tsx)$/.test(id) || !isInRoutes(id)) {
+      async transform(code, id, options) {
+        if (!/\.(js|ts|jsx|tsx)$/.test(id) || !isInRoutes(id) || options?.ssr) {
           return;
         }
 
@@ -64,8 +64,8 @@ function frameworkPlugin(): PluginOption {
     },
     {
       name: "ignore-server-files",
-      resolveId(source) {
-        if (/\.server\.(ts|js|tsx|jsx)$/.test(source)) {
+      resolveId(source, _, options) {
+        if (/\.server\.(ts|js|tsx|jsx)$/.test(source) || options?.ssr) {
           return { id: source, external: true };
         }
         return null;
