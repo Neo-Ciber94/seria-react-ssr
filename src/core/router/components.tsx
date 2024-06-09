@@ -1,4 +1,4 @@
-import React, { Suspense, use } from "react";
+import React, { Suspense, use, useEffect, useState } from "react";
 import { usePageError } from "./error";
 import { useNavigation } from "./routing";
 
@@ -74,6 +74,16 @@ function AwaitWithUse<T>(props: AwaitProps<T>) {
 }
 
 function AwaitWithSuspense<T>(props: AwaitProps<T> & { fallback: React.ReactNode }) {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return props.fallback;
+  }
+
   return (
     <Suspense fallback={props.fallback}>
       <Await promise={props.promise} resolved={props.resolved} />
