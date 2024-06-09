@@ -2,7 +2,7 @@ import React, { createContext, PropsWithChildren, useContext } from "react";
 import { App } from "../../app";
 
 export type AppContext = {
-  loaderData: any;
+  loaderData: Record<string, any>;
   url: string;
   error?: {
     status: number;
@@ -20,7 +20,7 @@ type ServerContextProps = {
 
 const ServerContext = createContext<ServerContextProps>({
   appContext: {
-    loaderData: undefined,
+    loaderData: {},
     url: "",
   },
 });

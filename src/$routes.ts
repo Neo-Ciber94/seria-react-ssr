@@ -6,14 +6,14 @@ import IndexPage from "./routes/index";
 import Todos$idPage, { loader as loader$2 } from "./routes/todos/$id";
 import _layoutPage, { loader as _layoutPage_loader } from "./routes/_layout";
 
-interface Layout {
+export interface Layout {
   id: string;
   layoutPath: string;
   component?: (props: { children: any }) => any;
   loader?: (...args: any[]) => any | Promise<any>;
 }
 
-interface Route {
+export interface Route {
   id: string;
   routePath: string;
   component?: () => any;
@@ -21,13 +21,13 @@ interface Route {
   layouts?: Layout[];
 }
 
-interface ErrorRoute {
+export interface ErrorRoute {
   id: string;
   routePath: string;
   component: () => any;
 }
 
-interface Action {
+export interface ServerAction {
   id: string;
   actionPath: string;
   functionName: string;
@@ -39,12 +39,12 @@ const router = createRouter<Route>({
     "/todos": {
       id: "/todos",
       component: TodosPage,
-      routePath: "todos.tsx",
+      routePath: "todos",
       loader: undefined,
       layouts: [
         {
           id: "/",
-          layoutPath: "_layout.tsx",
+          layoutPath: "_layout",
           component: _layoutPage,
           loader: _layoutPage_loader,
         },
@@ -53,12 +53,12 @@ const router = createRouter<Route>({
     "/": {
       id: "/",
       component: IndexPage,
-      routePath: "index.tsx",
+      routePath: "index",
       loader: undefined,
       layouts: [
         {
           id: "/",
-          layoutPath: "_layout.tsx",
+          layoutPath: "_layout",
           component: _layoutPage,
           loader: _layoutPage_loader,
         },
@@ -67,12 +67,12 @@ const router = createRouter<Route>({
     "/todos/:id": {
       id: "/todos/:id",
       component: Todos$idPage,
-      routePath: "todos\\$id.tsx",
+      routePath: "todos/$id",
       loader: loader$2,
       layouts: [
         {
           id: "/",
-          layoutPath: "_layout.tsx",
+          layoutPath: "_layout",
           component: _layoutPage,
           loader: _layoutPage_loader,
         },
@@ -83,7 +83,7 @@ const router = createRouter<Route>({
 
 const errorRouter = createRouter<ErrorRoute>({ routes: {} });
 
-const actionRouter = createRouter<Action>({ routes: {} });
+const actionRouter = createRouter<ServerAction>({ routes: {} });
 
 export const matchRoute = (pathname: string) => router.lookup(pathname);
 

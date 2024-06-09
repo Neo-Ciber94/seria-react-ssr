@@ -68,7 +68,7 @@ function Routes() {
     }
 
     let Comp = (
-      <RouteIdProvider routeId={match.id}>
+      <RouteIdProvider routeId={match.routePath}>
         <match.component />
       </RouteIdProvider>
     );
@@ -81,7 +81,7 @@ function Routes() {
       }
 
       Comp = (
-        <RouteIdProvider routeId={layout.id}>
+        <RouteIdProvider routeId={layout.layoutPath}>
           <Layout>{Comp}</Layout>
         </RouteIdProvider>
       );

@@ -197,14 +197,14 @@ async function generateRouterCode(
     ${errorRouteImports.join("\n")}
     ${actionsRouteImport.join("\n")}
 
-    interface Layout {
+    export interface Layout {
       id: string;
       layoutPath: string;
       component?: (props: { children: any }) => any,
       loader?: (...args: any[]) => any | Promise<any>,
     }
 
-    interface Route {
+    export interface Route {
       id: string,
       routePath: string
       component?: () => any,
@@ -212,13 +212,13 @@ async function generateRouterCode(
       layouts?: Layout[]
     }
 
-    interface ErrorRoute {
+    export interface ErrorRoute {
       id: string;
       routePath: string;
       component: () => any;
     }
 
-    interface Action {
+    export interface ServerAction {
       id: string;
       actionPath: string;
       functionName: string;
@@ -229,7 +229,7 @@ async function generateRouterCode(
 
     const errorRouter = createRouter<ErrorRoute>({ routes: { ${errorRoutesMap} }});
 
-    const actionRouter = createRouter<Action>({ routes: { ${actionsMap} }});
+    const actionRouter = createRouter<ServerAction>({ routes: { ${actionsMap} }});
 
     export const matchRoute = (pathname: string) => router.lookup(pathname);
 
@@ -259,15 +259,15 @@ async function getFileRoutes(routesDir: string) {
       continue;
     }
 
-    const routePath = path.relative(routesDir, filePath);
-    const routeExports = await getRouteExports(routePath);
+    const routeFilePath = path.relative(routesDir, filePath);
+    const routeExports = await getRouteExports(routeFilePath);
 
     if (routeExports == null || routeExports.component == null) {
       continue;
     }
 
-    const componentName = generateComponentName(routePath);
-    const routeId = routePath
+    const componentName = generateComponentName(routeFilePath);
+    const routeId = routeFilePath
       .replaceAll(path.sep, "/")
       .replaceAll("$$", "**:")
       .replaceAll("$", ":")
@@ -283,11 +283,14 @@ async function getFileRoutes(routesDir: string) {
 
     if (!isValidRoute) {
       throw new Error(
-        `Invalid route: '${path.join(ROUTES_FOLDER_NAME, routePath)}'`
+        `Invalid route: '${path.join(ROUTES_FOLDER_NAME, routeFilePath)}'`
       );
     }
 
-    const layouts = await getRouteLayouts(routePath);
+    const layouts = await getRouteLayouts(routeFilePath);
+    const routePath = routeFilePath
+      .replaceAll(path.sep, "/")
+      .replaceAll(/\.(js|ts|jsx|tsx)$/g, "");
 
     routes.push({
       id,
@@ -318,22 +321,25 @@ async function getRouteLayouts(routePath: string) {
     const layoutFile = layoutPaths.find((f) => fse.existsSync(f));
 
     if (layoutFile) {
-      const layoutPath = path.relative(ROUTES_DIR_PATH, layoutFile);
+      const layoutFilePath = path.relative(ROUTES_DIR_PATH, layoutFile);
 
-      const mod = await getRouteExports(layoutPath);
+      const mod = await getRouteExports(layoutFilePath);
 
       if (!mod) {
         continue;
       }
 
       const { component, loader } = mod;
-      const componentName = generateComponentName(layoutPath);
-      const layoutId = layoutPath
+      const componentName = generateComponentName(layoutFilePath);
+      const layoutId = layoutFilePath
         .replaceAll(path.sep, "/")
         .replaceAll(/\.(js|ts|jsx|tsx)$/g, "")
         .replaceAll(/_layout$/g, "");
 
       const id = `/${layoutId}`;
+      const layoutPath = layoutFilePath
+        .replaceAll(path.sep, "/")
+        .replaceAll(/\.(js|ts|jsx|tsx)$/g, "");
 
       layouts.push({
         id,

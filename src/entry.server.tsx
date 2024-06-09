@@ -6,7 +6,7 @@ import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { PassThrough } from "stream";
-import { matchAction, matchRoute } from "./$routes";
+import { matchAction, matchRoute, Route } from "./$routes";
 import path from "path";
 import { fileURLToPath } from "url";
 import * as seria from "seria";
@@ -21,6 +21,7 @@ import {
 } from "./core/constants";
 import { HttpError, TypedJson } from "./core/server/http";
 import { decode } from "seria/form-data";
+import { untilAll } from "./core/internal";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const IS_DEV = process.env.NODE_ENV !== "production";
@@ -83,11 +84,8 @@ app.get("*", async (ctx) => {
     }
 
     const { params = {}, ...route } = match;
-    return createLoaderResponse({
-      loader: route.loader,
-      params,
-      request,
-    });
+    const routeData = await createLoaderResponse({ route, params, request });
+    return routeData;
   }
 
   if (match == null) {
@@ -98,39 +96,40 @@ app.get("*", async (ctx) => {
 
   try {
     let responseInit: ResponseInit = {};
-    let loaderData = await getLoaderData({
-      loader: route.loader,
-      request,
-      params,
-    });
+    const routeData = await getRouteData({ route, params, request });
 
-    if (loaderData instanceof TypedJson) {
-      loaderData = loaderData.data;
-      responseInit = loaderData.init;
-    }
-    //
-    else if (loaderData instanceof HttpError) {
-      return renderErrorPage({
-        url,
-        message: loaderData.message,
-        status: loaderData.status,
-      });
-    }
-    //
-    else if (loaderData instanceof Response) {
-      if (loaderData.status >= 400) {
-        const message = await getResponseErrorMessage(loaderData);
+    for (const [id, loaderData] of Object.entries(routeData)) {
+      if (loaderData instanceof TypedJson) {
+        routeData[id] = loaderData.data;
+        responseInit = {
+          ...responseInit,
+          ...loaderData.init,
+          headers: {
+            ...responseInit.headers,
+            ...loaderData.init?.headers,
+          },
+        };
+      } else if (loaderData instanceof HttpError) {
         return renderErrorPage({
           url,
-          message,
-          status: loaderData.status,
+          message: routeData.message,
+          status: routeData.status,
         });
-      }
+      } else if (routeData instanceof Response) {
+        if (routeData.status >= 400) {
+          const message = await getResponseErrorMessage(routeData);
+          return renderErrorPage({
+            url,
+            message,
+            status: routeData.status,
+          });
+        }
 
-      return loaderData;
+        return loaderData;
+      }
     }
 
-    const appContext: AppContext = { loaderData, url };
+    const appContext: AppContext = { loaderData: routeData, url };
     const response = await renderPage(appContext, responseInit);
     return response;
   } catch (err) {
@@ -141,7 +140,7 @@ app.get("*", async (ctx) => {
 
 type GetLoaderDataArgs = {
   loader: any;
-  params: Record<string, string | string[] | undefined>;
+  params: Record<string, string>;
   request: Request;
 };
 
@@ -174,74 +173,81 @@ async function getLoaderData(args: GetLoaderDataArgs) {
   return undefined;
 }
 
-async function createLoaderResponse(args: GetLoaderDataArgs) {
-  const { loader, params, request } = args;
+type CreateLoaderResponseArgs = {
+  route: Route;
+  params: Record<string, string>;
+  request: Request;
+};
+
+async function createLoaderResponse(args: CreateLoaderResponseArgs) {
+  const { route, params = {}, request } = args;
   const url = request.url;
 
   try {
     let responseInit: ResponseInit = {};
-    let loaderData: any = await getLoaderData({
-      loader,
-      request,
-      params,
-    });
+    const routeData = await getRouteData({ route, params, request });
 
-    if (loaderData instanceof TypedJson) {
-      loaderData = loaderData.data;
-      responseInit = loaderData.init;
-    }
-    //
-    else if (loaderData instanceof HttpError) {
-      return new Response(loaderData.message, {
-        status: loaderData.status,
-        headers: {
-          [HEADER_ROUTE_ERROR]: "1",
-          "content-type": "text/plain",
-        },
-      });
-    }
-    //
-    else if (loaderData instanceof Response) {
-      if (loaderData.status >= 400) {
-        const message = await getResponseErrorMessage(loaderData);
-        return new Response(message, {
+    for (const [id, loaderData] of Object.entries(routeData)) {
+      if (loaderData instanceof TypedJson) {
+        routeData[id] = loaderData.data;
+        responseInit = {
+          ...responseInit,
+          ...loaderData.init,
+          headers: {
+            ...responseInit.headers,
+            ...loaderData.init?.headers,
+          },
+        };
+      } else if (loaderData instanceof HttpError) {
+        return new Response(loaderData.message, {
           status: loaderData.status,
           headers: {
             [HEADER_ROUTE_ERROR]: "1",
             "content-type": "text/plain",
           },
         });
+      } else if (routeData instanceof Response) {
+        if (loaderData.status >= 400) {
+          const message = await getResponseErrorMessage(loaderData);
+          return new Response(message, {
+            status: loaderData.status,
+            headers: {
+              [HEADER_ROUTE_ERROR]: "1",
+              "content-type": "text/plain",
+            },
+          });
+        }
+
+        if (
+          loaderData.status >= 300 &&
+          loaderData.status < 400 &&
+          loaderData.headers.has(HEADER_ROUTE_REDIRECT)
+        ) {
+          // We strip the `Location` header, we don't need it when the client request loader data
+          const to = loaderData.headers.get(HEADER_ROUTE_REDIRECT)!;
+          return new Response(null, {
+            status: loaderData.status,
+            headers: {
+              [HEADER_ROUTE_REDIRECT]: to,
+            },
+          });
+        }
+
+        return loaderData;
       }
 
-      if (
-        loaderData.status >= 300 &&
-        loaderData.status < 400 &&
-        loaderData.headers.has(HEADER_ROUTE_REDIRECT)
-      ) {
-        // We strip the `Location` header, we don't need it when the client request loader data
-        const to = loaderData.headers.get(HEADER_ROUTE_REDIRECT)!;
-        return new Response(null, {
-          status: loaderData.status,
-          headers: {
-            [HEADER_ROUTE_REDIRECT]: to,
-          },
-        });
-      }
+      const appContext: AppContext = { loaderData, url };
+      const stream = seria.stringifyToStream(appContext);
 
-      return loaderData;
+      return new Response(stream, {
+        ...responseInit,
+        headers: {
+          ...responseInit.headers,
+          "content-type": "application/json; charset=utf-8",
+          [HEADER_SERIA_STREAM]: "1",
+        },
+      });
     }
-
-    const appContext: AppContext = { loaderData, url };
-    const stream = seria.stringifyToStream(appContext);
-
-    return new Response(stream, {
-      ...responseInit,
-      headers: {
-        ...responseInit.headers,
-        "content-type": "application/json; charset=utf-8",
-        [HEADER_SERIA_STREAM]: "1",
-      },
-    });
   } catch (err) {
     console.error(err);
     return new Response(null, {
@@ -338,7 +344,7 @@ type CreateErrorPageArgs = {
 function renderErrorPage(args: CreateErrorPageArgs) {
   const { url, status, message } = args;
   const appContext: AppContext = {
-    loaderData: undefined,
+    loaderData: {},
     url,
     error: {
       status,
@@ -355,6 +361,40 @@ function getResponseErrorMessage(response: Response) {
   }
 
   return undefined;
+}
+
+type GetRouteDataArgs = {
+  route: Route;
+  params: Record<string, string>;
+  request: Request;
+};
+
+async function getRouteData(args: GetRouteDataArgs) {
+  const { route, params, request } = args;
+  const routeData: Record<string, any> = {};
+  const promises: Record<string, Promise<any>> = {};
+
+  promises[route.routePath] = getLoaderData({
+    loader: route.loader,
+    request,
+    params,
+  });
+
+  for (const layout of route.layouts || []) {
+    promises[layout.layoutPath] = getLoaderData({
+      loader: layout.loader,
+      request,
+      params,
+    });
+  }
+
+  const result = await untilAll(promises);
+
+  for (const [id, ret] of Object.entries(result)) {
+    routeData[id] = ret.state === "resolved" ? ret.data : ret.error;
+  }
+
+  return routeData;
 }
 
 const port = Number(process.env.PORT ?? 5000);
