@@ -111,37 +111,41 @@ export function setResponse(response: Response, target: http.ServerResponse) {
     return;
   }
 
-  target.on("close", cancel);
-  target.on("error", cancel);
-  reader.read().then(flow, cancel);
-
-  return reader.closed.finally(() => {
-    target.off("close", cancel);
-    target.off("error", cancel);
-  });
-
-  function cancel(error?: any) {
+  function onCancel(error?: any) {
     reader.cancel(error).catch(() => {});
+
     if (error) {
       target.destroy(error);
     }
   }
 
-  function onDrain() {
-    reader.read().then(flow, cancel);
-  }
-
-  function flow({ done, value }: ReadableStreamReadResult<Uint8Array>): void | Promise<void> {
+  async function next() {
     try {
-      if (done) {
-        target.end();
-      } else if (!target.write(value)) {
-        target.once("drain", onDrain);
-      } else {
-        return reader.read().then(flow, cancel);
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          target.end();
+          return;
+        }
+
+        if (!target.write(value)) {
+          target.once("drain", next);
+          return;
+        }
       }
-    } catch (e) {
-      cancel(e);
+    } catch (err) {
+      onCancel(err);
     }
   }
+
+  target.on("close", onCancel);
+  target.on("error", onCancel);
+
+  reader.closed.finally(() => {
+    target.off("close", onCancel);
+    target.off("error", onCancel);
+  });
+
+  void next();
 }
