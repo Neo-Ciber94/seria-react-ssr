@@ -8,11 +8,7 @@ export async function loader() {
   return todos;
 }
 
-export default function TodoLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function TodoLayout({ children }: { children: React.ReactNode }) {
   const todos = useLoaderData<typeof loader>();
   const navigation = useNavigation();
 
@@ -58,9 +54,7 @@ export default function TodoLayout({
           </form>
 
           <h2 style={{ color: "white" }}>Todos</h2>
-          {todos.length === 0 && (
-            <h2 style={{ color: "rgba(255,255,255,0.5)" }}>No todos</h2>
-          )}
+          {todos.length === 0 && <h2 style={{ color: "rgba(255,255,255,0.5)" }}>No todos</h2>}
         </div>
 
         <div style={{ width: "100%" }}>

@@ -4,7 +4,7 @@ import { invariant } from "../internal";
 export class TypedJson<T> {
   constructor(
     readonly data: T,
-    readonly init?: ResponseInit
+    readonly init?: ResponseInit,
   ) {}
 }
 
@@ -40,11 +40,11 @@ export function redirect(to: string, status: RedirectStatusCode = 303) {
 export class HttpError extends Error {
   constructor(
     readonly status: number,
-    message: string
+    message: string,
   ) {
     invariant(
       status >= 400 && status <= 600,
-      "Invalid error status code, expected code between 400 and 599"
+      "Invalid error status code, expected code between 400 and 599",
     );
 
     super(message);

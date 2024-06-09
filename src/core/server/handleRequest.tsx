@@ -98,11 +98,7 @@ async function createLoaderResponse(args: CreateLoaderResponseArgs) {
           });
         }
 
-        if (
-          data.status >= 300 &&
-          data.status < 400 &&
-          data.headers.has(HEADER_ROUTE_REDIRECT)
-        ) {
+        if (data.status >= 300 && data.status < 400 && data.headers.has(HEADER_ROUTE_REDIRECT)) {
           // We strip the `Location` header, we don't need it when the client request loader data
           const to = data.headers.get(HEADER_ROUTE_REDIRECT)!;
           return new Response(null, {
@@ -138,18 +134,12 @@ async function createLoaderResponse(args: CreateLoaderResponseArgs) {
 
 function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
   let didError = false;
-  const { json, resumeStream } = seria.stringifyToResumableStream(
-    appContext.loaderData || {}
-  );
+  const { json, resumeStream } = seria.stringifyToResumableStream(appContext.loaderData || {});
 
   const isResumable = !!resumeStream;
   return new Promise<Response>((resolve, reject) => {
     const { pipe, abort } = renderToPipeableStream(
-      <EntryServer
-        appContext={appContext}
-        json={json}
-        isResumable={isResumable}
-      />,
+      <EntryServer appContext={appContext} json={json} isResumable={isResumable} />,
       {
         bootstrapModules: [`${CLIENT_DIR}/bundle.js`],
         onAllReady() {
@@ -172,7 +162,7 @@ function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
                     `<script data-seria-stream-resume="${id}">
                         $seria_stream_writer.write(${JSON.stringify(chunk)});
                         document.querySelector('[data-seria-stream-resume="${id}"]').remove();
-                      </script>`
+                      </script>`,
                   );
                 }
 
@@ -181,7 +171,7 @@ function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
                   `<script data-seria-stream-resume="${id}">
                       window.$seria_stream_writer.close();
                       document.querySelector('[data-seria-stream-resume="${id}"]').remove();
-                    </script>`
+                    </script>`,
                 );
               }
 
@@ -198,7 +188,7 @@ function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
                 "content-type": "text/html",
                 ...(isResumable ? { "cache-control": "no-cache" } : {}),
               },
-            })
+            }),
           );
         },
         onShellError(err) {
@@ -208,7 +198,7 @@ function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
           didError = true;
           console.error(error);
         },
-      }
+      },
     );
 
     setTimeout(abort, ABORT_DELAY);

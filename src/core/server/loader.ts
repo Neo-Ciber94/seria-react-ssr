@@ -5,6 +5,4 @@ export type LoaderFunctionArgs = {
   request: Request;
 };
 
-export type LoaderFunction<T> = (
-  ctx: LoaderFunctionArgs
-) => T | Promise<T> | void | Promise<void>;
+export type LoaderFunction<T> = (ctx: LoaderFunctionArgs) => T | Promise<T> | void | Promise<void>;

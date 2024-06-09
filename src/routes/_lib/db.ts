@@ -6,9 +6,7 @@ class FileSystemJsonStorage {
   #filePath: string;
 
   constructor(filePath: string) {
-    this.#filePath = path.isAbsolute(filePath)
-      ? filePath
-      : path.join(process.cwd(), filePath);
+    this.#filePath = path.isAbsolute(filePath) ? filePath : path.join(process.cwd(), filePath);
   }
 
   async set(key: string, value: unknown) {

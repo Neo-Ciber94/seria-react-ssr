@@ -14,8 +14,7 @@ type LoaderDataType<T> =
           ? never
           : T;
 
-type LoaderReturnType<T> =
-  T extends LoaderFunction<infer U> ? LoaderDataType<U> : never;
+type LoaderReturnType<T> = T extends LoaderFunction<infer U> ? LoaderDataType<U> : never;
 
 export function useLoaderData<L extends LoaderFunction<unknown>>() {
   const routeId = useRouteId();

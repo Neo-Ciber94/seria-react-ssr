@@ -98,11 +98,7 @@ function Routes() {
         searchParams,
       }}
     >
-      <RouteErrorBoundary
-        key={pathname}
-        error={error}
-        fallback={() => <ErrorFallback />}
-      >
+      <RouteErrorBoundary key={pathname} error={error} fallback={() => <ErrorFallback />}>
         <Component />
       </RouteErrorBoundary>
     </RouterContext.Provider>
@@ -330,22 +326,19 @@ export function useNavigation() {
         }
       }
     },
-    []
+    [],
   );
 
   const navigate = useCallback(
     async (url: string, options?: NavigateOptions) => {
       return navigateToUrl(url, 0, options);
     },
-    [navigateToUrl]
+    [navigateToUrl],
   );
 
   const refresh = useCallback(() => navigate(url), [navigate]);
 
-  return useMemo(
-    () => ({ navigate, refresh, status }),
-    [navigate, refresh, status]
-  );
+  return useMemo(() => ({ navigate, refresh, status }), [navigate, refresh, status]);
 }
 
 export function useParams<T extends Params = Params>() {
@@ -363,13 +356,12 @@ export function useSearchParams() {
 
   const setSearchParams = useCallback(
     (newValue: React.SetStateAction<URLSearchParams>) => {
-      const val =
-        typeof newValue === "function" ? newValue(searchParams) : newValue;
+      const val = typeof newValue === "function" ? newValue(searchParams) : newValue;
       const urlParams = new URLSearchParams(val);
       const url = `${pathname}?${urlParams}`;
       navigate(url, { replace: true });
     },
-    [searchParams]
+    [searchParams],
   );
 
   return [searchParams, setSearchParams] as const;

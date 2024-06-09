@@ -28,23 +28,15 @@ await (async () => {
 const entryPoints = await glob(["./src/**/*.{js,jsx,ts,tsx}"], {
   posix: true,
   dotRelative: true,
-  ignore: [
-    "./src/generateRoutes.ts",
-    "./src/**/*.client.{js,jsx,ts,tsx}",
-    "./src/client/seria",
-  ],
+  ignore: ["./src/generateRoutes.ts", "./src/**/*.client.{js,jsx,ts,tsx}", "./src/client/seria"],
 });
 
 const external = await glob(
-  [
-    "./src/generateRoutes.ts",
-    "./src/**/*.client.{js,jsx,ts,tsx}",
-    "./src/client/seria",
-  ],
+  ["./src/generateRoutes.ts", "./src/**/*.client.{js,jsx,ts,tsx}", "./src/client/seria"],
   {
     posix: true,
     dotRelative: true,
-  }
+  },
 );
 
 const options: esbuild.BuildOptions = {

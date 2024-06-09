@@ -1,17 +1,13 @@
 import http from "http";
 import sirv from "sirv";
 import { createRequest, setResponse } from "./helpers";
-import { handleRequest } from "../handleRequest";
+import { handleRequest } from "../../handleRequest";
 import path from "path";
 
 const isDev = process.env.NODE_ENV !== "production";
 
 type Next = () => void;
-type RequestHandler = (
-  req: http.IncomingMessage,
-  res: http.ServerResponse,
-  next: Next
-) => void;
+type RequestHandler = (req: http.IncomingMessage, res: http.ServerResponse, next: Next) => void;
 
 function serveDir(dir: string) {
   return sirv(dir, { brotli: true, etag: true, gzip: true });
@@ -60,20 +56,11 @@ function getOrigin(req: http.IncomingMessage) {
     return `${protocol}${headers.host}`;
   }
 
-  throw new Error(
-    "Unable to get origin, set the `ORIGIN` environment variable"
-  );
+  throw new Error("Unable to get origin, set the `ORIGIN` environment variable");
 }
 
-const clientDir = path.join(
-  process.cwd(),
-  isDev ? "./build/client" : "./client"
-);
+const clientDir = path.join(process.cwd(), isDev ? "./build/client" : "./client");
 
 const publicDir = path.join(process.cwd(), "./public");
 
-export const handle = createMiddleware(
-  serveDir(clientDir),
-  serveDir(publicDir),
-  ssr
-);
+export const handle = createMiddleware(serveDir(clientDir), serveDir(publicDir), ssr);

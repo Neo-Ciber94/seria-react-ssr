@@ -77,7 +77,7 @@ async function generateRoutes() {
 async function generateRouterCode(
   routes: RouteFile[],
   errorRoutes: ErrorFile[],
-  actions: ActionFile[]
+  actions: ActionFile[],
 ) {
   const layoutsMap = new Map<string, RouteLayoutFile>();
 
@@ -99,9 +99,7 @@ async function generateRouterCode(
       additionalImports.push(`loader as loader$${i}`);
     }
 
-    const routeImports = additionalImports
-      ? `,{ ${additionalImports.join(",")} }`
-      : "";
+    const routeImports = additionalImports ? `,{ ${additionalImports.join(",")} }` : "";
 
     return `import ${r.componentName} ${routeImports} from "./${importPath}";`;
   });
@@ -136,9 +134,7 @@ async function generateRouterCode(
       additionalImports.push(`loader as ${l.componentName}_loader`);
     }
 
-    const layoutImports = additionalImports
-      ? `,{ ${additionalImports.join(",")} }`
-      : "";
+    const layoutImports = additionalImports ? `,{ ${additionalImports.join(",")} }` : "";
 
     return `import ${l.componentName} ${layoutImports} from "./${importPath}";`;
   });
@@ -282,9 +278,7 @@ async function getFileRoutes(routesDir: string) {
       .every(isValidRouteSegment);
 
     if (!isValidRoute) {
-      throw new Error(
-        `Invalid route: '${path.join(ROUTES_FOLDER_NAME, routeFilePath)}'`
-      );
+      throw new Error(`Invalid route: '${path.join(ROUTES_FOLDER_NAME, routeFilePath)}'`);
     }
 
     const layouts = await getRouteLayouts(routeFilePath);
@@ -316,9 +310,7 @@ async function getRouteLayouts(routePath: string) {
   let dir = path.dirname(filePath);
 
   while (dir != root) {
-    const layoutPaths = extensions.map((ext) =>
-      path.join(dir, `_layout.${ext}`)
-    );
+    const layoutPaths = extensions.map((ext) => path.join(dir, `_layout.${ext}`));
 
     const layoutFile = layoutPaths.find((f) => fse.existsSync(f));
 
@@ -369,9 +361,7 @@ async function getErrorRoutes(routesDir: string) {
 
   for (const file of errorFiles) {
     const routePath = path.relative(routesDir, file);
-    const importPath = path
-      .join(ROUTES_FOLDER_NAME, routePath)
-      .replaceAll(path.sep, "/");
+    const importPath = path.join(ROUTES_FOLDER_NAME, routePath).replaceAll(path.sep, "/");
 
     const mod = await import(`./${importPath}`).catch(() => null);
     if (mod == null) {
@@ -385,15 +375,11 @@ async function getErrorRoutes(routesDir: string) {
     }
 
     if (typeof component !== "function") {
-      throw new Error(
-        `Error page do not default export a component: ${routePath}`
-      );
+      throw new Error(`Error page do not default export a component: ${routePath}`);
     }
 
     const componentName = generateComponentName(routePath).replaceAll("_", "$");
-    const routeId = routePath
-      .replaceAll(path.sep, "/")
-      .replace(/_error\.(ts|js|jsx|tsx)$/g, "**");
+    const routeId = routePath.replaceAll(path.sep, "/").replace(/_error\.(ts|js|jsx|tsx)$/g, "**");
 
     const id = `/${routeId}`;
     errorRoutes.push({
@@ -417,9 +403,7 @@ async function getServerActions(routesDir: string) {
 
   for (const file of files) {
     const actionPath = path.relative(routesDir, file);
-    const importPath = path
-      .join(ROUTES_FOLDER_NAME, actionPath)
-      .replaceAll(path.sep, "/");
+    const importPath = path.join(ROUTES_FOLDER_NAME, actionPath).replaceAll(path.sep, "/");
 
     const mod = await import(`./${importPath}`).catch(() => null);
     if (mod == null) {

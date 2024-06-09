@@ -87,10 +87,7 @@ function getBody(req: http.IncomingMessage) {
   });
 }
 
-export async function setResponse(
-  response: Response,
-  target: http.ServerResponse
-) {
+export async function setResponse(response: Response, target: http.ServerResponse) {
   for (const [name, value] of response.headers) {
     target.setHeader(name, value);
   }

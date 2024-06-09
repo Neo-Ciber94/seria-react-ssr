@@ -52,4 +52,3 @@ export function Link(props: LinkProps) {
     />
   );
 }
-

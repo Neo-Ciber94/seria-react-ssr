@@ -8,11 +8,7 @@ type RouteIdProps = {
 };
 
 export function RouteIdProvider(props: PropsWithChildren<RouteIdProps>) {
-  return (
-    <RouteIdContext.Provider value={props.routeId}>
-      {props.children}
-    </RouteIdContext.Provider>
-  );
+  return <RouteIdContext.Provider value={props.routeId}>{props.children}</RouteIdContext.Provider>;
 }
 
 export function useRouteId() {

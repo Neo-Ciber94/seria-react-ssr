@@ -55,15 +55,9 @@ type EntryServerProps = {
   isResumable: boolean;
 };
 
-export function EntryServer({
-  appContext,
-  json,
-  isResumable,
-}: EntryServerProps) {
+export function EntryServer({ appContext, json, isResumable }: EntryServerProps) {
   const { url } = appContext;
-  const appError = appContext.error
-    ? `error: ${JSON.stringify(appContext.error)}`
-    : "";
+  const appError = appContext.error ? `error: ${JSON.stringify(appContext.error)}` : "";
 
   return (
     <ServerContextProvider appContext={appContext}>

@@ -14,7 +14,8 @@
     "clean": "rimraf build",
     "typecheck": "tsc --noEmit",
     "generate-routes": "tsx ./src/generateRoutes.ts",
-    "generate-routes:watch": "nodemon --exec \"npm run generate-routes\" --watch ./src/generateRoutes.ts --watch ./src/routes --ext js,jsx,ts,tsx"
+    "generate-routes:watch": "nodemon --exec \"npm run generate-routes\" --watch ./src/generateRoutes.ts --watch ./src/routes --ext js,jsx,ts,tsx",
+    "format": "prettier --write ./src"
   },
   "dependencies": {
     "radix3": "^1.1.2",
