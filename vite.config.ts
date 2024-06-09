@@ -15,7 +15,6 @@ function isInRoutes(filePath: string) {
 
 export default defineConfig((config) => {
   console.log(config);
-
   return {
     plugins: [frameworkPlugin(), tsconfigPaths(), react()],
     esbuild: {

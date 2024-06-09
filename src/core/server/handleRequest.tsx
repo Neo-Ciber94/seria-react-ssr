@@ -13,7 +13,7 @@ import { AppContext, EntryServer } from "../react";
 import { HttpError, TypedJson } from "./http";
 import { LoaderFunctionArgs } from "./loader";
 import * as seria from "seria";
-import { render, type RenderFunction } from "./render";
+import { render as reactRender, type RenderFunction } from "./render";
 import { decode } from "seria/form-data";
 import { Params } from "../router";
 
@@ -133,10 +133,11 @@ async function createLoaderResponse(args: CreateLoaderResponseArgs) {
   }
 }
 
-function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
+function renderPage(appContext: AppContext, render: RenderFunction, responseInit?: ResponseInit) {
   let didError = false;
   const { json, resumeStream } = seria.stringifyToResumableStream(appContext.loaderData || {});
   const isResumable = !!resumeStream;
+  const statusCode = appContext.error?.status || 200;
 
   return new Promise<Response>((resolve, reject) => {
     const { pipe, abort } = render(
@@ -183,7 +184,7 @@ function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
           resolve(
             new Response(stream, {
               ...responseInit,
-              status: didError ? 500 : 200,
+              status: didError ? 500 : statusCode,
               headers: {
                 ...responseInit?.headers,
                 "content-type": "text/html",
@@ -204,26 +205,6 @@ function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
 
     setTimeout(abort, ABORT_DELAY);
   });
-}
-
-type RenderErrorPageArgs = {
-  status: number;
-  message?: string;
-  url: string;
-};
-
-function renderErrorPage(args: RenderErrorPageArgs) {
-  const { url, status, message } = args;
-  const appContext: AppContext = {
-    loaderData: {},
-    url,
-    error: {
-      status,
-      message,
-    },
-  };
-
-  return renderPage(appContext, { status });
 }
 
 function getResponseErrorMessage(response: Response) {
@@ -278,7 +259,7 @@ async function getRouteData(args: GetRouteDataArgs) {
   return routeData;
 }
 
-async function handlePageRequest(request: Request) {
+async function handlePageRequest(request: Request, render: RenderFunction) {
   const { pathname } = new URL(request.url);
   const url = request.url;
   const match = matchRoute(pathname);
@@ -296,7 +277,7 @@ async function handlePageRequest(request: Request) {
   }
 
   if (match == null) {
-    return renderErrorPage({ url, status: 404 });
+    return renderPage({ url, loaderData: {}, error: { status: 404 } }, render);
   }
 
   const { params = {}, ...route } = match;
@@ -317,19 +298,28 @@ async function handlePageRequest(request: Request) {
           },
         };
       } else if (data instanceof HttpError) {
-        return renderErrorPage({
-          url,
-          message: data.message,
-          status: data.status,
-        });
+        return renderPage(
+          {
+            url,
+            loaderData: {},
+            error: { status: data.status, message: data.message },
+          },
+          render,
+        );
       } else if (data instanceof Response) {
         if (data.status >= 400) {
           const message = await getResponseErrorMessage(data);
-          return renderErrorPage({
-            url,
-            message,
-            status: data.status,
-          });
+          return renderPage(
+            {
+              url,
+              loaderData: {},
+              error: {
+                status: data.status,
+                message,
+              },
+            },
+            render,
+          );
         }
 
         return data;
@@ -337,11 +327,11 @@ async function handlePageRequest(request: Request) {
     }
 
     const appContext: AppContext = { loaderData, url };
-    const response = await renderPage(appContext, responseInit);
+    const response = await renderPage(appContext, render, responseInit);
     return response;
   } catch (err) {
     console.error("Failed to create page response", err);
-    return renderErrorPage({ url, status: 500 });
+    return renderPage({ url, loaderData: {}, error: { status: 500 } }, render);
   }
 }
 
@@ -381,6 +371,7 @@ type CreateRequestHandlerOptions = {
 };
 
 export function createRequestHandler(options?: CreateRequestHandlerOptions) {
+  const render = options?.render ?? reactRender;
   return async function (request: Request): Promise<Response> {
     const { pathname } = new URL(request.url);
 
@@ -389,7 +380,7 @@ export function createRequestHandler(options?: CreateRequestHandlerOptions) {
     }
 
     if (request.method === "GET") {
-      return handlePageRequest(request);
+      return handlePageRequest(request, render);
     }
 
     return new Response(null, {

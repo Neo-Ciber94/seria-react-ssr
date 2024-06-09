@@ -149,3 +149,22 @@ export function setResponse(response: Response, target: http.ServerResponse) {
 
   void next();
 }
+
+export function getOrigin(req: http.IncomingMessage) {
+  const headers = req.headers;
+
+  if (headers.origin) {
+    return headers.origin;
+  }
+
+  if (headers.referer) {
+    return new URL(headers.referer).origin;
+  }
+
+  if (headers.host) {
+    const protocol = headers.protocol ?? "https://";
+    return `${protocol}${headers.host}`;
+  }
+
+  throw new Error("Unable to get origin, set the `ORIGIN` environment variable");
+}

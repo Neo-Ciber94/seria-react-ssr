@@ -1,14 +1,15 @@
 import http from "http";
 import sirv from "sirv";
-import { createRequest, setResponse } from "./helpers";
-import { handleRequest } from "../../handleRequest";
+import { createRequest, getOrigin, setResponse } from "./helpers";
+import { createRequestHandler } from "../../handleRequest";
 import path from "path";
 import { fileURLToPath } from "url";
 
-const isDev = process.env.NODE_ENV !== "production";
-
 type Next = () => void;
 type RequestHandler = (req: http.IncomingMessage, res: http.ServerResponse, next: Next) => void;
+
+const isDev = process.env.NODE_ENV !== "production";
+const handleRequest = createRequestHandler();
 
 function serveDir(dir: string): RequestHandler {
   return sirv(dir, {
@@ -43,25 +44,6 @@ function createMiddleware(...handlers: RequestHandler[]): RequestHandler {
 
     return handle(0);
   };
-}
-
-function getOrigin(req: http.IncomingMessage) {
-  const headers = req.headers;
-
-  if (headers.origin) {
-    return headers.origin;
-  }
-
-  if (headers.referer) {
-    return new URL(headers.referer).origin;
-  }
-
-  if (headers.host) {
-    const protocol = headers.protocol ?? "https://";
-    return `${protocol}${headers.host}`;
-  }
-
-  throw new Error("Unable to get origin, set the `ORIGIN` environment variable");
 }
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

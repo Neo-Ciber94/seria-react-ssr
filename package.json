@@ -17,7 +17,8 @@
     "generate-routes:watch": "nodemon --exec \"npm run generate-routes\" --watch ./src/generateRoutes.ts --watch ./src/routes --ext js,jsx,ts,tsx",
     "format": "prettier --write ./src",
     "vite:build-client": "vite build --outDir build/vite/client --ssrManifest",
-    "vite:build-server": "vite build --outDir build/vite/server --ssr ./src/entry.server.tsx"
+    "vite:build-server": "vite build --outDir build/vite/server --ssr ./src/entry.server.tsx",
+    "vite:dev": "tsx ./src/entry.server.tsx"
   },
   "dependencies": {
     "radix3": "^1.1.2",
