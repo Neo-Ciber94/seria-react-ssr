@@ -200,6 +200,7 @@ async function fetchRouteData(url: string): Promise<FetchLoaderDataResult> {
 
     const stream = response.body.pipeThrough(new TextDecoderStream());
     const context = await seria.parseFromStream(stream);
+    console.log(context);
     return {
       type: "success",
       data: context as AppContext,

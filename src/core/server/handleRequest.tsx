@@ -65,32 +65,32 @@ async function createLoaderResponse(args: CreateLoaderResponseArgs) {
 
   try {
     let responseInit: ResponseInit = {};
-    const routeData = await getRouteData({ route, params, request });
+    const loaderData = await getRouteData({ route, params, request });
 
-    for (const [id, loaderData] of Object.entries(routeData)) {
-      if (loaderData instanceof TypedJson) {
-        routeData[id] = loaderData.data;
+    for (const [id, data] of Object.entries(loaderData)) {
+      if (data instanceof TypedJson) {
+        loaderData[id] = data.data;
         responseInit = {
           ...responseInit,
-          ...loaderData.init,
+          ...data.init,
           headers: {
             ...responseInit.headers,
-            ...loaderData.init?.headers,
+            ...data.init?.headers,
           },
         };
-      } else if (loaderData instanceof HttpError) {
-        return new Response(loaderData.message, {
-          status: loaderData.status,
+      } else if (data instanceof HttpError) {
+        return new Response(data.message, {
+          status: data.status,
           headers: {
             [HEADER_ROUTE_ERROR]: "1",
             "content-type": "text/plain",
           },
         });
-      } else if (routeData instanceof Response) {
-        if (loaderData.status >= 400) {
-          const message = await getResponseErrorMessage(loaderData);
+      } else if (data instanceof Response) {
+        if (data.status >= 400) {
+          const message = await getResponseErrorMessage(data);
           return new Response(message, {
-            status: loaderData.status,
+            status: data.status,
             headers: {
               [HEADER_ROUTE_ERROR]: "1",
               "content-type": "text/plain",
@@ -99,35 +99,35 @@ async function createLoaderResponse(args: CreateLoaderResponseArgs) {
         }
 
         if (
-          loaderData.status >= 300 &&
-          loaderData.status < 400 &&
-          loaderData.headers.has(HEADER_ROUTE_REDIRECT)
+          data.status >= 300 &&
+          data.status < 400 &&
+          data.headers.has(HEADER_ROUTE_REDIRECT)
         ) {
           // We strip the `Location` header, we don't need it when the client request loader data
-          const to = loaderData.headers.get(HEADER_ROUTE_REDIRECT)!;
+          const to = data.headers.get(HEADER_ROUTE_REDIRECT)!;
           return new Response(null, {
-            status: loaderData.status,
+            status: data.status,
             headers: {
               [HEADER_ROUTE_REDIRECT]: to,
             },
           });
         }
 
-        return loaderData;
+        return data;
       }
-
-      const appContext: AppContext = { loaderData, url };
-      const stream = seria.stringifyToStream(appContext);
-
-      return new Response(stream, {
-        ...responseInit,
-        headers: {
-          ...responseInit.headers,
-          "content-type": "application/json; charset=utf-8",
-          [HEADER_SERIA_STREAM]: "1",
-        },
-      });
     }
+
+    const appContext: AppContext = { loaderData, url };
+    const stream = seria.stringifyToStream(appContext);
+
+    return new Response(stream, {
+      ...responseInit,
+      headers: {
+        ...responseInit.headers,
+        "content-type": "application/json; charset=utf-8",
+        [HEADER_SERIA_STREAM]: "1",
+      },
+    });
   } catch (err) {
     console.error(err);
     return new Response(null, {
@@ -302,40 +302,40 @@ async function handlePageRequest(request: Request) {
 
   try {
     let responseInit: ResponseInit = {};
-    const routeData = await getRouteData({ route, params, request });
+    const loaderData = await getRouteData({ route, params, request });
 
-    for (const [id, loaderData] of Object.entries(routeData)) {
-      if (loaderData instanceof TypedJson) {
-        routeData[id] = loaderData.data;
+    for (const [id, data] of Object.entries(loaderData)) {
+      if (data instanceof TypedJson) {
+        loaderData[id] = data.data;
         responseInit = {
           ...responseInit,
-          ...loaderData.init,
+          ...data.init,
           headers: {
             ...responseInit.headers,
-            ...loaderData.init?.headers,
+            ...data.init?.headers,
           },
         };
-      } else if (loaderData instanceof HttpError) {
+      } else if (data instanceof HttpError) {
         return renderErrorPage({
           url,
-          message: routeData.message,
-          status: routeData.status,
+          message: data.message,
+          status: data.status,
         });
-      } else if (routeData instanceof Response) {
-        if (routeData.status >= 400) {
-          const message = await getResponseErrorMessage(routeData);
+      } else if (data instanceof Response) {
+        if (data.status >= 400) {
+          const message = await getResponseErrorMessage(data);
           return renderErrorPage({
             url,
             message,
-            status: routeData.status,
+            status: data.status,
           });
         }
 
-        return loaderData;
+        return data;
       }
     }
 
-    const appContext: AppContext = { loaderData: routeData, url };
+    const appContext: AppContext = { loaderData, url };
     const response = await renderPage(appContext, responseInit);
     return response;
   } catch (err) {

@@ -44,6 +44,7 @@ export function Link(props: LinkProps) {
   return (
     <a
       {...rest}
+      href={to}
       onClick={(ev) => {
         ev.preventDefault();
         navigate(to, { replace });

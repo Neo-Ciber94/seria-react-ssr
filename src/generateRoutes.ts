@@ -288,9 +288,11 @@ async function getFileRoutes(routesDir: string) {
     }
 
     const layouts = await getRouteLayouts(routeFilePath);
-    const routePath = routeFilePath
+    const normalizedRoutePath = routeFilePath
       .replaceAll(path.sep, "/")
       .replaceAll(/\.(js|ts|jsx|tsx)$/g, "");
+
+    const routePath = `/${normalizedRoutePath}`;
 
     routes.push({
       id,
@@ -337,9 +339,11 @@ async function getRouteLayouts(routePath: string) {
         .replaceAll(/_layout$/g, "");
 
       const id = `/${layoutId}`;
-      const layoutPath = layoutFilePath
+      const normalizedlayoutPath = layoutFilePath
         .replaceAll(path.sep, "/")
         .replaceAll(/\.(js|ts|jsx|tsx)$/g, "");
+
+      const layoutPath = `/${normalizedlayoutPath}`;
 
       layouts.push({
         id,
