@@ -141,7 +141,7 @@ function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
     const { pipe, abort } = renderToPipeableStream(
       <EntryServer appContext={appContext} json={json} isResumable={isResumable} />,
       {
-        bootstrapModules: [`${CLIENT_DIR}/bundle.js`],
+        bootstrapModules: ["/bundle.js"],
         onAllReady() {
           const body = new PassThrough();
           pipe(body);

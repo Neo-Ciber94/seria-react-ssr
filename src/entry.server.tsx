@@ -1,5 +1,5 @@
 import polka from "polka";
-import { handle } from "./core/server/adapters/node";
+import { handle } from "./core/server/adapters/node/handler";
 
 const PORT = process.env.PORT ?? 5000;
 const HOST = process.env.HOST ?? "localhost";
