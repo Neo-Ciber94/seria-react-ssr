@@ -17,8 +17,6 @@
     "generate-routes:watch": "nodemon --exec \"npm run generate-routes\" --watch ./src/generateRoutes.ts --watch ./src/routes --ext js,jsx,ts,tsx"
   },
   "dependencies": {
-    "@hono/node-server": "^1.11.2",
-    "hono": "^4.4.2",
     "radix3": "^1.1.2",
     "react": "^19.0.0-rc-6d3110b4d9-20240531",
     "react-dom": "^19.0.0-rc-6d3110b4d9-20240531",
@@ -35,6 +33,7 @@
     "@babel/traverse": "^7.24.7",
     "@babel/types": "^7.24.7",
     "@types/babel__core": "^7.20.5",
+    "@types/express": "^4.17.21",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.13.0",
     "@types/react": "npm:types-react@rc",
@@ -42,11 +41,13 @@
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "esbuild": "^0.21.4",
+    "express": "^4.19.2",
     "fs-extra": "^11.2.0",
     "glob": "^10.4.1",
     "nodemon": "^3.1.2",
     "prettier": "^3.3.0",
     "rimraf": "^5.0.7",
+    "sirv": "^2.0.4",
     "tsx": "^4.11.0",
     "typescript": "^5.4.5"
   },
