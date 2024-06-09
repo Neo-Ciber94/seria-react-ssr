@@ -24,6 +24,7 @@
   },
   "include": [
     "src",
-    "esbuild.*"
+    "esbuild.*",
+    "vite.config.ts"
   ]
 }

@@ -15,7 +15,9 @@
     "typecheck": "tsc --noEmit",
     "generate-routes": "tsx ./src/generateRoutes.ts",
     "generate-routes:watch": "nodemon --exec \"npm run generate-routes\" --watch ./src/generateRoutes.ts --watch ./src/routes --ext js,jsx,ts,tsx",
-    "format": "prettier --write ./src"
+    "format": "prettier --write ./src",
+    "vite:build-client": "vite build --outDir build/vite/client --ssrManifest",
+    "vite:build-server": "vite build --outDir build/vite/server --ssr src/entry-server.js"
   },
   "dependencies": {
     "radix3": "^1.1.2",
@@ -39,6 +41,7 @@
     "@types/polka": "^0.5.7",
     "@types/react": "npm:types-react@rc",
     "@types/react-dom": "npm:types-react-dom@rc",
+    "@vitejs/plugin-react": "^4.3.0",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "esbuild": "^0.21.4",
@@ -50,7 +53,9 @@
     "rimraf": "^5.0.7",
     "sirv": "^2.0.4",
     "tsx": "^4.11.0",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "vite": "^5.2.13",
+    "vite-tsconfig-paths": "^4.3.2"
   },
   "overrides": {
     "@types/react": "npm:types-react@rc",
