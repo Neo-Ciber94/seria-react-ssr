@@ -13,7 +13,6 @@ import { AppContext, EntryServer } from "../react";
 import { HttpError, TypedJson } from "./http";
 import { LoaderFunctionArgs } from "./loader";
 import * as seria from "seria";
-import { CLIENT_DIR } from "./constants";
 import { handleAction } from "./handleAction";
 
 type GetLoaderDataArgs = {
