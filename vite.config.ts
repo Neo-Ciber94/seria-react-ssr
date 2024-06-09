@@ -7,6 +7,12 @@ import { getLoader } from "./esbuild/utils";
 import path from "path";
 import fs from "fs/promises";
 
+const routesDir = path.join(process.cwd(), "src/routes").replaceAll(path.sep, "/");
+
+function isInRoutes(filePath: string) {
+  return filePath.startsWith(routesDir);
+}
+
 export default defineConfig((config) => {
   console.log(config);
 
@@ -20,16 +26,18 @@ export default defineConfig((config) => {
       minify: false,
       rollupOptions: {
         input: "./src/entry.client.tsx",
+        output: {
+          manualChunks(id) {
+            if (isInRoutes(id)) {
+              const filePath = path.relative(routesDir, id).replaceAll(path.sep, "/");
+              return `routes/${filePath}`;
+            }
+          },
+        },
       },
     },
   };
 });
-
-const routesDir = path.join(process.cwd(), "src/routes").replaceAll(path.sep, "/");
-
-function isInRoutes(filePath: string) {
-  return filePath.startsWith(routesDir);
-}
 
 function frameworkPlugin(): PluginOption {
   return [
