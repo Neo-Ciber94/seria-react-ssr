@@ -3,7 +3,6 @@ import sirv from "sirv";
 import { createRequest, setResponse } from "./helpers";
 import { handleRequest } from "../handleRequest";
 import path from "path";
-import { fileURLToPath } from "url";
 
 const isDev = process.env.NODE_ENV !== "production";
 
