@@ -1,4 +1,4 @@
-import { defineConfig, PluginOption } from "vite";
+import { ConfigEnv, defineConfig, PluginOption } from "vite";
 import react from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
 import { createClientServerActionProxyFromPath } from "./esbuild/createClientServerActionProxy";
@@ -7,40 +7,48 @@ import { getLoader } from "./esbuild/utils";
 import path from "path";
 import fs from "fs/promises";
 
-const routesDir = path.join(process.cwd(), "src/routes").replaceAll(path.sep, "/");
+const routesDir = normalizePath(path.join(process.cwd(), "src/routes"));
 
 function isInRoutes(filePath: string) {
   return filePath.startsWith(routesDir);
 }
 
 export default defineConfig((config) => {
-  console.log(config);
   return {
-    plugins: [react(), tsconfigPaths(), frameworkPlugin()],
+    plugins: [frameworkPlugin(config), react(), tsconfigPaths()],
     optimizeDeps: {
       entries: ["react", "react/jsx-runtime", "react/jsx-dev-runtime", "react-dom/client"],
     },
     build: {
-      manifest: true,
       minify: false,
       rollupOptions: {
         input: ["./src/entry.client.tsx"],
         output: {
           format: "es",
           manualChunks(id) {
-            if (isInRoutes(id)) {
-              const chunkName = path
-                .relative(routesDir, id)
-                .replaceAll(path.sep, "/")
-                .replaceAll("/", "_")
-                .replaceAll(/\.(j|t)sx?$/g, "");
+            const relativePath = normalizePath(path.relative(process.cwd(), id));
+            const isReact =
+              relativePath.startsWith("node_modules/react") ||
+              relativePath.startsWith("node_modules/react-dom");
 
-              return `routes_${chunkName}`;
+            if (isReact) {
+              return "react";
             }
 
-            const dir = path.relative(process.cwd(), id).replaceAll(path.sep, "/");
-            if (dir.startsWith("node_modules/react")) {
-              return "react-runtime";
+            if (isExternal(id)) {
+              return "vendor";
+            }
+
+            if (!config.isSsrBuild) {
+              if (isInRoutes(id)) {
+                const chunkName = path
+                  .relative(routesDir, id)
+                  .replaceAll(path.sep, "/")
+                  .replaceAll("/", "_")
+                  .replaceAll(/\.(j|t)sx?$/g, "");
+
+                return `routes_${chunkName}`;
+              }
             }
           },
         },
@@ -49,12 +57,19 @@ export default defineConfig((config) => {
   };
 });
 
-function frameworkPlugin(): PluginOption {
+function frameworkPlugin(config: ConfigEnv): PluginOption {
+  console.log(config);
+
+  if (config.isSsrBuild) {
+    return [];
+  }
+
   return [
     {
       name: "create-server-action-proxy",
-      async load(id, options) {
-        if (!/_actions\.(js|ts|jsx|tsx)$/.test(id) || !isInRoutes(id) || options?.ssr) {
+      enforce: "pre",
+      async load(id) {
+        if (isExternal(id) || !/_actions\.(js|ts|jsx|tsx)$/.test(id) || !isInRoutes(id)) {
           return;
         }
 
@@ -67,8 +82,9 @@ function frameworkPlugin(): PluginOption {
     },
     {
       name: "remove-server-exports",
-      async load(id, options) {
-        if (!/\.(js|ts|jsx|tsx)$/.test(id) || !isInRoutes(id) || options?.ssr) {
+      enforce: "pre",
+      async load(id) {
+        if (isExternal(id) || !/\.(js|ts|jsx|tsx)$/.test(id) || !isInRoutes(id)) {
           return;
         }
 
@@ -83,8 +99,9 @@ function frameworkPlugin(): PluginOption {
     },
     {
       name: "ignore-server-files",
-      resolveId(source, _, options) {
-        if (/\.server\.(ts|js|tsx|jsx)$/.test(source) && options.ssr) {
+      resolveId(source, id) {
+        console.log(id);
+        if (/\.server\.(ts|js|tsx|jsx)$/.test(source)) {
           return { id: source, external: true };
         }
 
@@ -92,4 +109,12 @@ function frameworkPlugin(): PluginOption {
       },
     },
   ];
+}
+
+function normalizePath(filepath: string) {
+  return filepath.replaceAll(path.win32.sep, path.posix.sep);
+}
+
+function isExternal(id: string) {
+  return id.includes("/node_modules/");
 }
