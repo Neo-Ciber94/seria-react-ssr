@@ -32,7 +32,7 @@ function Scripts() {
   return (
     <>
       <script src="/build/client/assets/seria.js" />
-      <script rel="modulepreload" src="/src/entry.client.tsx" />
+      <script type="module" rel="modulepreload" src="/src/entry.client.tsx" />
     </>
   );
 }
