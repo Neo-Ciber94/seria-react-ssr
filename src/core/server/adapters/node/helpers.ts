@@ -34,6 +34,9 @@ export async function createRequest({ baseUrl, req }: CreateRequestArgs) {
     method,
     headers,
     body,
+
+    // @ts-ignore
+    duplex: "half",
   });
 }
 
