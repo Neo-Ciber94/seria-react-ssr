@@ -1,10 +1,13 @@
 // import "./todo.css";
-import { useLoaderData } from "@/framework/router";
 import React from "react";
+import { lazy, useState } from "react";
+import { useLoaderData } from "@/framework/router";
 import { db } from "../_lib/db";
 import { LoaderFunctionArgs } from "@/framework/server/loader";
 import { notFound } from "@/framework/server/http";
 import { Todo, updateTodo } from "../_actions";
+
+const LazyComponent = lazy(() => import("../../component/big-component"));
 
 export async function loader({ params }: LoaderFunctionArgs) {
   const todoId = typeof params.id === "string" ? params.id : null;
@@ -24,6 +27,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
 export default function Todo() {
   const data = useLoaderData<typeof loader>();
+  const [show, setShow] = useState(false);
 
   return (
     <form
@@ -45,6 +49,9 @@ export default function Todo() {
       </label>
       <textarea name="description" defaultValue={data.description} />
       <button>Update</button>
+
+      <button onClick={() => setShow((s) => !s)}>Show</button>
+      {show && <LazyComponent />}
     </form>
   );
 }

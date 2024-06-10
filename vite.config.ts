@@ -16,9 +16,9 @@ function isInRoutes(filePath: string) {
 export default defineConfig((config) => {
   console.log(config);
   return {
-    plugins: [frameworkPlugin(), tsconfigPaths(), react()],
-    esbuild: {
-      format: "esm",
+    plugins: [react(), tsconfigPaths(), frameworkPlugin()],
+    optimizeDeps: {
+      entries: ["react", "react/jsx-runtime", "react/jsx-dev-runtime", "react-dom/client"],
     },
     build: {
       manifest: true,
@@ -26,11 +26,21 @@ export default defineConfig((config) => {
       rollupOptions: {
         input: ["./src/entry.client.tsx", "./src/core/client/seria.ts"],
         output: {
-          exports: "named",
+          format: "es",
           manualChunks(id) {
             if (isInRoutes(id)) {
-              const filePath = path.relative(routesDir, id).replaceAll(path.sep, "/");
-              return `routes/${filePath}`;
+              const chunkName = path
+                .relative(routesDir, id)
+                .replaceAll(path.sep, "/")
+                .replaceAll("/", "_")
+                .replaceAll(/\.(j|t)sx?$/g, "");
+
+              return `routes_${chunkName}`;
+            }
+
+            const dir = path.relative(process.cwd(), id).replaceAll(path.sep, "/");
+            if (dir.startsWith("node_modules/react")) {
+              return "react-runtime";
             }
           },
         },
