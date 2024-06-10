@@ -3,13 +3,13 @@ import polka from "polka";
 
 import { getOrigin, createRequest, setResponse } from "./core/server/adapters/node/helpers";
 import { createRequestHandler } from "./core/server/handleRequest";
-import { preloadViteDevServer } from "./core/server/vite";
+import { preloadViteServer } from "./core/server/vite";
 
 const PORT = process.env.PORT ?? 5000;
 const HOST = process.env.HOST ?? "localhost";
 
 async function startDevServer() {
-  const viteServer = await preloadViteDevServer();
+  const viteServer = await preloadViteServer();
   const app = polka();
 
   app.use(viteServer.middlewares);

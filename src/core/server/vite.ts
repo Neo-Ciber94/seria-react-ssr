@@ -16,13 +16,17 @@ export async function getViteManifest() {
 
 let viteServer: ViteDevServer | undefined;
 
-export async function preloadViteDevServer() {
+export async function preloadViteServer() {
   viteServer = await createServer({
     server: { middlewareMode: true },
     appType: "custom",
   });
 
   return viteServer;
+}
+
+export async function setViteServer(server: ViteDevServer) {
+  viteServer = server;
 }
 
 export function getViteServer() {

@@ -47,11 +47,10 @@ function createMiddleware(...handlers: RequestHandler[]): RequestHandler {
 }
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const rootDir = isDev ? process.cwd() : __dirname;
-const clientDir = isDev ? "./build/client" : "./client";
+const rootDir = path.join(__dirname, "..", "client");
 
 export const handle = createMiddleware(
-  serveDir(path.join(rootDir, clientDir)),
-  serveDir(path.join(rootDir, "./public")),
+  serveDir(path.join(rootDir, "assets")),
+  serveDir(path.join(rootDir, ".")),
   ssr,
 );
