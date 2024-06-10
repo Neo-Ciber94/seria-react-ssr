@@ -1,24 +1,19 @@
 import polka from "polka";
 // import { handle } from "./core/server/adapters/node/handler";
-import { createServer as createViteServer } from "vite";
+
 import { getOrigin, createRequest, setResponse } from "./core/server/adapters/node/helpers";
 import { createRequestHandler } from "./core/server/handleRequest";
+import { preloadViteDevServer } from "./core/server/vite";
 
 const PORT = process.env.PORT ?? 5000;
 const HOST = process.env.HOST ?? "localhost";
 
 async function startDevServer() {
-  const viteDevServer = await createViteServer({
-    server: { middlewareMode: true },
-    appType: "custom",
-  });
-
+  const viteServer = await preloadViteDevServer();
   const app = polka();
 
-  app.use(viteDevServer.middlewares);
-
-  const { render } = await viteDevServer.ssrLoadModule("src/core/server/render.ts");
-  const handleRequest = createRequestHandler({ render });
+  app.use(viteServer.middlewares);
+  const handleRequest = createRequestHandler();
 
   app.use(async (req, res) => {
     try {

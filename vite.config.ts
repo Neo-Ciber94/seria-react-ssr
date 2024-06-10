@@ -24,7 +24,7 @@ export default defineConfig((config) => {
       manifest: true,
       minify: false,
       rollupOptions: {
-        input: ["./src/entry.client.tsx", "./src/core/client/seria.ts"],
+        input: ["./src/entry.client.tsx"],
         output: {
           format: "es",
           manualChunks(id) {

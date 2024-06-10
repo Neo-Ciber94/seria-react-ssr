@@ -10,14 +10,14 @@
     "build": "npm run clean && npm run generate-routes && npm run build:client && npm run build:server",
     "build:client": "npm run build:seria && tsx esbuild.client.ts",
     "build:server": "tsx esbuild.server.ts",
-    "build:seria": "esbuild ./src/core/client/seria.ts --bundle --format=esm --minify --outfile=./build/client/seria.js",
+    "build:seria": "esbuild ./src/core/lib/seria.ts --bundle --format=esm --minify --outfile=./build/client/assets/seria.js",
     "clean": "rimraf build",
     "typecheck": "tsc --noEmit",
     "generate-routes": "tsx ./src/generateRoutes.ts",
     "generate-routes:watch": "nodemon --exec \"npm run generate-routes\" --watch ./src/generateRoutes.ts --watch ./src/routes --ext js,jsx,ts,tsx",
     "format": "prettier --write ./src",
-    "vite:build-client": "vite build --outDir build/vite/client --ssrManifest",
-    "vite:build-server": "vite build --outDir build/vite/server --ssr ./src/entry.server.tsx",
+    "vite:build-client": "vite build --outDir build/client --ssrManifest && npm run build:seria",
+    "vite:build-server": "vite build --outDir build/server --ssr ./src/entry.server.tsx",
     "vite:dev": "cross-env NODE_ENV=development tsx ./src/entry.server.tsx"
   },
   "dependencies": {

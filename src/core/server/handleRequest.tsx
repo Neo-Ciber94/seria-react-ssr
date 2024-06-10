@@ -13,11 +13,12 @@ import { type AppContext, EntryServer } from "../react";
 import { HttpError, TypedJson } from "./http";
 import { type LoaderFunctionArgs } from "./loader";
 import * as seria from "seria";
-import { render as reactRender, type RenderFunction } from "./render";
+import { render } from "./render";
 import { decode } from "seria/form-data";
 import { type Params } from "../router";
 import fs from "fs/promises";
 import path from "path";
+import { getViteManifest, getViteServer } from "./vite";
 
 const ABORT_DELAY = 10_000;
 
@@ -135,88 +136,59 @@ async function createLoaderResponse(args: CreateLoaderResponseArgs) {
   }
 }
 
-type ManifestChunk = {
-  file: string;
-  name: string;
-  src?: string;
-  isEntry?: boolean;
-  imports?: string[];
-};
+const encoder = new TextEncoder();
 
-const isDev = process.env.NODE_ENV !== "production";
-// let manifest: Record<string, ManifestChunk> | undefined;
-
-async function getManifest() {
-  // if (!manifest) {
-  //   const data = isDev
-  //     ? await fs.readFile("./dist/client/.vite/ssr-manifest.json", "utf-8")
-  //     : await fs.readFile("./dist/client/.vite/ssr-manifest.json", "utf-8");
-
-  //   manifest = JSON.parse(data) as Record<string, ManifestChunk>;
-  // }
-
-  // return manifest;
-
-  const manifestPath = "./build/vite/client/.vite/manifest.json";
-  const data = isDev
-    ? await fs.readFile(manifestPath, "utf-8")
-    : await fs.readFile(manifestPath, "utf-8");
-
-  return JSON.parse(data) as Record<string, ManifestChunk>;
-}
-
-const manifest = await getManifest();
-
-function renderPage(appContext: AppContext, render: RenderFunction, responseInit?: ResponseInit) {
-  let didError = false;
+function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
   const { json, resumeStream } = seria.stringifyToResumableStream(appContext.loaderData || {});
   const isResumable = !!resumeStream;
-  const statusCode = appContext.error?.status || 200;
-  const manifestChunks = Object.values(manifest);
-  const entry = manifestChunks.find((x) => x.isEntry === true && x.src === "src/entry.client.tsx");
+  const viteServer = process.env.NODE_ENV === "development" ? getViteServer() : undefined;
 
-  if (!entry) {
-    throw new Error("react entry not found");
-  }
-
-  const reactEntryFilePath = path.join("/build/vite/client", entry.file);
+  let statusCode = appContext.error?.status || 200;
 
   return new Promise<Response>((resolve, reject) => {
     const { pipe, abort } = render(
       <EntryServer appContext={appContext} json={json} isResumable={isResumable} />,
       {
-        bootstrapModules: [reactEntryFilePath],
-        bootstrapScripts: [],
         onAllReady() {
           const body = new PassThrough();
           pipe(body);
 
           let index = 0;
           const nextId = () => ++index;
+          const decoder = new TextDecoder();
 
           const stream = new ReadableStream({
             async start(controller) {
               for await (const chunk of body) {
-                controller.enqueue(chunk);
+                if (viteServer) {
+                  const htmlChunk = decoder.decode(chunk);
+                  const transformedChunk = await viteServer.transformIndexHtml(
+                    appContext.url,
+                    htmlChunk,
+                  );
+                  controller.enqueue(transformedChunk);
+                } else {
+                  controller.enqueue(chunk);
+                }
               }
 
               if (resumeStream) {
                 for await (const chunk of resumeStream) {
                   const id = nextId();
                   controller.enqueue(
-                    `<script data-seria-stream-resume="${id}">
+                    encoder.encode(`<script data-seria-stream-resume="${id}">
                         $seria_stream_writer.write(${JSON.stringify(chunk)});
                         document.querySelector('[data-seria-stream-resume="${id}"]').remove();
-                      </script>`,
+                      </script>`),
                   );
                 }
 
                 const id = nextId();
                 controller.enqueue(
-                  `<script data-seria-stream-resume="${id}">
+                  encoder.encode(`<script data-seria-stream-resume="${id}">
                       window.$seria_stream_writer.close();
                       document.querySelector('[data-seria-stream-resume="${id}"]').remove();
-                    </script>`,
+                    </script>`),
                 );
               }
 
@@ -227,7 +199,7 @@ function renderPage(appContext: AppContext, render: RenderFunction, responseInit
           resolve(
             new Response(stream, {
               ...responseInit,
-              status: didError ? 500 : statusCode,
+              status: statusCode,
               headers: {
                 ...responseInit?.headers,
                 "content-type": "text/html",
@@ -240,7 +212,7 @@ function renderPage(appContext: AppContext, render: RenderFunction, responseInit
           reject(err);
         },
         onError(error) {
-          didError = true;
+          statusCode = 500;
           console.error(error);
         },
       },
@@ -302,82 +274,6 @@ async function getRouteData(args: GetRouteDataArgs) {
   return routeData;
 }
 
-async function handlePageRequest(request: Request, render: RenderFunction) {
-  const { pathname } = new URL(request.url);
-  const url = request.url;
-  const match = matchRoute(pathname);
-
-  if (request.headers.has(HEADER_LOADER_DATA)) {
-    if (match == null) {
-      return new Response(null, {
-        status: 404,
-      });
-    }
-
-    const { params = {}, ...route } = match;
-    const routeData = await createLoaderResponse({ route, params, request });
-    return routeData;
-  }
-
-  if (match == null) {
-    return renderPage({ url, loaderData: {}, error: { status: 404 } }, render);
-  }
-
-  const { params = {}, ...route } = match;
-
-  try {
-    let responseInit: ResponseInit = {};
-    const loaderData = await getRouteData({ route, params, request });
-
-    for (const [id, data] of Object.entries(loaderData)) {
-      if (data instanceof TypedJson) {
-        loaderData[id] = data.data;
-        responseInit = {
-          ...responseInit,
-          ...data.init,
-          headers: {
-            ...responseInit.headers,
-            ...data.init?.headers,
-          },
-        };
-      } else if (data instanceof HttpError) {
-        return renderPage(
-          {
-            url,
-            loaderData: {},
-            error: { status: data.status, message: data.message },
-          },
-          render,
-        );
-      } else if (data instanceof Response) {
-        if (data.status >= 400) {
-          const message = await getResponseErrorMessage(data);
-          return renderPage(
-            {
-              url,
-              loaderData: {},
-              error: {
-                status: data.status,
-                message,
-              },
-            },
-            render,
-          );
-        }
-
-        return data;
-      }
-    }
-
-    const appContext: AppContext = { loaderData, url };
-    const response = await renderPage(appContext, render, responseInit);
-    return response;
-  } catch (err) {
-    console.error("Failed to create page response", err);
-    return renderPage({ url, loaderData: {}, error: { status: 500 } }, render);
-  }
-}
-
 async function handleAction(request: Request) {
   const actionId = request.headers.get(HEADER_SERVER_ACTION) ?? "";
   const match = matchAction(actionId);
@@ -409,12 +305,77 @@ async function handleAction(request: Request) {
   }
 }
 
-type CreateRequestHandlerOptions = {
-  render?: RenderFunction;
-};
+async function handlePageRequest(request: Request) {
+  const { pathname } = new URL(request.url);
+  const url = request.url;
+  const match = matchRoute(pathname);
 
-export function createRequestHandler(options?: CreateRequestHandlerOptions) {
-  const render = options?.render ?? reactRender;
+  if (request.headers.has(HEADER_LOADER_DATA)) {
+    if (match == null) {
+      return new Response(null, {
+        status: 404,
+      });
+    }
+
+    const { params = {}, ...route } = match;
+    const routeData = await createLoaderResponse({ route, params, request });
+    return routeData;
+  }
+
+  if (match == null) {
+    return renderPage({ url, loaderData: {}, error: { status: 404 } });
+  }
+
+  const { params = {}, ...route } = match;
+
+  try {
+    let responseInit: ResponseInit = {};
+    const loaderData = await getRouteData({ route, params, request });
+
+    for (const [id, data] of Object.entries(loaderData)) {
+      if (data instanceof TypedJson) {
+        loaderData[id] = data.data;
+        responseInit = {
+          ...responseInit,
+          ...data.init,
+          headers: {
+            ...responseInit.headers,
+            ...data.init?.headers,
+          },
+        };
+      } else if (data instanceof HttpError) {
+        return renderPage({
+          url,
+          loaderData: {},
+          error: { status: data.status, message: data.message },
+        });
+      } else if (data instanceof Response) {
+        if (data.status >= 400) {
+          const message = await getResponseErrorMessage(data);
+          return renderPage({
+            url,
+            loaderData: {},
+            error: {
+              status: data.status,
+              message,
+            },
+          });
+        }
+
+        return data;
+      }
+    }
+
+    const appContext: AppContext = { loaderData, url };
+    const response = await renderPage(appContext, responseInit);
+    return response;
+  } catch (err) {
+    console.error("Failed to create page response", err);
+    return renderPage({ url, loaderData: {}, error: { status: 500 } });
+  }
+}
+
+export function createRequestHandler() {
   return async function (request: Request): Promise<Response> {
     const { pathname } = new URL(request.url);
 
@@ -423,7 +384,7 @@ export function createRequestHandler(options?: CreateRequestHandlerOptions) {
     }
 
     if (request.method === "GET") {
-      return handlePageRequest(request, render);
+      return handlePageRequest(request);
     }
 
     return new Response(null, {
