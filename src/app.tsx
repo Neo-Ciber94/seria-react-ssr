@@ -16,8 +16,8 @@ export function App() {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <script src={"/seria.js"} />
         <link rel="icon" href="/favicon.png" />
+        <script src="/build/client/seria.js" />
         <script type="module" src="/@vite/client"></script>
         <script
           type="module"

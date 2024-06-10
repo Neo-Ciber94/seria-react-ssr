@@ -24,8 +24,9 @@ export default defineConfig((config) => {
       manifest: true,
       minify: false,
       rollupOptions: {
-        input: "./src/entry.client.tsx",
+        input: ["./src/entry.client.tsx", "./src/core/client/seria.ts"],
         output: {
+          exports: "named",
           manualChunks(id) {
             if (isInRoutes(id)) {
               const filePath = path.relative(routesDir, id).replaceAll(path.sep, "/");

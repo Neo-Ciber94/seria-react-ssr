@@ -8,19 +8,16 @@ const PORT = process.env.PORT ?? 5000;
 const HOST = process.env.HOST ?? "localhost";
 
 async function startDevServer() {
-  console.log("Start vite");
-
   const viteDevServer = await createViteServer({
     server: { middlewareMode: true },
     appType: "custom",
   });
 
-  console.log("Vite started");
   const app = polka();
 
   app.use(viteDevServer.middlewares);
 
-  const { render } = await viteDevServer.ssrLoadModule("./src/core/server/render.ts");
+  const { render } = await viteDevServer.ssrLoadModule("src/core/server/render.ts");
   const handleRequest = createRequestHandler({ render });
 
   app.use(async (req, res) => {

@@ -9,13 +9,15 @@ import {
   HEADER_SERVER_ACTION,
 } from "../constants";
 import { untilAll } from "../internal";
-import { AppContext, EntryServer } from "../react";
+import { type AppContext, EntryServer } from "../react";
 import { HttpError, TypedJson } from "./http";
-import { LoaderFunctionArgs } from "./loader";
+import { type LoaderFunctionArgs } from "./loader";
 import * as seria from "seria";
 import { render as reactRender, type RenderFunction } from "./render";
 import { decode } from "seria/form-data";
-import { Params } from "../router";
+import { type Params } from "../router";
+import fs from "fs/promises";
+import path from "path";
 
 const ABORT_DELAY = 10_000;
 
@@ -133,17 +135,58 @@ async function createLoaderResponse(args: CreateLoaderResponseArgs) {
   }
 }
 
+type ManifestChunk = {
+  file: string;
+  name: string;
+  src?: string;
+  isEntry?: boolean;
+  imports?: string[];
+};
+
+const isDev = process.env.NODE_ENV !== "production";
+// let manifest: Record<string, ManifestChunk> | undefined;
+
+async function getManifest() {
+  // if (!manifest) {
+  //   const data = isDev
+  //     ? await fs.readFile("./dist/client/.vite/ssr-manifest.json", "utf-8")
+  //     : await fs.readFile("./dist/client/.vite/ssr-manifest.json", "utf-8");
+
+  //   manifest = JSON.parse(data) as Record<string, ManifestChunk>;
+  // }
+
+  // return manifest;
+
+  const manifestPath = "./build/vite/client/.vite/manifest.json";
+  const data = isDev
+    ? await fs.readFile(manifestPath, "utf-8")
+    : await fs.readFile(manifestPath, "utf-8");
+
+  return JSON.parse(data) as Record<string, ManifestChunk>;
+}
+
+const manifest = await getManifest();
+
 function renderPage(appContext: AppContext, render: RenderFunction, responseInit?: ResponseInit) {
   let didError = false;
   const { json, resumeStream } = seria.stringifyToResumableStream(appContext.loaderData || {});
   const isResumable = !!resumeStream;
   const statusCode = appContext.error?.status || 200;
+  const manifestChunks = Object.values(manifest);
+  const entry = manifestChunks.find((x) => x.isEntry === true && x.src === "src/entry.client.tsx");
+
+  if (!entry) {
+    throw new Error("react entry not found");
+  }
+
+  const reactEntryFilePath = path.join("/build/vite/client", entry.file);
 
   return new Promise<Response>((resolve, reject) => {
     const { pipe, abort } = render(
       <EntryServer appContext={appContext} json={json} isResumable={isResumable} />,
       {
-        bootstrapModules: ["/bundle.js"],
+        bootstrapModules: [reactEntryFilePath],
+        bootstrapScripts: [],
         onAllReady() {
           const body = new PassThrough();
           pipe(body);
