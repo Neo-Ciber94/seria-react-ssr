@@ -6,6 +6,8 @@ import { removeServerExportsFromSource } from "./esbuild/removeServerExports";
 import { getLoader } from "./esbuild/utils";
 import path from "path";
 import fs from "fs/promises";
+import { startViteServer } from "./src/core/server/vite";
+// import { startViteServer } from "./src/core/server/vite";
 
 const routesDir = normalizePath(path.join(process.cwd(), "src/routes"));
 
@@ -15,9 +17,27 @@ function isInRoutes(filePath: string) {
 
 export default defineConfig((config) => {
   return {
-    plugins: [frameworkPlugin(config), react(), tsconfigPaths()],
+    plugins: [
+      tsconfigPaths(),
+      react(),
+      frameworkPlugin(config),
+      {
+        name: "dev-server",
+        async configureServer(server) {
+          // const { startViteServer } = await import("./src/core/server/vite");
+          // const port = server.config.server.port || 5000;
+          // const origin = server.config.server.origin || "http://127.0.0.1:8080";
+          await startViteServer(server);
+        },
+      },
+    ],
     optimizeDeps: {
       entries: ["react", "react/jsx-runtime", "react/jsx-dev-runtime", "react-dom/client"],
+    },
+    resolve: {
+      alias: {
+        "@/framework": path.join(process.cwd(), "src/core"),
+      },
     },
     build: {
       minify: false,

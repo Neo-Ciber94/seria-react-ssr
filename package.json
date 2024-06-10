@@ -18,7 +18,7 @@
     "format": "prettier --write ./src",
     "vite:build-client": "vite build --outDir build/client --manifest --ssrManifest && npm run build:seria",
     "vite:build-server": "vite build --outDir build/server --ssr ./src/entry.server.tsx",
-    "vite:dev": "cross-env NODE_ENV=development tsx ./src/entry.server.tsx"
+    "vite:dev": "cross-env NODE_ENV=development vite dev"
   },
   "dependencies": {
     "radix3": "^1.1.2",

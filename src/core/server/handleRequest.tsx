@@ -16,9 +16,7 @@ import * as seria from "seria";
 import { render } from "./render";
 import { decode } from "seria/form-data";
 import { type Params } from "../router";
-import fs from "fs/promises";
-import path from "path";
-import { getViteManifest, getViteServer } from "./vite";
+import { getViteServer } from "./vite";
 
 const ABORT_DELAY = 10_000;
 

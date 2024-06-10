@@ -13,10 +13,8 @@
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "skipLibCheck": true,
+    "baseUrl": ".",
     "paths": {
-      "@/routes/*": [
-        "./src/routes/*"
-      ],
       "@/framework/*": [
         "./src/core/*"
       ]
