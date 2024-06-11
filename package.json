@@ -1,65 +1,8 @@
 {
-  "name": "seria-react-ssr",
-  "version": "1.0.0",
-  "license": "MIT",
-  "type": "module",
-  "scripts": {
-    "dev": "concurrently npm:dev:* \"npm:generate-routes:watch\"",
-    "dev:client": "cross-env NODE_OPTIONS=\"--import tsx/esm\" vite build --outDir build/client --manifest --ssrManifest && npm run build:seria",
-    "dev:server": "cross-env NODE_ENV=production tsx ./src/entry.server.tsx",
-    "build": "npm run generate-routes && npm run build:client && npm run build:server",
-    "build:seria": "esbuild ./src/core/lib/seria.ts --bundle --format=esm --minify --outfile=./build/client/assets/seria.js",
-    "build:client": "cross-env NODE_OPTIONS=\"--import tsx/esm\" vite build --outDir build/client --manifest --ssrManifest && npm run build:seria",
-    "build:server": "cross-env NODE_OPTIONS=\"--import tsx/esm\" vite build --outDir build/server --ssr ./src/entry.server.tsx",
-    "typecheck": "tsc --noEmit",
-    "generate-routes": "tsx ./src/generateRoutes.ts",
-    "generate-routes:watch": "nodemon --exec \"npm run generate-routes\" --watch ./src/generateRoutes.ts --watch ./src/routes --ext js,jsx,ts,tsx",
-    "format": "prettier --write ./src",
-    "vite:dev": "cross-env NODE_OPTIONS=\"--import tsx/esm\" NODE_ENV=development vite dev",
-    "vite:preview": "cross-env NODE_OPTIONS=\"--import tsx/esm\" NODE_ENV=development vite preview --outDir build",
-    "start": "node --import tsx/esm build/server/index.js"
-  },
-  "dependencies": {
-    "radix3": "^1.1.2",
-    "react": "^19.0.0-rc-6d3110b4d9-20240531",
-    "react-dom": "^19.0.0-rc-6d3110b4d9-20240531",
-    "seria": "^0.2.0-beta4"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.24.7",
-    "@babel/generator": "^7.24.7",
-    "@babel/parser": "^7.24.7",
-    "@babel/plugin-transform-react-jsx": "^7.24.7",
-    "@babel/plugin-transform-react-jsx-development": "^7.24.7",
-    "@babel/plugin-transform-typescript": "^7.24.7",
-    "@babel/template": "^7.24.7",
-    "@babel/traverse": "^7.24.7",
-    "@babel/types": "^7.24.7",
-    "@biomejs/biome": "^1.8.1",
-    "@types/babel__core": "^7.20.5",
-    "@types/fs-extra": "^11.0.4",
-    "@types/node": "^20.13.0",
-    "@types/polka": "^0.5.7",
-    "@types/react": "npm:types-react@rc",
-    "@types/react-dom": "npm:types-react-dom@rc",
-    "@vitejs/plugin-react": "^4.3.0",
-    "concurrently": "^8.2.2",
-    "cross-env": "^7.0.3",
-    "esbuild": "^0.21.4",
-    "fs-extra": "^11.2.0",
-    "glob": "^10.4.1",
-    "nodemon": "^3.1.2",
-    "polka": "^0.5.2",
-    "prettier": "^3.3.0",
-    "rimraf": "^5.0.7",
-    "sirv": "^2.0.4",
-    "tsx": "^4.11.0",
-    "typescript": "^5.4.5",
-    "vite": "^5.2.13",
-    "vite-tsconfig-paths": "^4.3.2"
-  },
-  "overrides": {
-    "@types/react": "npm:types-react@rc",
-    "@types/react-dom": "npm:types-react-dom@rc"
-  }
+    "name": "seria-ssr",
+    "private": true,
+    "root": true,
+    "workspaces": [
+        "packages/**"
+    ]
 }
