@@ -307,13 +307,10 @@ async function handleAction(request: Request) {
   }
 }
 
-let reqCount = 0;
-
 async function handlePageRequest(request: Request) {
   const { pathname } = new URL(request.url);
   const url = request.url;
   const match = matchRoute(pathname);
-  console.log({ url, reqCount: ++reqCount });
 
   if (request.headers.has(HEADER_LOADER_DATA)) {
     if (match == null) {
