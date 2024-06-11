@@ -4,11 +4,13 @@ import { Router } from "./core/router";
 
 export function App() {
   return (
-    <Root>
-      <Suspense>
-        <Router />
-      </Suspense>
-    </Root>
+    <React.StrictMode>
+      <Root>
+        <Suspense>
+          <Router />
+        </Suspense>
+      </Root>
+    </React.StrictMode>
   );
 }
 

@@ -1,8 +1,7 @@
-import { ViteDevServer, type Manifest } from "vite";
+import type { ViteDevServer, Manifest } from "vite";
 import fs from "fs/promises";
 import { createServer } from "vite";
 import { invariant } from "../internal";
-import polka from "polka";
 import { getOrigin, createRequest, setResponse } from "./adapters/node/helpers";
 import { createRequestHandler } from "./handleRequest";
 
@@ -34,25 +33,17 @@ export function getViteServer() {
 }
 
 export async function startViteServer(server: ViteDevServer) {
-  // const app = polka();
-
-  // app.use(server.middlewares);
+  viteServer = server;
   const handleRequest = createRequestHandler();
 
-  server.middlewares.use(async (req, res) => {
+  server.middlewares.use(async (req, res, next) => {
     try {
       const baseUrl = process.env.ORIGIN ?? getOrigin(req);
       const request = await createRequest({ req, baseUrl });
       const response = await handleRequest(request);
       setResponse(response, res);
     } catch (err) {
-      console.error(err);
-      res.statusCode = 500;
-      res.end();
+      next(err);
     }
   });
-
-  // app.listen(port, () => {
-  //   console.log(`Listening on ${origin}:${port}`);
-  // });
 }

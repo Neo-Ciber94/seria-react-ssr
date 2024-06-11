@@ -216,6 +216,7 @@ type RouterContextProps = {
 };
 
 const RouterContext = createContext<RouterContextProps | null>(null);
+const isServer = typeof window === "undefined";
 
 function Routes() {
   const { pathname, searchParams } = useUrl();

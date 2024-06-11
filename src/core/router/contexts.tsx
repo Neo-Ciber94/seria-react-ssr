@@ -15,7 +15,7 @@ export function useRoutePath() {
   const routePath = useContext(RouteContext);
 
   if (!routePath) {
-    throw new Error("Unable to resolve route path");
+    throw new Error("RouteContext was not available");
   }
 
   return routePath;

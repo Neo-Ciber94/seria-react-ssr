@@ -7,7 +7,6 @@ import { getLoader } from "./esbuild/utils";
 import path from "path";
 import fs from "fs/promises";
 import { startViteServer } from "./src/core/server/vite";
-// import { startViteServer } from "./src/core/server/vite";
 
 const routesDir = normalizePath(path.join(process.cwd(), "src/routes"));
 
@@ -17,27 +16,9 @@ function isInRoutes(filePath: string) {
 
 export default defineConfig((config) => {
   return {
-    plugins: [
-      tsconfigPaths(),
-      react(),
-      frameworkPlugin(config),
-      {
-        name: "dev-server",
-        async configureServer(server) {
-          // const { startViteServer } = await import("./src/core/server/vite");
-          // const port = server.config.server.port || 5000;
-          // const origin = server.config.server.origin || "http://127.0.0.1:8080";
-          await startViteServer(server);
-        },
-      },
-    ],
+    plugins: [tsconfigPaths(), react(), frameworkPlugin(config)],
     optimizeDeps: {
       entries: ["react", "react/jsx-runtime", "react/jsx-dev-runtime", "react-dom/client"],
-    },
-    resolve: {
-      alias: {
-        "@/framework": path.join(process.cwd(), "src/core"),
-      },
     },
     build: {
       minify: false,
@@ -86,6 +67,21 @@ function frameworkPlugin(config: ConfigEnv): PluginOption {
 
   return [
     {
+      name: "dev-server",
+      async config() {
+        return {
+          appType: "custom",
+        };
+      },
+      async configureServer(server) {
+        return async () => {
+          if (!server.config.server.middlewareMode) {
+            await startViteServer(server);
+          }
+        };
+      },
+    },
+    {
       name: "create-server-action-proxy",
       enforce: "pre",
       async load(id) {
@@ -119,8 +115,7 @@ function frameworkPlugin(config: ConfigEnv): PluginOption {
     },
     {
       name: "ignore-server-files",
-      resolveId(source, id) {
-        console.log(id);
+      resolveId(source) {
         if (/\.server\.(ts|js|tsx|jsx)$/.test(source)) {
           return { id: source, external: true };
         }
