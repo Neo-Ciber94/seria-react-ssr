@@ -26,9 +26,9 @@ export function frameworkPlugin(config: ConfigEnv): PluginOption {
               rollupOptions: {
                 treeshake: true,
                 output: {
-                  entryFileNames: `index.js`,
-                  chunkFileNames: `assets/index-chunk.js`,
-                  assetFileNames: `assets/[name].[ext]`,
+                  entryFileNames: "index.js",
+                  chunkFileNames: "assets/index-chunk.js",
+                  assetFileNames: "assets/[name].[ext]",
                 },
               },
             },
