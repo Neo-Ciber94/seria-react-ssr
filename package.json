@@ -17,9 +17,10 @@
     "generate-routes:watch": "nodemon --exec \"npm run generate-routes\" --watch ./src/generateRoutes.ts --watch ./src/routes --ext js,jsx,ts,tsx",
     "format": "prettier --write ./src",
     "vite:build-client": "cross-env  NODE_OPTIONS=\"--import tsx/esm\" vite build --outDir build/client --manifest --ssrManifest && npm run build:seria",
-    "vite:build-server": "vite build --outDir build/server --ssr ./src/entry.server.tsx",
+    "vite:build-server": "cross-env  NODE_OPTIONS=\"--import tsx/esm\" vite build --outDir build/server --ssr ./src/entry.server.tsx",
     "vite:dev": "cross-env NODE_OPTIONS=\"--import tsx/esm\" NODE_ENV=development vite dev",
-    "vite:server": "cross-env NODE_ENV=development tsx ./src/entry.server.tsx"
+    "vite:preview": "cross-env NODE_OPTIONS=\"--import tsx/esm\" NODE_ENV=development vite preview --outDir build",
+    "vite:server": "cross-env NODE_ENV=production tsx ./src/entry.server.tsx"
   },
   "dependencies": {
     "radix3": "^1.1.2",
