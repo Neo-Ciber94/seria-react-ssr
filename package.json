@@ -20,7 +20,8 @@
     "vite:build-server": "cross-env  NODE_OPTIONS=\"--import tsx/esm\" vite build --outDir build/server --ssr ./src/entry.server.tsx",
     "vite:dev": "cross-env NODE_OPTIONS=\"--import tsx/esm\" NODE_ENV=development vite dev",
     "vite:preview": "cross-env NODE_OPTIONS=\"--import tsx/esm\" NODE_ENV=development vite preview --outDir build",
-    "vite:server": "cross-env NODE_ENV=production tsx ./src/entry.server.tsx"
+    "vite:server": "cross-env NODE_ENV=production tsx ./src/entry.server.tsx",
+    "start": "node --import tsx/esm build/server/index.js"
   },
   "dependencies": {
     "radix3": "^1.1.2",

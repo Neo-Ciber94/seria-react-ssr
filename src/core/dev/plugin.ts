@@ -17,7 +17,25 @@ export function frameworkPlugin(config: ConfigEnv): PluginOption {
   console.log(config);
 
   if (config.isSsrBuild) {
-    return [];
+    return [
+      {
+        name: "server",
+        async config() {
+          return {
+            build: {
+              rollupOptions: {
+                treeshake: true,
+                output: {
+                  entryFileNames: `index.js`,
+                  chunkFileNames: `assets/index-chunk.js`,
+                  assetFileNames: `assets/[name].[ext]`,
+                },
+              },
+            },
+          };
+        },
+      },
+    ];
   }
 
   return [
