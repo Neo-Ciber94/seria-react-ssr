@@ -1,9 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "./dist",
     "target": "esnext",
-    "moduleResolution": "Bundler",
     "noEmitOnError": true,
     "jsx": "react",
     "module": "esnext",
@@ -12,17 +10,8 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,
-    "declaration": true,
     "strict": true,
     "skipLibCheck": true,
-    "paths": {
-      "virtual:routes": [
-        "./src/virtual/$routes.virtual.ts"
-      ],
-      "virtual:app": [
-        "./src/virtual/app.virtual.tsx"
-      ]
-    }
   },
   "include": [
     "src"

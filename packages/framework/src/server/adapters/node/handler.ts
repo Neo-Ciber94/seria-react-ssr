@@ -8,7 +8,6 @@ import { fileURLToPath } from "url";
 type Next = () => void;
 type RequestHandler = (req: http.IncomingMessage, res: http.ServerResponse, next: Next) => void;
 
-const isDev = process.env.NODE_ENV !== "production";
 const handleRequest = createRequestHandler();
 
 function serveDir(dir: string): RequestHandler {
@@ -34,7 +33,7 @@ async function ssr(req: http.IncomingMessage, res: http.ServerResponse) {
 
 function createMiddleware(...handlers: RequestHandler[]): RequestHandler {
   return (req, res, next) => {
-    function handle(index: number) {
+    function handle(index: number): any {
       if (index < handlers.length) {
         return handlers[index](req, res, () => handle(index + 1));
       } else {

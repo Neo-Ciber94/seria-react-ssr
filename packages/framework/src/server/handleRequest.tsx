@@ -1,6 +1,6 @@
 import React from "react";
 import { PassThrough } from "stream";
-import { matchAction, matchRoute, Route } from "../../$routes";
+import { matchAction, matchRoute, Route } from "../virtual/$routes.virtual";
 import {
   HEADER_LOADER_DATA,
   HEADER_ROUTE_ERROR,
@@ -13,10 +13,10 @@ import { type AppContext, EntryServer } from "../react";
 import { HttpError, TypedJson } from "./http";
 import { type LoaderFunctionArgs } from "./loader";
 import * as seria from "seria";
-import { render } from "./render";
 import { decode } from "seria/form-data";
 import { type Params } from "../router";
 import { getViteServer } from "./vite";
+import { renderToPipeableStream } from "react-dom/server";
 
 const ABORT_DELAY = 10_000;
 
@@ -144,7 +144,7 @@ function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
   let statusCode = appContext.error?.status || 200;
 
   return new Promise<Response>((resolve, reject) => {
-    const { pipe, abort } = render(
+    const { pipe, abort } = renderToPipeableStream(
       <EntryServer appContext={appContext} json={json} isResumable={isResumable} />,
       {
         onAllReady() {
@@ -171,7 +171,14 @@ function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
               }
 
               if (resumeStream) {
-                for await (const chunk of resumeStream) {
+                const reader = resumeStream.getReader();
+                while (true) {
+                  const { done, value: chunk } = await reader.read();
+
+                  if (done) {
+                    break;
+                  }
+
                   const id = nextId();
                   controller.enqueue(
                     encoder.encode(`<script data-seria-stream-resume="${id}">

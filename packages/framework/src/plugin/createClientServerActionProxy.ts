@@ -51,7 +51,7 @@ function createClientServerActionProxyFromSource(source: string, filePath: strin
     if (!importInserted) {
       const importDeclaration = t.importDeclaration(
         [t.importSpecifier(t.identifier("callServerAction"), t.identifier("callServerAction"))],
-        t.stringLiteral("@/framework/runtime"),
+        t.stringLiteral("framework/runtime"),
       );
       ast.program.body.unshift(importDeclaration);
       importInserted = true;

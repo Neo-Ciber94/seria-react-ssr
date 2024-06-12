@@ -13,7 +13,7 @@ function isInRoutes(filePath: string) {
   return filePath.startsWith(routesDir);
 }
 
-export function frameworkPlugin(config: ConfigEnv): PluginOption {
+export default function frameworkPlugin(config: ConfigEnv): PluginOption {
   console.log(config);
 
   if (config.isSsrBuild) {
@@ -41,7 +41,7 @@ export function frameworkPlugin(config: ConfigEnv): PluginOption {
   return [
     react(),
     {
-      name: "dev-server",
+      name: "@framework",
       async config() {
         return {
           appType: "custom",
@@ -91,6 +91,19 @@ export function frameworkPlugin(config: ConfigEnv): PluginOption {
             await startViteServer(server);
           }
         };
+      },
+    },
+    {
+      name: "@framework-virtual-modules",
+      resolveId(id) {
+        if (isVirtualModule(id)) {
+          return "\0" + id;
+        }
+      },
+      load(id) {
+        if (isVirtualModule(id)) {
+          return loadVirtualModule(id);
+        }
       },
     },
     {
@@ -144,4 +157,25 @@ function normalizePath(filepath: string) {
 
 function isExternal(id: string) {
   return id.includes("/node_modules/");
+}
+
+const VIRTUAL_MODULES = ["virtual:$routes", "virtual:app"] as const;
+
+type VirtualModule = (typeof VIRTUAL_MODULES)[number];
+
+function isVirtualModule(id: string): id is VirtualModule {
+  return VIRTUAL_MODULES.includes(id as VirtualModule);
+}
+
+function loadVirtualModule(id: VirtualModule) {
+  switch (id) {
+    case "virtual:$routes": {
+      return path.join(process.cwd(), "src", "$routes.ts");
+    }
+    case "virtual:app": {
+      return path.join(process.cwd(), "src", "app.tsx");
+    }
+    default:
+      throw new Error(`Unable to load virtual module "${id}".`);
+  }
 }

@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
         "target": "esnext",
+        "moduleResolution": "Bundler",
         "noEmitOnError": true,
         "allowJs": true,
         "checkJs": true,

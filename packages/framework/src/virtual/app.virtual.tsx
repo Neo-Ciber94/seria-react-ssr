@@ -1,6 +1,7 @@
 import React from "react";
 import { Suspense } from "react";
-import { Router } from "./core/router";
+import { Router } from "../router";
+import { Scripts } from "../react";
 
 export function App() {
   return (
@@ -30,11 +31,3 @@ function Root({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Scripts() {
-  return (
-    <>
-      <script src="/build/client/assets/seria.js" />
-      <script type="module" rel="modulepreload" src="/src/entry.client.tsx" />
-    </>
-  );
-}

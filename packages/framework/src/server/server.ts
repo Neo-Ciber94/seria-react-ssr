@@ -1,22 +1,15 @@
+
 import polka from "polka";
-import { getOrigin, createRequest, setResponse } from "./core/server/adapters/node/helpers";
-import { createRequestHandler } from "./core/server/handleRequest";
-import { preloadViteServer } from "./core/server/vite";
-import { handle } from "./core/server/adapters/node/handler";
+import { getOrigin, createRequest, setResponse } from "./adapters/node/helpers";
+import { createRequestHandler } from "./handleRequest";
+import { preloadViteServer } from "./vite";
+import { handle } from "./adapters/node/handler";
 
 const PORT = process.env.PORT ?? 5000;
 const HOST = process.env.HOST ?? "localhost";
 const DEV = process.env.NODE_ENV !== "production";
 
-async function start() {
-  if (DEV) {
-    await startDevServer();
-  } else {
-    await startServer();
-  }
-}
-
-async function startServer() {
+async function startProductionServer() {
   const app = polka();
   app.use(handle);
   app.listen(PORT, () => {
@@ -24,7 +17,7 @@ async function startServer() {
   });
 }
 
-async function startDevServer() {
+async function startDevelopmentServer() {
   const viteServer = await preloadViteServer();
   const app = polka();
 
@@ -49,4 +42,10 @@ async function startDevServer() {
   });
 }
 
-start().catch(console.error);
+export async function startServer() {
+  if (DEV) {
+    await startDevelopmentServer();
+  } else {
+    await startProductionServer();
+  }
+}

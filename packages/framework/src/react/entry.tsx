@@ -1,5 +1,5 @@
 import React, { createContext, PropsWithChildren, useContext } from "react";
-import { App } from "../../app";
+import { App } from "../virtual/app.virtual";
 
 export type AppContext = {
   loaderData: Record<string, any>;
