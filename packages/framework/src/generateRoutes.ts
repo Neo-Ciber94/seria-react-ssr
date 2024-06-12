@@ -1,12 +1,12 @@
 import fs from "fs/promises";
 import fse from "fs-extra";
 import path from "path";
-import { fileURLToPath } from "url";
+import { fileURLToPath, pathToFileURL } from "url";
 import prettier from "prettier";
 import { glob } from "glob";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const __filename = path.basename(fileURLToPath(import.meta.url));
+const __dirname = path.join(process.cwd(), "src");
 const ROUTES_FOLDER_NAME = "routes";
 const ROUTES_FILE_PATH = path.join(__dirname, "$routes.ts");
 const ROUTES_DIR_PATH = path.join(__dirname, ROUTES_FOLDER_NAME);
@@ -87,7 +87,7 @@ export const matchAction = (id: string): any => {
 `;
 
 async function generate() {
-  const routesDir = path.join(__dirname, ROUTES_FOLDER_NAME);
+  const routesDir = ROUTES_DIR_PATH;
 
   await fse.ensureDir(routesDir);
 
@@ -365,9 +365,9 @@ async function getErrorRoutes(routesDir: string) {
 
   for (const file of errorFiles) {
     const routePath = path.relative(routesDir, file);
-    const importPath = path.join(ROUTES_FOLDER_NAME, routePath).replaceAll(path.sep, "/");
+    const importPath = pathToFileURL(path.join(ROUTES_DIR_PATH, routePath)).toString();
+    const mod = await import(importPath).catch(() => null);
 
-    const mod = await import(`./${importPath}`).catch(() => null);
     if (mod == null) {
       continue;
     }
@@ -407,9 +407,9 @@ async function getServerActions(routesDir: string) {
 
   for (const file of files) {
     const actionPath = path.relative(routesDir, file);
-    const importPath = path.join(ROUTES_FOLDER_NAME, actionPath).replaceAll(path.sep, "/");
+    const importPath = pathToFileURL(path.join(ROUTES_DIR_PATH, actionPath)).toString();
+    const mod = await import(importPath).catch(() => null);
 
-    const mod = await import(`./${importPath}`).catch(() => null);
     if (mod == null) {
       continue;
     }
@@ -434,8 +434,8 @@ async function getServerActions(routesDir: string) {
 }
 
 async function getRouteExports(routePath: string) {
-  const importPath = `./${ROUTES_FOLDER_NAME}/${routePath}`;
-  const mod = await import(importPath).catch(() => null);
+  const importPath = pathToFileURL(path.join(ROUTES_DIR_PATH, routePath)).toString();
+  const mod = await import(importPath).catch(console.error);
 
   if (!mod) {
     return null;

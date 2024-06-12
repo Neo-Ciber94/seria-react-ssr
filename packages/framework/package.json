@@ -64,7 +64,7 @@
       "types": "./dist/server/adapters/node/handler.d.ts"
     },
     "./router": {
-      "import": "./dist/distrouter/index.js",
+      "import": "./dist/router/index.js",
       "types": "./dist/router/index.d.ts"
     },
     "./react": {

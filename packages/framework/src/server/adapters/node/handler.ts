@@ -4,18 +4,22 @@ import { createRequest, getOrigin, setResponse } from "./helpers";
 import { createRequestHandler } from "../../handleRequest";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 
 type Next = () => void;
 type RequestHandler = (req: http.IncomingMessage, res: http.ServerResponse, next: Next) => void;
 
 const handleRequest = createRequestHandler();
 
-function serveDir(dir: string): RequestHandler {
-  return sirv(dir, {
-    etag: true,
-    brotli: true,
-    gzip: true,
-  });
+function serveDir(dir: string) {
+  return (
+    fs.existsSync(dir) &&
+    sirv(dir, {
+      etag: true,
+      brotli: true,
+      gzip: true,
+    })
+  );
 }
 
 async function ssr(req: http.IncomingMessage, res: http.ServerResponse) {
@@ -31,7 +35,11 @@ async function ssr(req: http.IncomingMessage, res: http.ServerResponse) {
   }
 }
 
-function createMiddleware(...handlers: RequestHandler[]): RequestHandler {
+type Handler = RequestHandler | null | undefined | false;
+
+function createMiddleware(...args: Handler[]): RequestHandler {
+  const handlers = args.filter(Boolean) as RequestHandler[];
+
   return (req, res, next) => {
     function handle(index: number): any {
       if (index < handlers.length) {
