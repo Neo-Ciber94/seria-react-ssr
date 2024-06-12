@@ -70,7 +70,7 @@ const ROUTES_TYPES = `
       functionName: string;
       action: (...args: any[]) => Promise<any>
     }
-`
+`;
 
 const ROUTES_TEMPLATE = `
 export const matchRoute = (pathname: string): any => {
@@ -502,5 +502,11 @@ function generateComponentName(filePath: string) {
 }
 
 export default async function generateRoutes() {
-  await generate()
+  try {
+    console.log(`Generating route file from '${ROUTES_DIR_PATH}'`);
+    await generate();
+    console.log(`Route file was written to '${ROUTES_FILE_PATH}'`);
+  } catch (err) {
+    console.error("Failed to generate route file", err);
+  }
 }

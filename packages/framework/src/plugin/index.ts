@@ -6,6 +6,7 @@ import { startViteServer } from "../server/vite";
 import { createClientServerActionProxyFromPath } from "./createClientServerActionProxy";
 import { removeServerExportsFromSource } from "./removeServerExports";
 import { getLoader } from "./utils";
+import { normalizePath } from "../internal";
 
 const routesDir = normalizePath(path.join(process.cwd(), "src/routes"));
 
@@ -149,10 +150,6 @@ export default function frameworkPlugin(config: ConfigEnv): PluginOption {
       },
     },
   ];
-}
-
-function normalizePath(filepath: string) {
-  return filepath.replaceAll(path.win32.sep, path.posix.sep);
 }
 
 function isExternal(id: string) {
