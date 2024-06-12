@@ -1,0 +1,26 @@
+{
+  "name": "react-app",
+  "version": "1.0.0",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "generate-routes": "tsx ./src/_dev.ts"
+  },
+  "dependencies": {
+    "react": "^19.0.0-rc-a26e3f403e-20240611",
+    "react-dom": "^19.0.0-rc-a26e3f403e-20240611"
+  },
+  "devDependencies": {
+    "@types/react": "npm:types-react@rc",
+    "@types/react-dom": "npm:types-react-dom@rc",
+    "framework": "^0.1.0",
+    "tsx": "^4.15.2",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.13",
+    "vite-tsconfig-paths": "^4.3.2"
+  },
+  "overrides": {
+    "@types/react": "npm:types-react@rc",
+    "@types/react-dom": "npm:types-react-dom@rc"
+  }
+}

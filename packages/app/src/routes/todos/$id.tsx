@@ -1,13 +1,12 @@
 // import "./todo.css";
 import React from "react";
 import { lazy, useState } from "react";
-import { useLoaderData } from "@/framework/router";
-import { db } from "../_lib/db";
-import { LoaderFunctionArgs } from "@/framework/server/loader";
-import { notFound } from "@/framework/server/http";
+import { useLoaderData } from "framework/router";
+import { db } from "../../lib/db";
+import { type LoaderFunctionArgs, notFound } from "framework/server";
 import { Todo, updateTodo } from "../_actions";
 
-const LazyComponent = lazy(() => import("../../component/big-component"));
+const LazyComponent = lazy(() => import("../../components/big-component"));
 
 export async function loader({ params }: LoaderFunctionArgs) {
   const todoId = typeof params.id === "string" ? params.id : null;

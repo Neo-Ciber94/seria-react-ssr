@@ -975,7 +975,7 @@ csstype@^3.0.2:
   resolved "https://registry.yarnpkg.com/csstype/-/csstype-3.1.3.tgz#d80ff294d114fb0e6ac500fbf85b60137d7eff81"
   integrity sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw==
 
-debug@^4.1.0, debug@^4.3.1:
+debug@^4.1.0, debug@^4.1.1, debug@^4.3.1:
   version "4.3.5"
   resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.5.tgz#e83444eceb9fedd4a1da56d671ae2446a01a6e1e"
   integrity sha512-pt0bNEmneDIvdL1Xsd9oDQ/wrQRkXDT4AUWlNZNPKvW5x/jyO9VFXkJUP07vQ2upmw5PlaITaPKc31jK13V+jg==
@@ -1119,6 +1119,11 @@ globals@^11.1.0:
   version "11.12.0"
   resolved "https://registry.yarnpkg.com/globals/-/globals-11.12.0.tgz#ab8795338868a0babd8525758018c2a7eb95c42e"
   integrity sha512-WOBp/EEGUiIsJSp7wcv/y6MO+lV9UoncWqxuFfm8eBwzWNgyfBd6Gz+IeKQ9jCmyhoH99g15M3T+QaVHFjizVA==
+
+globrex@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/globrex/-/globrex-0.1.2.tgz#dd5d9ec826232730cd6793a5e33a9302985e6098"
+  integrity sha512-uHJgbwAMwNFf5mLst7IWLNg14x1CkeqglJb/K3doi4dw6q2IvAAmM/Y81kevy83wP+Sst+nutFTYOGg3d1lsxg==
 
 graceful-fs@^4.1.6, graceful-fs@^4.2.0:
   version "4.2.11"
@@ -1276,6 +1281,13 @@ react-dom@^19.0.0-rc-6d3110b4d9-20240531:
   dependencies:
     scheduler "0.25.0-rc-f994737d14-20240522"
 
+react-dom@^19.0.0-rc-a26e3f403e-20240611:
+  version "19.0.0-rc-a26e3f403e-20240611"
+  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-19.0.0-rc-a26e3f403e-20240611.tgz#09a42f3d9147d889149d574cf7f88d75bcf227a5"
+  integrity sha512-xBytizW15efJUJxG7dnAVdLrgsLsHZMygQiB3njJLlqsN1mVPAKGSdQEwIcX+bDX2bVzSxQ7BTC1G2y+57NOog==
+  dependencies:
+    scheduler "0.25.0-rc-a26e3f403e-20240611"
+
 react-refresh@^0.14.2:
   version "0.14.2"
   resolved "https://registry.yarnpkg.com/react-refresh/-/react-refresh-0.14.2.tgz#3833da01ce32da470f1f936b9d477da5c7028bf9"
@@ -1285,6 +1297,11 @@ react@^19.0.0-rc-6d3110b4d9-20240531:
   version "19.0.0-rc-f994737d14-20240522"
   resolved "https://registry.yarnpkg.com/react/-/react-19.0.0-rc-f994737d14-20240522.tgz#b400d554859940e9f4b8b6db1fd2537bd822bcc9"
   integrity sha512-SeU2v5Xy6FotVhKz0pMS2gvYP7HlkF0qgTskj3JzA1vlxcb3dQjxlm9t0ZlJqcgoyI3VFAw7bomuDMdgy1nBuw==
+
+react@^19.0.0-rc-a26e3f403e-20240611:
+  version "19.0.0-rc-a26e3f403e-20240611"
+  resolved "https://registry.yarnpkg.com/react/-/react-19.0.0-rc-a26e3f403e-20240611.tgz#0da399f90f7c27f2ed72dcb9728a7a8de91d836b"
+  integrity sha512-3G/vbTTu/tGY33+REPECOd2Zsk+cXOtYersK3IhDicRRmCMElUvQ8fCjXSNMeGpvvRZEklyJ2R58PshYZh2dRw==
 
 resolve-pkg-maps@^1.0.0:
   version "1.0.0"
@@ -1322,6 +1339,11 @@ rollup@^4.13.0:
     "@rollup/rollup-win32-ia32-msvc" "4.18.0"
     "@rollup/rollup-win32-x64-msvc" "4.18.0"
     fsevents "~2.3.2"
+
+scheduler@0.25.0-rc-a26e3f403e-20240611:
+  version "0.25.0-rc-a26e3f403e-20240611"
+  resolved "https://registry.yarnpkg.com/scheduler/-/scheduler-0.25.0-rc-a26e3f403e-20240611.tgz#a2ab5e84317cfbbc72b75ab003fc8e2d7ca75f6f"
+  integrity sha512-866Js4mBLds0wG0ILG9btP9QTuhqMBavBDTtneV485BN9YdwnxHAxv3DygQTZDRhtIMavrFlpCaNVP5eoPNyZg==
 
 scheduler@0.25.0-rc-f994737d14-20240522:
   version "0.25.0-rc-f994737d14-20240522"
@@ -1441,7 +1463,12 @@ trouter@^2.0.1:
   dependencies:
     matchit "^1.0.0"
 
-tsx@^4.11.0:
+tsconfck@^3.0.3:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/tsconfck/-/tsconfck-3.1.0.tgz#30c63b15972b591adb41dc9a339a02743d090c81"
+  integrity sha512-CMjc5zMnyAjcS9sPLytrbFmj89st2g+JYtY/c02ug4Q+CZaAtCgbyviI0n1YvjZE/pzoc6FbNsINS13DOL1B9w==
+
+tsx@^4.11.0, tsx@^4.15.2:
   version "4.15.2"
   resolved "https://registry.yarnpkg.com/tsx/-/tsx-4.15.2.tgz#f2d9dfb747d89b508d950d235a4d6165400a0234"
   integrity sha512-kIZTOCmR37nEw0qxQks2dR+eZWSXydhTGmz7yx94vEiJtJGBTkUl0D/jt/5fey+CNdm6i3Cp+29WKRay9ScQUw==
@@ -1473,6 +1500,15 @@ update-browserslist-db@^1.0.16:
   dependencies:
     escalade "^3.1.2"
     picocolors "^1.0.1"
+
+vite-tsconfig-paths@^4.3.2:
+  version "4.3.2"
+  resolved "https://registry.yarnpkg.com/vite-tsconfig-paths/-/vite-tsconfig-paths-4.3.2.tgz#321f02e4b736a90ff62f9086467faf4e2da857a9"
+  integrity sha512-0Vd/a6po6Q+86rPlntHye7F31zA2URZMbH8M3saAZ/xR9QoGN/L21bxEGfXdWmFdNkqPpRdxFT7nmNe12e9/uA==
+  dependencies:
+    debug "^4.1.1"
+    globrex "^0.1.2"
+    tsconfck "^3.0.3"
 
 vite@^5.2.13:
   version "5.2.13"

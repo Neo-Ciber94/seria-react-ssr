@@ -1,8 +1,8 @@
 {
-    "name": "seria-ssr",
+    "name": "workspace",
     "private": true,
     "root": true,
     "workspaces": [
-        "packages/**"
+        "packages/*"
     ]
 }

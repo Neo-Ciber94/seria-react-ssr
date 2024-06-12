@@ -13,6 +13,8 @@
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,
     "declaration": true,
+    "sourceMap": true,
+    "declarationMap": true,
     "strict": true,
     "skipLibCheck": true,
     "paths": {

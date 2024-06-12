@@ -7,11 +7,12 @@ import {
   usePathname,
   useSearchParams,
 } from "./routing";
-import { Link, ErrorPage, NotFound } from "./components";
+import { Link, ErrorPage, NotFound, Await } from "./components";
 import { useLoaderData } from "./hooks";
 
 export {
   type Params,
+  Await,
   usePageError,
   Router,
   useLoaderData,

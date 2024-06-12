@@ -1,4 +1,4 @@
-import { db } from "./_lib/db";
+import { db } from "@/lib/db";
 
 export type Todo = {
   id: string;

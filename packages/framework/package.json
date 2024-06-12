@@ -56,24 +56,29 @@
       "types": "./dist/server/index.d.ts"
     },
     "./server/adapters/node/helpers": {
-      "import": "./server/adapters/node/helpers.js",
-      "types": "./server/adapters/node/helpers.d.ts"
+      "import": "./dist/server/adapters/node/helpers.js",
+      "types": "./dist/server/adapters/node/helpers.d.ts"
     },
     "./server/adapters/node/handler": {
-      "import": "./server/adapters/node/handler.js",
-      "types": "./server/adapters/node/handler.d.ts"
+      "import": "./dist/server/adapters/node/handler.js",
+      "types": "./dist/server/adapters/node/handler.d.ts"
     },
     "./router": {
-      "import": "./router/index.js",
-      "types": "./router/index.d.ts"
+      "import": "./dist/distrouter/index.js",
+      "types": "./dist/router/index.d.ts"
     },
     "./react": {
-      "import": "./react/index.js",
-      "types": "./react/index.d.ts"
+      "import": "./dist/react/index.js",
+      "types": "./dist/react/index.d.ts"
     },
     "./plugin": {
-      "import": "./plugin/index.js",
-      "types": "./plugin/index.d.ts"
+      "import": "./dist/plugin/index.js",
+      "types": "./dist/plugin/index.d.ts"
     }
-  }
+  },
+  "files": [
+    "./dist",
+    "src",
+    "package.json"
+  ]
 }
