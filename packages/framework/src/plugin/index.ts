@@ -8,7 +8,8 @@ import { removeServerExportsFromSource } from "./removeServerExports";
 import { getLoader } from "./utils";
 import { normalizePath } from "../internal";
 
-const routesDir = normalizePath(path.join(process.cwd(), "src/routes"));
+const routesDir = normalizePath(path.join(process.cwd(), "src", "routes"));
+console.log({ routesDir });
 
 function isInRoutes(filePath: string) {
   return filePath.startsWith(routesDir);
@@ -52,7 +53,7 @@ export default function frameworkPlugin(config: ConfigEnv): PluginOption {
           build: {
             minify: false,
             rollupOptions: {
-              input: ["./src/entry.client.tsx"],
+              input: [path.join(process.cwd(), "src", "entry.client.tsx")],
               output: {
                 format: "es",
                 manualChunks(id) {
@@ -96,14 +97,19 @@ export default function frameworkPlugin(config: ConfigEnv): PluginOption {
     },
     {
       name: "@framework-virtual-modules",
-      resolveId(id) {
+      enforce: "pre",
+      resolveId(id, importer) {
+        console.log({ id, importer });
         if (isVirtualModule(id)) {
+          console.log({ id });
           return "\0" + id;
         }
       },
       load(id) {
         if (isVirtualModule(id)) {
-          return loadVirtualModule(id);
+          const virtualMod = loadVirtualModule(id);
+          console.log({ virtualMod });
+          return virtualMod;
         }
       },
     },
@@ -156,7 +162,7 @@ function isExternal(id: string) {
   return id.includes("/node_modules/");
 }
 
-const VIRTUAL_MODULES = ["virtual:$routes", "virtual:app"] as const;
+const VIRTUAL_MODULES = ["virtual__routes", "virtual__app"] as const;
 
 type VirtualModule = (typeof VIRTUAL_MODULES)[number];
 
@@ -166,11 +172,11 @@ function isVirtualModule(id: string): id is VirtualModule {
 
 function loadVirtualModule(id: VirtualModule) {
   switch (id) {
-    case "virtual:$routes": {
-      return path.join(process.cwd(), "src", "$routes.ts");
+    case "virtual__routes": {
+      return fs.readFile(path.join(process.cwd(), "src", "$routes.ts"), "utf-8");
     }
-    case "virtual:app": {
-      return path.join(process.cwd(), "src", "app.tsx");
+    case "virtual__app": {
+      return fs.readFile(path.join(process.cwd(), "src", "app.tsx"), "utf-8");
     }
     default:
       throw new Error(`Unable to load virtual module "${id}".`);

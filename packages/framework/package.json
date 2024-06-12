@@ -55,6 +55,10 @@
       "import": "./dist/server/index.js",
       "types": "./dist/server/index.d.ts"
     },
+    "./server/vite": {
+      "import": "./dist/server/vite.js",
+      "types": "./dist/server/vite.d.ts"
+    },
     "./server/adapters/node/helpers": {
       "import": "./dist/server/adapters/node/helpers.js",
       "types": "./dist/server/adapters/node/helpers.d.ts"

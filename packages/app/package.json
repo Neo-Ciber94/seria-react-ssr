@@ -4,7 +4,14 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "generate-routes": "tsx ./src/_dev.ts"
+    "generate-routes": "tsx ./src/_dev.ts",
+    "dev": "cross-env NODE_ENV=development npm run generate-routes && npm run build:client && npm run dev:server",
+    "dev:client": "cross-env NODE_OPTIONS=\"--import tsx/esm\" vite build --outDir build/client --manifest --ssrManifest && npm run build:seria",
+    "dev:server": "cross-env NODE_ENV=production tsx ./src/entry.server.tsx",
+    "build": "npm run generate-routes && npm run build:client && npm run build:server",
+    "build:seria": "esbuild ./src/deps/seria.ts --bundle --format=esm --minify --outfile=./build/client/assets/seria.js",
+    "build:client": "cross-env vite build --outDir build/client --manifest --ssrManifest && npm run build:seria",
+    "build:server": "cross-env NODE_OPTIONS=\"--import tsx/esm\" vite build --outDir build/server --ssr ./src/entry.server.tsx"
   },
   "dependencies": {
     "react": "^19.0.0-rc-a26e3f403e-20240611",
@@ -13,6 +20,7 @@
   "devDependencies": {
     "@types/react": "npm:types-react@rc",
     "@types/react-dom": "npm:types-react-dom@rc",
+    "cross-env": "^7.0.3",
     "framework": "^0.1.0",
     "tsx": "^4.15.2",
     "typescript": "^5.4.5",

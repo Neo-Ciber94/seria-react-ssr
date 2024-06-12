@@ -4,7 +4,7 @@
     "outDir": "./dist",
     "target": "esnext",
     "moduleResolution": "Bundler",
-    "noEmitOnError": true,
+    "noEmitOnError": false,
     "jsx": "react",
     "module": "esnext",
     "allowJs": true,
@@ -17,14 +17,15 @@
     "declarationMap": true,
     "strict": true,
     "skipLibCheck": true,
-    "paths": {
-      "virtual:routes": [
-        "./src/virtual/$routes.virtual.ts"
-      ],
-      "virtual:app": [
-        "./src/virtual/app.virtual.tsx"
-      ]
-    }
+    "incremental": true,
+    // "paths": {
+    //   "virtual:routes": [
+    //     "./src/virtual/$routes.virtual.ts"
+    //   ],
+    //   "virtual:app": [
+    //     "./src/virtual/app.virtual.tsx"
+    //   ]
+    // }
   },
   "include": [
     "src"
