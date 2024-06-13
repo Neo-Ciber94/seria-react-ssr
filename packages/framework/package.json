@@ -71,6 +71,10 @@
       "import": "./dist/router/index.js",
       "types": "./dist/router/index.d.ts"
     },
+    "./router/routing": {
+      "import": "./dist/router/routing.js",
+      "types": "./dist/router/routing.d.ts"
+    },
     "./react": {
       "import": "./dist/react/index.js",
       "types": "./dist/react/index.d.ts"

@@ -2,7 +2,6 @@
 
 import { createRouter } from "radix3";
 import IndexPage from "./routes/index";
-import Todos$idPage, { loader as loader$1 } from "./routes/todos/$id";
 import _layoutPage, { loader as _layoutPage_loader } from "./routes/_layout";
 import $errorPage from "./routes/_error";
 import { createTodo as action$0 } from "./routes/_actions";
@@ -45,20 +44,6 @@ const router = createRouter<Route>({
       component: IndexPage,
       routePath: "/index",
       loader: undefined,
-      layouts: [
-        {
-          id: "/",
-          layoutPath: "/_layout",
-          component: _layoutPage,
-          loader: _layoutPage_loader,
-        },
-      ],
-    },
-    "/todos/:id": {
-      id: "/todos/:id",
-      component: Todos$idPage,
-      routePath: "/todos/$id",
-      loader: loader$1,
       layouts: [
         {
           id: "/",

@@ -10,14 +10,13 @@ import { invariant, normalizePath } from "../internal";
 import * as vmod from "./vmod";
 import { transform } from "esbuild";
 
-const routesDir = normalizePath(path.join(process.cwd(), "src", "routes"));
-console.log({ routesDir });
+type FrameworkPluginConfig = {
+  routesDir?: string;
+};
 
-function isInRoutes(filePath: string) {
-  return filePath.startsWith(routesDir);
-}
+export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginOption {
+  const { routesDir = "./src/routes" } = config || {};
 
-export default function frameworkPlugin(): PluginOption {
   let resolvedConfig: ResolvedConfig | undefined;
 
   return [
@@ -64,7 +63,7 @@ export default function frameworkPlugin(): PluginOption {
                       }
 
                       if (!resolvedConfig.ssr) {
-                        if (isInRoutes(id)) {
+                        if (isInRoutesDir(routesDir, id)) {
                           const chunkName = path
                             .relative(routesDir, id)
                             .replaceAll(path.sep, "/")
@@ -108,7 +107,11 @@ export default function frameworkPlugin(): PluginOption {
       name: "create-server-action-proxy",
       enforce: "pre",
       async load(id) {
-        if (isExternal(id) || !/_actions\.(js|ts|jsx|tsx)$/.test(id) || !isInRoutes(id)) {
+        if (
+          isExternal(id) ||
+          !/_actions\.(js|ts|jsx|tsx)$/.test(id) ||
+          !isInRoutesDir(routesDir, id)
+        ) {
           return;
         }
 
@@ -123,7 +126,7 @@ export default function frameworkPlugin(): PluginOption {
       name: "remove-server-exports",
       enforce: "pre",
       async load(id) {
-        if (isExternal(id) || !/\.(js|ts|jsx|tsx)$/.test(id) || !isInRoutes(id)) {
+        if (isExternal(id) || !/\.(js|ts|jsx|tsx)$/.test(id) || !isInRoutesDir(routesDir, id)) {
           return;
         }
 
@@ -151,6 +154,12 @@ export default function frameworkPlugin(): PluginOption {
       },
     },
   ];
+}
+
+function isInRoutesDir(routesDir: string, filePath: string) {
+  const normalized = normalizePath(filePath);
+  const routesDirNormalized = normalizePath(path.join(process.cwd(), routesDir));
+  return normalized.startsWith(routesDirNormalized);
 }
 
 function isExternal(id: string) {

@@ -53,7 +53,7 @@ export interface Layout {
   /**
    * The component of this route.
    */
-  component: () => any;
+  component: (props: { children: any }) => any;
 
   /**
    * A function that loads data for this layout.
