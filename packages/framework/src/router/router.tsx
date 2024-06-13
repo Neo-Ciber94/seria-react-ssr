@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect } from "react";
 import { createContext, useMemo } from "react";
-import { matchErrorRoute } from "../virtual/virtual__routes";
+import { matchErrorCatcher } from "../virtual/virtual__routes";
 import { ErrorPage, NotFound } from "./components";
 import { RouteErrorBoundary } from "./error";
 import { RouteDataProvider, RouteProvider } from "./contexts";
@@ -43,7 +43,7 @@ function Routes() {
     }
 
     let Comp = (
-      <RouteProvider routePath={match.routePath}>
+      <RouteProvider routePath={match.id}>
         <match.component />
       </RouteProvider>
     );
@@ -56,7 +56,7 @@ function Routes() {
       }
 
       Comp = (
-        <RouteProvider routePath={layout.layoutPath}>
+        <RouteProvider routePath={layout.id}>
           <Layout>{Comp}</Layout>
         </RouteProvider>
       );
@@ -103,7 +103,7 @@ export function useRouterContext() {
 function ErrorFallback() {
   const pathname = usePathname();
   const Component = useMemo(() => {
-    const match = matchErrorRoute(pathname);
+    const match = matchErrorCatcher(pathname);
     return match?.component ?? ErrorPage;
   }, [pathname]);
 

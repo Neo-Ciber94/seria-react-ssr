@@ -1,6 +1,6 @@
 import React from "react";
 import { PassThrough } from "stream";
-import { matchAction, matchRoute, Route } from "../virtual/virtual__routes";
+import { matchServerAction, matchRoute } from "../virtual/virtual__routes";
 import {
   HEADER_LOADER_DATA,
   HEADER_ROUTE_ERROR,
@@ -17,6 +17,7 @@ import { decode } from "seria/form-data";
 import { type Params } from "../router";
 import { getViteServer } from "./vite";
 import { renderToPipeableStream } from "react-dom/server";
+import { Route } from "../router/routing";
 
 const ABORT_DELAY = 10_000;
 
@@ -250,7 +251,7 @@ async function getRouteData(args: GetRouteDataArgs) {
   const routeData: Record<string, any> = {};
   const promises: Record<string, Promise<any>> = {};
 
-  promises[route.routePath] = (() => {
+  promises[route.id] = (() => {
     if (!route.loader) {
       return Promise.resolve();
     }
@@ -267,7 +268,7 @@ async function getRouteData(args: GetRouteDataArgs) {
       continue;
     }
 
-    promises[layout.layoutPath] = getLoaderData({
+    promises[layout.id] = getLoaderData({
       loader: layout.loader,
       request,
       params,
@@ -285,7 +286,7 @@ async function getRouteData(args: GetRouteDataArgs) {
 
 async function handleAction(request: Request) {
   const actionId = request.headers.get(HEADER_SERVER_ACTION) ?? "";
-  const match = matchAction(actionId);
+  const match = matchServerAction(actionId);
 
   if (!match) {
     return new Response(null, {
