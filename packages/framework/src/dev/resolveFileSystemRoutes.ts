@@ -67,6 +67,14 @@ export async function resolveFileSystemRoutes(options: GetFileSystemRoutesOption
     export function matchRoute(id: string) {
       return router.match(id);
     }
+
+    export const matchErrorCatcher = (id: string): any => {
+      throw new Error("Not implemented");
+    };
+
+    export const matchServerAction = (id: string): any => {
+      throw new Error("Not implemented");
+    };
   `;
 
   return prettier.format(code, { filepath: "$routes.ts" });
