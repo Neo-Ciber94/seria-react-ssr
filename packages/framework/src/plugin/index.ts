@@ -7,6 +7,7 @@ import { createClientServerActionProxyFromPath } from "./createClientServerActio
 import { removeServerExportsFromSource } from "./removeServerExports";
 import { getLoader } from "./utils";
 import { invariant, normalizePath } from "../internal";
+import * as vmod from "./vmod";
 
 const routesDir = normalizePath(path.join(process.cwd(), "src", "routes"));
 console.log({ routesDir });
@@ -94,15 +95,15 @@ export default function frameworkPlugin(): PluginOption {
         // if (!importer) {
         //   return;
         // }
-        if (isVirtualModule(id)) {
+        if (vmod.isVirtualModule(id)) {
           console.log({ id });
           return "\0" + id;
         }
       },
       async load(id) {
         console.log({ load: id });
-        if (isVirtualModule(id)) {
-          const virtualMod = await loadVirtualModule(id);
+        if (vmod.isVirtualModule(id)) {
+          const virtualMod = await vmod.loadVirtualModule(id);
           console.log({ virtualMod });
           //return virtualMod;
         }
@@ -159,25 +160,4 @@ export default function frameworkPlugin(): PluginOption {
 
 function isExternal(id: string) {
   return id.includes("/node_modules/");
-}
-
-const VIRTUAL_MODULES = ["virtual__routes", "virtual__app"] as const;
-
-type VirtualModule = (typeof VIRTUAL_MODULES)[number];
-
-function isVirtualModule(id: string): id is VirtualModule {
-  return VIRTUAL_MODULES.some((s) => id.includes(s));
-}
-
-function loadVirtualModule(id: VirtualModule) {
-  switch (true) {
-    case id.includes("virtual__routes"): {
-      return fs.readFile(path.join(process.cwd(), "src", "$routes.ts"), "utf-8");
-    }
-    case id.includes("virtual__app"): {
-      return fs.readFile(path.join(process.cwd(), "src", "app.tsx"), "utf-8");
-    }
-    default:
-      throw new Error(`Unable to load virtual module "${id}".`);
-  }
 }
