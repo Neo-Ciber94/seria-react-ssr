@@ -99,7 +99,6 @@ export default function frameworkPlugin(): PluginOption {
       async load(id) {
         if (vmod.isVirtualModule(id)) {
           const code = await vmod.loadVirtualModule(id);
-          console.log({ code });
           const result = await transform(code, { loader: "tsx" });
           return result.code;
         }

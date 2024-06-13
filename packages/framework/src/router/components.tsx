@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect, useState } from "react";
 import { usePageError } from "./error";
-import { useNavigation } from "./routing";
+import { useNavigation } from "./navigation";
 
 const ERROR_STYLES: React.CSSProperties = {
   width: "100%",

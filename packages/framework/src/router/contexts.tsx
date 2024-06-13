@@ -1,5 +1,6 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { createContext, PropsWithChildren } from "react";
+import { AppContext, useAppContext } from "../react/entry";
 
 const RouteContext = createContext<string | null>(null);
 
@@ -19,4 +20,36 @@ export function useRoutePath() {
   }
 
   return routePath;
+}
+
+type RouterDataProps = {
+  routeData: AppContext;
+  setRouteData: (ctx: React.SetStateAction<AppContext>) => void;
+};
+
+const RouterDataContext = createContext<RouterDataProps | null>(null);
+
+export function RouteDataProvider(props: { children: React.ReactNode }) {
+  const hydrationContext = useAppContext();
+  const [routeData, setRouteData] = useState(hydrationContext);
+
+  return (
+    <RouterDataContext.Provider value={{ routeData, setRouteData }}>
+      {props.children}
+    </RouterDataContext.Provider>
+  );
+}
+
+export function useRouteDataContext() {
+  const ctx = useContext(RouterDataContext);
+
+  if (!ctx) {
+    throw new Error("RouterDataContext is not available");
+  }
+
+  return ctx;
+}
+
+export function useRouteData() {
+  return useRouteDataContext().routeData;
 }
