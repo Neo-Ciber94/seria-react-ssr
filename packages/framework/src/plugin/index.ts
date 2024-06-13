@@ -8,6 +8,7 @@ import { removeServerExportsFromSource } from "./removeServerExports";
 import { getLoader } from "./utils";
 import { invariant, normalizePath } from "../internal";
 import * as vmod from "./vmod";
+import { transform } from "esbuild";
 
 const routesDir = normalizePath(path.join(process.cwd(), "src", "routes"));
 console.log({ routesDir });
@@ -37,7 +38,6 @@ export default function frameworkPlugin(): PluginOption {
             treeshake: true,
             rollupOptions: {
               input: [path.join(process.cwd(), "src", "entry.client.tsx")],
-              //external: ["framework/react"],
               output: viteConfig.ssr
                 ? {
                     format: "es",
@@ -91,21 +91,17 @@ export default function frameworkPlugin(): PluginOption {
     {
       name: "@framework-virtual-modules",
       enforce: "pre",
-      resolveId(id, importer) {
-        // if (!importer) {
-        //   return;
-        // }
+      resolveId(id) {
         if (vmod.isVirtualModule(id)) {
-          console.log({ id });
-          return "\0" + id;
+          return vmod.resolveVirtualModule(id);
         }
       },
       async load(id) {
-        console.log({ load: id });
         if (vmod.isVirtualModule(id)) {
-          const virtualMod = await vmod.loadVirtualModule(id);
-          console.log({ virtualMod });
-          //return virtualMod;
+          const code = await vmod.loadVirtualModule(id);
+          console.log({ code });
+          const result = await transform(code, { loader: "tsx" });
+          return result.code;
         }
       },
     },

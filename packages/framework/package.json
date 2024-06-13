@@ -72,7 +72,7 @@
       "types": "./dist/router/index.d.ts"
     },
     "./react": {
-      "import": "./dist/react/index.jsx",
+      "import": "./dist/react/index.js",
       "types": "./dist/react/index.d.ts"
     },
     "./plugin": {

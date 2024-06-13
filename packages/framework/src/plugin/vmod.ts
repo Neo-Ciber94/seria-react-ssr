@@ -14,14 +14,17 @@ export function resolveVirtualModule(id: string) {
 }
 
 export function loadVirtualModule(id: VirtualModule) {
+  const resolvedId = id.replace(/\x00/, "");
+  console.log({ resolvedId });
+
   switch (true) {
-    case id.includes("virtual__routes"): {
+    case resolvedId.includes("virtual__routes"): {
       return fs.readFile(path.join(process.cwd(), "src", "$routes.ts"), "utf-8");
     }
-    case id.includes("virtual__app"): {
+    case resolvedId.includes("virtual__app"): {
       return fs.readFile(path.join(process.cwd(), "src", "app.tsx"), "utf-8");
     }
     default:
-      throw new Error(`Unable to load virtual module "${id}".`);
+      throw new Error(`Unable to load virtual module "${resolvedId}".`);
   }
 }
