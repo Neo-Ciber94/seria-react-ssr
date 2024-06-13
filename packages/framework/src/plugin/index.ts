@@ -62,7 +62,7 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
                         return "vendor";
                       }
 
-                      if (!resolvedConfig.ssr) {
+                      if (!viteConfig.ssr) {
                         if (isInRoutesDir(routesDir, id)) {
                           const chunkName = path
                             .relative(routesDir, id)
@@ -164,9 +164,9 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
 }
 
 function isInRoutesDir(routesDir: string, filePath: string) {
-  const normalized = normalizePath(filePath);
-  const routesDirNormalized = normalizePath(path.join(process.cwd(), routesDir));
-  return normalized.startsWith(routesDirNormalized);
+  const filePathNormalized = normalizePath(filePath);
+  const routesDirAbsolute = normalizePath(path.join(process.cwd(), routesDir));
+  return filePathNormalized.startsWith(routesDirAbsolute);
 }
 
 function isExternal(id: string) {
