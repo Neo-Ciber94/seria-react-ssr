@@ -1,7 +1,8 @@
 import path from "path";
 import { glob } from "glob";
-import { invariant, normalizePath } from "../internal";
+import { normalizePath } from "../internal";
 import * as prettier from "prettier";
+import fs from "fs";
 
 type GetFileSystemRoutesOptions = {
   cwd?: string;
@@ -14,6 +15,13 @@ export async function resolveFileSystemRoutes(options: GetFileSystemRoutesOption
 
   if (!routesDir.endsWith("/")) {
     routesDir += "/";
+  }
+
+  const absoluteRoutesDir = path.join(cwd, routesDir);
+  console.log(`Reading routes from '${absoluteRoutesDir}'`);
+
+  if (!fs.existsSync(absoluteRoutesDir)) {
+    throw new Error(`Routes not found at: '${absoluteRoutesDir}'`);
   }
 
   const globPattern = `${routesDir}/**/*.{jsx,tsx}`;
@@ -44,7 +52,7 @@ export async function resolveFileSystemRoutes(options: GetFileSystemRoutesOption
     import { type Route, createRouter } from "framework/router/routing";
     ${routeFiles
       .map((routeFile, idx) => {
-        return `import * as route$${idx} from "./${relativePath(cwd, routeFile)}"`;
+        return `import * as route$${idx} from "../../${relativePath(cwd, routeFile)}"`;
       })
       .join("\n")}
 

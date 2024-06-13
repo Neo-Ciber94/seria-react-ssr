@@ -6,9 +6,9 @@ import {
   HEADER_ROUTE_ERROR,
 } from "../constants";
 import { AppContext } from "../react";
-import { HttpError } from "../server";
 import { useRouteDataContext } from "./contexts";
 import * as seria from "seria";
+import { HttpError } from "../server/http";
 
 type NavigationStatus = "pending" | "error" | "loaded";
 

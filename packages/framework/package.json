@@ -86,6 +86,10 @@
     "./dev": {
       "import": "./dist/dev/index.js",
       "types": "./dist/dev/index.d.ts"
+    },
+    "./runtime": {
+      "import": "./dist/runtime.js",
+      "types": "./dist/runtime.d.ts"
     }
   },
   "files": [

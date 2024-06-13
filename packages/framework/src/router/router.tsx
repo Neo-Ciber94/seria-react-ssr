@@ -5,8 +5,7 @@ import { ErrorPage, NotFound } from "./components";
 import { RouteErrorBoundary } from "./error";
 import { RouteDataProvider, RouteProvider } from "./contexts";
 import { NavigationProvider, useNavigation } from "./navigation";
-import { usePathname } from "./hooks";
-import { useUrl, useMatch, useRouteError } from "./hooks";
+import { useUrl, useMatch, useRouteError, usePathname } from "./hooks";
 import { Params } from "./routing";
 
 type RouterContextProps = {
