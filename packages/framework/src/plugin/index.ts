@@ -1,4 +1,4 @@
-import { ConfigEnv, PluginOption } from "vite";
+import type { PluginOption, ResolvedConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import fs from "fs/promises";
@@ -6,7 +6,7 @@ import { startViteServer } from "../server/vite";
 import { createClientServerActionProxyFromPath } from "./createClientServerActionProxy";
 import { removeServerExportsFromSource } from "./removeServerExports";
 import { getLoader } from "./utils";
-import { normalizePath } from "../internal";
+import { invariant, normalizePath } from "../internal";
 
 const routesDir = normalizePath(path.join(process.cwd(), "src", "routes"));
 console.log({ routesDir });
@@ -15,36 +15,17 @@ function isInRoutes(filePath: string) {
   return filePath.startsWith(routesDir);
 }
 
-export default function frameworkPlugin(config: ConfigEnv): PluginOption {
-  console.log(config);
-
-  if (config.isSsrBuild) {
-    return [
-      {
-        name: "server",
-        async config() {
-          return {
-            build: {
-              rollupOptions: {
-                treeshake: true,
-                output: {
-                  entryFileNames: "index.js",
-                  chunkFileNames: "assets/index-chunk.js",
-                  assetFileNames: "assets/[name].[ext]",
-                },
-              },
-            },
-          };
-        },
-      },
-    ];
-  }
+export default function frameworkPlugin(): PluginOption {
+  let resolvedConfig: ResolvedConfig | undefined;
 
   return [
     react(),
     {
       name: "@framework",
-      async config() {
+      configResolved(config) {
+        resolvedConfig = config;
+      },
+      async config(viteConfig) {
         return {
           appType: "custom",
           optimizeDeps: {
@@ -52,37 +33,48 @@ export default function frameworkPlugin(config: ConfigEnv): PluginOption {
           },
           build: {
             minify: false,
+            treeshake: true,
             rollupOptions: {
               input: [path.join(process.cwd(), "src", "entry.client.tsx")],
-              output: {
-                format: "es",
-                manualChunks(id) {
-                  const relativePath = normalizePath(path.relative(process.cwd(), id));
-                  const isReact =
-                    relativePath.startsWith("node_modules/react") ||
-                    relativePath.startsWith("node_modules/react-dom");
-
-                  if (isReact) {
-                    return "react";
+              //external: ["framework/react"],
+              output: viteConfig.ssr
+                ? {
+                    format: "es",
+                    entryFileNames: "index.js",
+                    chunkFileNames: "assets/index-chunk.js",
+                    assetFileNames: "assets/[name].[ext]",
                   }
+                : {
+                    format: "es",
+                    manualChunks(id) {
+                      invariant(resolvedConfig, "Vite config was not available");
 
-                  if (isExternal(id)) {
-                    return "vendor";
-                  }
+                      const relativePath = normalizePath(path.relative(process.cwd(), id));
+                      const isReact =
+                        relativePath.startsWith("node_modules/react") ||
+                        relativePath.startsWith("node_modules/react-dom");
 
-                  if (!config.isSsrBuild) {
-                    if (isInRoutes(id)) {
-                      const chunkName = path
-                        .relative(routesDir, id)
-                        .replaceAll(path.sep, "/")
-                        .replaceAll("/", "_")
-                        .replaceAll(/\.(j|t)sx?$/g, "");
+                      if (isReact) {
+                        return "react";
+                      }
 
-                      return `routes_${chunkName}`;
-                    }
-                  }
-                },
-              },
+                      if (isExternal(id)) {
+                        return "vendor";
+                      }
+
+                      if (!resolvedConfig.ssr) {
+                        if (isInRoutes(id)) {
+                          const chunkName = path
+                            .relative(routesDir, id)
+                            .replaceAll(path.sep, "/")
+                            .replaceAll("/", "_")
+                            .replaceAll(/\.(j|t)sx?$/g, "");
+
+                          return `routes_${chunkName}`;
+                        }
+                      }
+                    },
+                  },
             },
           },
         };
@@ -99,17 +91,20 @@ export default function frameworkPlugin(config: ConfigEnv): PluginOption {
       name: "@framework-virtual-modules",
       enforce: "pre",
       resolveId(id, importer) {
-        console.log({ id, importer });
+        // if (!importer) {
+        //   return;
+        // }
         if (isVirtualModule(id)) {
           console.log({ id });
           return "\0" + id;
         }
       },
-      load(id) {
+      async load(id) {
+        console.log({ load: id });
         if (isVirtualModule(id)) {
-          const virtualMod = loadVirtualModule(id);
+          const virtualMod = await loadVirtualModule(id);
           console.log({ virtualMod });
-          return virtualMod;
+          //return virtualMod;
         }
       },
     },
@@ -147,9 +142,13 @@ export default function frameworkPlugin(config: ConfigEnv): PluginOption {
     },
     {
       name: "ignore-server-files",
-      resolveId(source) {
-        if (/\.server\.(ts|js|tsx|jsx)$/.test(source)) {
-          return { id: source, external: true };
+      resolveId(id) {
+        if (isExternal(id)) {
+          return;
+        }
+
+        if (/\.server\.(ts|js|tsx|jsx)$/.test(id)) {
+          return { id, external: true };
         }
 
         return null;
@@ -167,15 +166,15 @@ const VIRTUAL_MODULES = ["virtual__routes", "virtual__app"] as const;
 type VirtualModule = (typeof VIRTUAL_MODULES)[number];
 
 function isVirtualModule(id: string): id is VirtualModule {
-  return VIRTUAL_MODULES.includes(id as VirtualModule);
+  return VIRTUAL_MODULES.some((s) => id.includes(s));
 }
 
 function loadVirtualModule(id: VirtualModule) {
-  switch (id) {
-    case "virtual__routes": {
+  switch (true) {
+    case id.includes("virtual__routes"): {
       return fs.readFile(path.join(process.cwd(), "src", "$routes.ts"), "utf-8");
     }
-    case "virtual__app": {
+    case id.includes("virtual__app"): {
       return fs.readFile(path.join(process.cwd(), "src", "app.tsx"), "utf-8");
     }
     default:

@@ -1,6 +1,6 @@
 import React from "react";
 import { PassThrough } from "stream";
-import { matchAction, matchRoute, Route } from "virtual__routes";
+import { matchAction, matchRoute, Route } from "../virtual/virtual__routes";
 import {
   HEADER_LOADER_DATA,
   HEADER_ROUTE_ERROR,

@@ -17,15 +17,7 @@
     "declarationMap": true,
     "strict": true,
     "skipLibCheck": true,
-    "incremental": true,
-    // "paths": {
-    //   "virtual:routes": [
-    //     "./src/virtual/$routes.virtual.ts"
-    //   ],
-    //   "virtual:app": [
-    //     "./src/virtual/app.virtual.tsx"
-    //   ]
-    // }
+    "incremental": true
   },
   "include": [
     "src"
