@@ -82,6 +82,10 @@
     "./plugin": {
       "import": "./dist/plugin/index.js",
       "types": "./dist/plugin/index.d.ts"
+    },
+    "./dev": {
+      "import": "./dist/dev/index.js",
+      "types": "./dist/dev/index.d.ts"
     }
   },
   "files": [
