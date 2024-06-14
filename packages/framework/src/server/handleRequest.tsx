@@ -137,6 +137,22 @@ async function createLoaderResponse(args: CreateLoaderResponseArgs) {
 
 const encoder = new TextEncoder();
 
+const { routes, errorCatchers } = await getServerEntryRoutes();
+
+async function getServerEntryRoutes() {
+  const viteServer = process.env.NODE_ENV === "development" ? getViteServer() : undefined;
+
+  if (viteServer) {
+    const { routes, errorCatchers } = await viteServer.ssrLoadModule(
+      "/src/virtual/virtual_routes.ts",
+    );
+    return { routes, errorCatchers };
+  } else {
+    const { routes, errorCatchers } = await import("../virtual/virtual__routes");
+    return { routes, errorCatchers };
+  }
+}
+
 function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
   const { json, resumeStream } = seria.stringifyToResumableStream(appContext.loaderData || {});
   const isResumable = !!resumeStream;
@@ -146,7 +162,13 @@ function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
 
   return new Promise<Response>((resolve, reject) => {
     const { pipe, abort } = renderToPipeableStream(
-      <EntryServer appContext={appContext} json={json} isResumable={isResumable} />,
+      <EntryServer
+        appContext={appContext}
+        json={json}
+        isResumable={isResumable}
+        routes={routes}
+        errorCatchers={errorCatchers}
+      />,
       {
         onAllReady() {
           const body = new PassThrough();
@@ -284,6 +306,22 @@ async function getRouteData(args: GetRouteDataArgs) {
   return routeData;
 }
 
+async function matchRequestRoute(id: string) {
+  const viteServer = process.env.NODE_ENV === "development" ? getViteServer() : undefined;
+
+  if (viteServer) {
+    const mod = await viteServer.ssrLoadModule("virtual:routes");
+    const $matchRoute = mod.matchRoute as typeof matchRoute;
+    console.log({
+      id,
+      f: $matchRoute.toString(),
+    });
+    return $matchRoute(id);
+  }
+
+  return matchRoute(id);
+}
+
 async function handleAction(request: Request) {
   const actionId = request.headers.get(HEADER_SERVER_ACTION) ?? "";
   const match = matchServerAction(actionId);
@@ -314,27 +352,10 @@ async function handleAction(request: Request) {
     });
   }
 }
-
-async function matchSSR(id: string) {
-  const viteServer = process.env.NODE_ENV === "development" ? getViteServer() : undefined;
-
-  if (viteServer) {
-    const mod = await viteServer.ssrLoadModule("virtual:routes");
-    const $matchRoute = mod.matchRoute as typeof matchRoute;
-    console.log({
-      id,
-      f: $matchRoute.toString(),
-    });
-    return $matchRoute(id);
-  }
-
-  return matchRoute(id);
-}
-
 async function handlePageRequest(request: Request) {
   const { pathname } = new URL(request.url);
   const url = request.url;
-  const match = await matchSSR(pathname);
+  const match = await matchRequestRoute(pathname);
   // const match = matchRoute(pathname);
 
   if (request.headers.has(HEADER_LOADER_DATA)) {

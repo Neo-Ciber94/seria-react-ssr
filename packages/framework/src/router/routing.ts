@@ -101,7 +101,7 @@ export type ServerAction = {
 
 type WithPath = { path: string };
 
-class Router<T extends WithPath> {
+export class Router<T extends WithPath> {
   #router: RadixRouter<T>;
   #entries: T[];
 

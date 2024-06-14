@@ -23,6 +23,8 @@ async function startDevelopmentServer() {
   app.use(viteServer.middlewares);
   const handleRequest = createRequestHandler();
 
+  console.log("RUNNING VITE SERVER")
+
   app.use(async (req, res) => {
     try {
       const baseUrl = process.env.ORIGIN ?? getOrigin(req);

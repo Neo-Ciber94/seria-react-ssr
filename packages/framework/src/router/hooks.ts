@@ -2,10 +2,10 @@ import { useMemo, useCallback } from "react";
 import { useNavigation } from ".";
 import { HttpError, TypedJson } from "../server/http";
 import { LoaderFunction } from "../server/loader";
-import { matchRoute } from "../virtual/virtual__routes";
 import { useRouteData, useRoutePath } from "./contexts";
 import { useRouterContext } from "./router";
 import { Params } from "./routing";
+import { useAppContext } from "../react/context";
 
 type LoaderDataType<T> =
   T extends Promise<infer U>
@@ -27,11 +27,12 @@ export function useLoaderData<L extends LoaderFunction<unknown>>() {
 
 export function useMatch() {
   const pathname = usePathname();
+  const { router } = useAppContext();
   return useMemo(() => {
-    const match = matchRoute(pathname);
+    const match = router.match(pathname);
     const params = match?.params || {};
     return { params, match };
-  }, [pathname]);
+  }, [pathname, router]);
 }
 
 export function useRouteError() {

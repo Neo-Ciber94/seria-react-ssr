@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import { createContext, PropsWithChildren } from "react";
-import { AppContext, useAppContext } from "../react/entry";
+import { AppContext, useAppContext } from "../react/context";
 
 const RouteContext = createContext<string | null>(null);
 
@@ -30,8 +30,8 @@ type RouterDataProps = {
 const RouterDataContext = createContext<RouterDataProps | null>(null);
 
 export function RouteDataProvider(props: { children: React.ReactNode }) {
-  const hydrationContext = useAppContext();
-  const [routeData, setRouteData] = useState(hydrationContext);
+  const { appContext } = useAppContext();
+  const [routeData, setRouteData] = useState(appContext);
 
   return (
     <RouterDataContext.Provider value={{ routeData, setRouteData }}>

@@ -1,7 +1,12 @@
-import { type Route, createRouter } from "framework/router/routing";
+import {
+  type Route,
+  type ErrorCatcher,
+  createRouter,
+} from "framework/router/routing";
 import * as route$0 from "./src/routes/index";
+import * as route$1 from "./src/routes/$dynamic";
 
-const routes = [
+export const routes = [
   {
     id: "/index",
     path: "/",
@@ -9,7 +14,16 @@ const routes = [
     component: route$0.default,
     loader: (route$0 as any).loader,
   },
+  {
+    id: "/$dynamic",
+    path: "/:dynamic",
+    layouts: [],
+    component: route$1.default,
+    loader: (route$1 as any).loader,
+  },
 ] satisfies Route[];
+
+export const errorCatchers: ErrorCatcher[] = [];
 
 const router = createRouter(routes);
 
@@ -26,5 +40,3 @@ export const matchServerAction = (id: string): any => {
   console.warn("'matchServerAction' is not implemented yet");
   return null;
 };
-
-console.log(router.match("/"));

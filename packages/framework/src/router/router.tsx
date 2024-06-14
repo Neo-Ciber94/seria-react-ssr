@@ -1,12 +1,12 @@
 import React, { useCallback, useContext, useEffect } from "react";
 import { createContext, useMemo } from "react";
-import { matchErrorCatcher } from "../virtual/virtual__routes";
 import { ErrorPage, NotFound } from "./components";
 import { RouteErrorBoundary } from "./error";
 import { RouteDataProvider, RouteProvider } from "./contexts";
 import { NavigationProvider, useNavigation } from "./navigation";
 import { useUrl, useMatch, useRouteError, usePathname } from "./hooks";
 import { Params } from "./routing";
+import { useAppContext } from "../react/context";
 
 type RouterContextProps = {
   params: Params;
@@ -101,10 +101,11 @@ export function useRouterContext() {
 
 function ErrorFallback() {
   const pathname = usePathname();
+  const { errorRouter } = useAppContext();
   const Component = useMemo(() => {
-    const match = matchErrorCatcher(pathname);
+    const match = errorRouter.match(pathname);
     return match?.component ?? ErrorPage;
-  }, [pathname]);
+  }, [pathname, errorRouter]);
 
   return <Component />;
 }
