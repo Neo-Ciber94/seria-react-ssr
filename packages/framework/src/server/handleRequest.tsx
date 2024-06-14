@@ -223,7 +223,7 @@ function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
           }
 
           statusCode = 500;
-          console.error(error);
+          console.error(error, info);
         },
       },
     );
@@ -315,10 +315,27 @@ async function handleAction(request: Request) {
   }
 }
 
+async function matchSSR(id: string) {
+  const viteServer = process.env.NODE_ENV === "development" ? getViteServer() : undefined;
+
+  if (viteServer) {
+    const mod = await viteServer.ssrLoadModule("virtual:routes");
+    const $matchRoute = mod.matchRoute as typeof matchRoute;
+    console.log({
+      id,
+      f: $matchRoute.toString(),
+    });
+    return $matchRoute(id);
+  }
+
+  return matchRoute(id);
+}
+
 async function handlePageRequest(request: Request) {
   const { pathname } = new URL(request.url);
   const url = request.url;
-  const match = matchRoute(pathname);
+  const match = await matchSSR(pathname);
+  // const match = matchRoute(pathname);
 
   if (request.headers.has(HEADER_LOADER_DATA)) {
     if (match == null) {

@@ -3,6 +3,7 @@ import { glob } from "glob";
 import { normalizePath } from "../internal";
 import * as prettier from "prettier";
 import fs from "fs";
+import { pathToFileURL } from "url";
 
 type GetFileSystemRoutesOptions = {
   cwd?: string;
@@ -17,6 +18,7 @@ export async function resolveFileSystemRoutes(options: GetFileSystemRoutesOption
     routesDir += "/";
   }
 
+  console.log({ cwd });
   const absoluteRoutesDir = path.join(cwd, routesDir);
   console.log(`Reading routes from '${absoluteRoutesDir}'`);
 
@@ -52,7 +54,16 @@ export async function resolveFileSystemRoutes(options: GetFileSystemRoutesOption
     import { type Route, createRouter } from "framework/router/routing";
     ${routeFiles
       .map((routeFile, idx) => {
-        return `import * as route$${idx} from "../../${relativePath(cwd, routeFile)}"`;
+        const importPath = relativePath(cwd, routeFile).replaceAll(/\.(m|c)?(j|t)sx?$/g, "");
+        console.log({ importPath });
+        // console.log({ importPath });
+        // fs.readdir(path.dirname(relativePath(cwd, routeFile)), (_, files) =>
+        //   console.log({
+        //     p: path.resolve(files[0]),
+        //     dir: path.join(cwd, routeFile),
+        //   }),
+        // );
+        return `import * as route$${idx} from "/${importPath}"`;
       })
       .join("\n")}
 
@@ -61,7 +72,7 @@ export async function resolveFileSystemRoutes(options: GetFileSystemRoutesOption
         .map((routeFile, idx) => {
           return `{
           id: ${JSON.stringify(getRouteId(routesDir, routeFile))},
-          routePath: ${JSON.stringify(getRoutePath(routesDir, routeFile))},
+          path: ${JSON.stringify(getRoutePath(routesDir, routeFile))},
           layouts: [],
           component: route$${idx}.default,
           loader: (route$${idx} as any).loader,
@@ -77,11 +88,13 @@ export async function resolveFileSystemRoutes(options: GetFileSystemRoutesOption
     }
 
     export const matchErrorCatcher = (id: string): any => {
-      throw new Error("Not implemented");
+      console.warn("'matchErrorCatcher' is not implemented yet")
+      return null;
     };
 
     export const matchServerAction = (id: string): any => {
-      throw new Error("Not implemented");
+      console.warn("'matchServerAction' is not implemented yet")
+      return null;
     };
   `;
 

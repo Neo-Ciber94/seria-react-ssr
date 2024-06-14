@@ -1,4 +1,3 @@
-
 import polka from "polka";
 import { getOrigin, createRequest, setResponse } from "./adapters/node/helpers";
 import { createRequestHandler } from "./handleRequest";

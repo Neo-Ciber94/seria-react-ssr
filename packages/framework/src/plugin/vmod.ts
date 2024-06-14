@@ -1,7 +1,9 @@
 import path from "path";
 import fs from "fs/promises";
 
-const VIRTUAL_MODULES = ["virtual__routes", "virtual__app"] as const;
+// const VIRTUAL_MODULES = ["virtual__routes", "virtual__app"] as const;
+
+const VIRTUAL_MODULES = ["virtual__routes"] as const;
 
 type VirtualModule = (typeof VIRTUAL_MODULES)[number];
 

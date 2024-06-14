@@ -96,27 +96,26 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
         }
       },
       async load(id) {
-        if (vmod.isVirtualModule(id)) {
-          if (id.includes("virtual__routes")) {
-            const code = await resolveFileSystemRoutes({ routesDir });
-            const result = await transform(code, { loader: "ts" });
-            return result.code;
-          } else {
-            const code = await vmod.loadVirtualModule(id);
-            const result = await transform(code, { loader: "tsx" });
-            return result.code;
-          }
+        if (id.includes("virtual:routes") || id.includes("virtual__routes")) {
+          console.log({ id });
+          const code = await resolveFileSystemRoutes({ routesDir });
+          const result = await transform(code, { loader: "ts" });
+          return result.code;
         }
+      },
+      handleHotUpdate(ctx) {
+        console.log(`File changed: ${ctx.file}. Invalidating virtual module.`);
       },
     },
     {
       name: "create-server-action-proxy",
       //enforce: "pre",
-      async load(id) {
+      async load(id, options) {
         if (
           isExternal(id) ||
           !/_actions\.(js|ts|jsx|tsx)$/.test(id) ||
-          !isInRoutesDir(routesDir, id)
+          !isInRoutesDir(routesDir, id) ||
+          options?.ssr
         ) {
           return;
         }
@@ -131,8 +130,13 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
     {
       name: "remove-server-exports",
       //enforce: "pre",
-      async load(id) {
-        if (isExternal(id) || !/\.(js|ts|jsx|tsx)$/.test(id) || !isInRoutesDir(routesDir, id)) {
+      async load(id, options) {
+        if (
+          isExternal(id) ||
+          !/\.(js|ts|jsx|tsx)$/.test(id) ||
+          !isInRoutesDir(routesDir, id) ||
+          options?.ssr
+        ) {
           return;
         }
 
@@ -148,8 +152,8 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
     },
     {
       name: "ignore-server-files",
-      resolveId(id) {
-        if (isExternal(id)) {
+      resolveId(id, _, options) {
+        if (isExternal(id) || options.ssr) {
           return;
         }
 

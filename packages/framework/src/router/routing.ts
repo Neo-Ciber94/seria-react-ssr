@@ -17,7 +17,7 @@ export interface Route {
   /**
    * The path of this route in the route directory.
    */
-  routePath: string;
+  path: string;
 
   /**
    * All the layouts to apply to this route, all layout components should accept a children.
@@ -48,7 +48,7 @@ export interface Layout {
   /**
    * The path of this layout in the route directory.
    */
-  routePath: string;
+  path: string;
 
   /**
    * The component of this route.
@@ -74,7 +74,7 @@ export interface ErrorCatcher {
    *
    * The path of this error catcher.
    */
-  routePath: string;
+  path: string;
 
   /**
    * The component of this route.
@@ -91,7 +91,7 @@ export type ServerAction = {
   /**
    * The file where this server action is exported.
    */
-  actionPath: string;
+  path: string;
 
   /**
    * The server action function.
@@ -99,16 +99,16 @@ export type ServerAction = {
   action: (...args: any[]) => Promise<any>;
 };
 
-type WithId = { id: string };
+type WithPath = { path: string };
 
-class Router<T extends WithId> {
+class Router<T extends WithPath> {
   #router: RadixRouter<T>;
   #entries: T[];
 
   constructor(entries: T[]) {
     this.#entries = entries;
     this.#router = createBaseRouter({
-      routes: entries.map((r) => ({ [r.id]: r })),
+      routes: entries.reduce((acc, r) => ({ ...acc, [r.path]: r }), {} as Record<string, T>),
     });
   }
 
