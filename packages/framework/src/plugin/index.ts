@@ -2,7 +2,7 @@ import type { PluginOption, ResolvedConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import fs from "fs/promises";
-import { startViteServer } from "../server/vite";
+import { startViteServer } from "../dev/vite";
 import { createClientServerActionProxyFromPath } from "./createClientServerActionProxy";
 import { removeServerExportsFromSource } from "./removeServerExports";
 import { getLoader } from "./utils";

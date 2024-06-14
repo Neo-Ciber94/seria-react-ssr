@@ -1,8 +1,9 @@
 import polka from "polka";
 import { getOrigin, createRequest, setResponse } from "./adapters/node/helpers";
 import { createRequestHandler } from "./handleRequest";
-import { preloadViteServer } from "./vite";
+import { preloadViteServer } from "../dev/vite";
 import { handle } from "./adapters/node/handler";
+import { preloadServerEntryRoutes } from "../dev/getServerEntryRoutes";
 
 const PORT = process.env.PORT ?? 5000;
 const HOST = process.env.HOST ?? "localhost";
@@ -18,12 +19,14 @@ async function startProductionServer() {
 
 async function startDevelopmentServer() {
   const viteServer = await preloadViteServer();
+  await preloadServerEntryRoutes();
+
   const app = polka();
 
   app.use(viteServer.middlewares);
   const handleRequest = createRequestHandler();
 
-  console.log("RUNNING VITE SERVER")
+  console.log("RUNNING VITE SERVER");
 
   app.use(async (req, res) => {
     try {

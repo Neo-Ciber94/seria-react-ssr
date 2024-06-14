@@ -2,8 +2,8 @@ import type { ViteDevServer, Manifest } from "vite";
 import fs from "fs/promises";
 import { createServer } from "vite";
 import { invariant } from "../internal";
-import { getOrigin, createRequest, setResponse } from "./adapters/node/helpers";
-import { createRequestHandler } from "./handleRequest";
+import { getOrigin, createRequest, setResponse } from "../server/adapters/node/helpers";
+import { createRequestHandler } from "../server/handleRequest";
 
 const isDev = process.env.NODE_ENV !== "production";
 

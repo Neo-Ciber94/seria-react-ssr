@@ -15,9 +15,11 @@ import { type LoaderFunctionArgs } from "./loader";
 import * as seria from "seria";
 import { decode } from "seria/form-data";
 import { type Params } from "../router";
-import { getViteServer } from "./vite";
+import { getViteServer } from "../dev/vite";
 import { renderToPipeableStream } from "react-dom/server";
 import { Route } from "../router/routing";
+import { getServerEntryRoutesSync } from "../dev/getServerEntryRoutes";
+import * as routing from "../virtual/virtual__routes";
 
 const ABORT_DELAY = 10_000;
 
@@ -136,27 +138,13 @@ async function createLoaderResponse(args: CreateLoaderResponseArgs) {
 }
 
 const encoder = new TextEncoder();
-
-const { routes, errorCatchers } = await getServerEntryRoutes();
-
-async function getServerEntryRoutes() {
-  const viteServer = process.env.NODE_ENV === "development" ? getViteServer() : undefined;
-
-  if (viteServer) {
-    const { routes, errorCatchers } = await viteServer.ssrLoadModule(
-      "/src/virtual/virtual_routes.ts",
-    );
-    return { routes, errorCatchers };
-  } else {
-    const { routes, errorCatchers } = await import("../virtual/virtual__routes");
-    return { routes, errorCatchers };
-  }
-}
+const isDev = process.env.NODE_ENV !== "production";
 
 function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
   const { json, resumeStream } = seria.stringifyToResumableStream(appContext.loaderData || {});
   const isResumable = !!resumeStream;
-  const viteServer = process.env.NODE_ENV === "development" ? getViteServer() : undefined;
+  const viteServer = isDev ? getViteServer() : undefined;
+  const { routes, errorCatchers } = isDev ? getServerEntryRoutesSync() : routing;
 
   let statusCode = appContext.error?.status || 200;
 
