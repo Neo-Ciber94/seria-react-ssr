@@ -113,13 +113,9 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
         if (id.includes("virtual__app")) {
           const appEntryPath = path.join(process.cwd(), "src", "app.tsx");
           const code = await fs.readFile(appEntryPath, "utf-8");
-          console.log({ appEntryPath, code });
           const result = await transform(code, { loader: "tsx" });
           return result.code;
         }
-      },
-      handleHotUpdate(ctx) {
-        console.log(`File changed: ${ctx.file}. Invalidating virtual module.`);
       },
     },
     {

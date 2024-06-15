@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { createContext, PropsWithChildren } from "react";
 import { AppContext, useAppContext } from "../react/context";
 
@@ -12,20 +12,17 @@ type RouteProviderProps = {
 export function RouteProvider(props: PropsWithChildren<RouteProviderProps>) {
   return (
     <RouteContext.Provider value={{ id: props.id, path: props.path }}>
-      <Forward>{props.children}</Forward>
+      {props.children}
     </RouteContext.Provider>
   );
-}
-
-function Forward({ children }: { children: React.ReactNode }) {
-  console.log({ ctx: useContext(RouteContext) });
-  return <React.Fragment>{children}</React.Fragment>;
 }
 
 export function useRoute() {
   const route = useContext(RouteContext);
 
-  console.log({ route });
+  if (typeof window === "undefined") {
+    console.log("useRoute", new Error().stack);
+  }
 
   if (!route) {
     throw new Error("RouteContext was not available");

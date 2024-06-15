@@ -2,7 +2,7 @@ import React, { useCallback, useContext, useEffect } from "react";
 import { createContext, useMemo } from "react";
 import { ErrorPage, NotFound } from "./components";
 import { RouteErrorBoundary } from "./error";
-import { RouteDataProvider, RouteProvider } from "./contexts";
+import { RouteDataProvider, RouteProvider, useRouteData } from "./contexts";
 import { NavigationProvider, useNavigation } from "./navigation";
 import { useUrl, useMatch, useRouteError, usePathname } from "./hooks";
 import { Params, Route } from "./routing";
@@ -88,8 +88,19 @@ function RouteComponent({ route }: { route: Route }) {
 
   return (
     <RouteProvider id={route.id} path={route.path}>
-      <route.component />
+      <HomePage />
+      <h1>Hey!</h1>
     </RouteProvider>
+  );
+}
+
+function HomePage() {
+  const data = useRouteData().loaderData["/index"];
+  return (
+    <div>
+      <h1>Hello {data.word}</h1>
+      <button onClick={() => alert("Hey, Hello there")}>Click Me</button>
+    </div>
   );
 }
 

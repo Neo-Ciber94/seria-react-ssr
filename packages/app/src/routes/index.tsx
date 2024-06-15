@@ -7,5 +7,10 @@ export function loader() {
 
 export default function HomePage() {
   const data = useLoaderData<typeof loader>();
-  return <h1>Hello {data.word}</h1>;
+  return (
+    <div>
+      <h1>Hello {data.word}</h1>
+      <button onClick={() => alert("Hey, Hello there")}>Click Me</button>
+    </div>
+  );
 }
