@@ -104,7 +104,7 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
       },
       async load(id) {
         if (id.includes("virtual:routes") || id.includes("virtual__routes")) {
-          console.log({ id });
+          console.log({ virtualModuleId: id });
           const code = await resolveFileSystemRoutes({ routesDir });
           const result = await transform(code, { loader: "ts" });
           return result.code;
@@ -154,7 +154,6 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
         const contents = await fs.readFile(id, "utf8");
         const loader = getLoader(id);
         const result = await removeServerExportsFromSource(contents, loader);
-        console.log({ id });
 
         return {
           code: result.code,

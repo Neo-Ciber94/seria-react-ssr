@@ -1,6 +1,5 @@
 import React from "react";
 import { PassThrough } from "stream";
-import { matchServerAction, matchRoute } from "../virtual/virtual__routes";
 import {
   HEADER_LOADER_DATA,
   HEADER_ROUTE_ERROR,
@@ -302,20 +301,16 @@ async function matchRequestRoute(id: string) {
 
   if (viteServer) {
     const mod = await viteServer.ssrLoadModule("virtual:routes");
-    const $matchRoute = mod.matchRoute as typeof matchRoute;
-    console.log({
-      id,
-      f: $matchRoute.toString(),
-    });
+    const $matchRoute = mod.matchRoute as typeof routing.matchRoute;
     return $matchRoute(id);
   }
 
-  return matchRoute(id);
+  return routing.matchRoute(id);
 }
 
 async function handleAction(request: Request) {
   const actionId = request.headers.get(HEADER_SERVER_ACTION) ?? "";
-  const match = matchServerAction(actionId);
+  const match = routing.matchServerAction(actionId);
 
   if (!match) {
     return new Response(null, {

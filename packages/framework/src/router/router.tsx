@@ -18,7 +18,6 @@ const RouterContext = createContext<RouterContextProps | null>(null);
 
 function Routes() {
   const { pathname, searchParams } = useUrl();
-  const { router } = useAppContext();
   const { params, match } = useMatch();
   const { navigate } = useNavigation();
   const error = useRouteError();
@@ -37,15 +36,16 @@ function Routes() {
     };
   }, [navigate]);
 
+  console.log({ match, pathname });
+
   const Component = useCallback(() => {
     if (match?.component == null) {
       return <NotFound />;
     }
 
     return <RouteComponent route={match} />;
-  }, [match, router]);
+  }, [match]);
 
-  console.log(<Component />);
   return (
     <RouterContext.Provider
       value={{
