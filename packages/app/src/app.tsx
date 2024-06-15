@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { Router, useLoaderData } from "framework/router";
 import { Scripts } from "framework/react";
 
-export function App() {
+export default function App() {
   return (
     <React.StrictMode>
       <Root>

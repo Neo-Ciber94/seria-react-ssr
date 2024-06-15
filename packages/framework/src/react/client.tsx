@@ -1,5 +1,5 @@
 import React from "react";
-import { App } from "../virtual/virtual__app";
+import App from "../virtual/virtual__app";
 import { ServerContextProvider } from "./context";
 import { routes, errorCatchers } from "../virtual/virtual__routes";
 

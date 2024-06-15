@@ -3,7 +3,9 @@ import { Suspense } from "react";
 import { Router } from "../router";
 import { Scripts } from "../react";
 
-export function App() {
+export default function App() {
+  throw new Error("App is a virtual module and should not be imported");
+
   return (
     <React.StrictMode>
       <Root>

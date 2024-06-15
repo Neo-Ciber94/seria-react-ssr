@@ -1,5 +1,5 @@
 import React from "react";
-import { App } from "../virtual/virtual__app";
+import App from "../virtual/virtual__app";
 import { type AppContext, ServerContextProvider } from "./context";
 import type { ErrorCatcher, Route } from "../router/routing";
 import { type Manifest } from "vite";

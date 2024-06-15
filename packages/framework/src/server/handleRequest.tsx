@@ -19,7 +19,7 @@ import { renderToPipeableStream } from "react-dom/server";
 import { Route } from "../router/routing";
 import { getServerEntryRoutesSync } from "../dev/getServerEntryRoutes";
 import * as routing from "../virtual/virtual__routes";
-import { getManifest } from "../dev/utils";
+import { getViteManifest } from "../dev/utils";
 
 const ABORT_DELAY = 10_000;
 
@@ -139,13 +139,13 @@ async function createLoaderResponse(args: CreateLoaderResponseArgs) {
 
 const encoder = new TextEncoder();
 const isDev = process.env.NODE_ENV !== "production";
-const manifest = isDev ? undefined : getManifest();
 
 function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
   const { json, resumeStream } = seria.stringifyToResumableStream(appContext.loaderData || {});
   const isResumable = !!resumeStream;
   const viteServer = isDev ? getViteServer() : undefined;
   const { routes, errorCatchers } = isDev ? getServerEntryRoutesSync() : routing;
+  const manifest = isDev ? undefined : getViteManifest();
 
   let statusCode = appContext.error?.status || 200;
 
