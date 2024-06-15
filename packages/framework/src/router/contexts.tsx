@@ -14,13 +14,13 @@ export function RouteProvider(props: PropsWithChildren<RouteProviderProps>) {
 }
 
 export function useRoute() {
-  const routePath = useContext(RouteContext);
+  const route = useContext(RouteContext);
 
-  if (!routePath) {
+  if (!route) {
     throw new Error("RouteContext was not available");
   }
 
-  return routePath;
+  return route;
 }
 
 type RouterDataProps = {

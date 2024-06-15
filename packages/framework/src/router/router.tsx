@@ -5,7 +5,7 @@ import { RouteErrorBoundary } from "./error";
 import { RouteDataProvider, RouteProvider } from "./contexts";
 import { NavigationProvider, useNavigation } from "./navigation";
 import { useUrl, useMatch, useRouteError, usePathname } from "./hooks";
-import { Params } from "./routing";
+import { Params, Route } from "./routing";
 import { useAppContext } from "../react/context";
 
 type RouterContextProps = {
@@ -18,6 +18,7 @@ const RouterContext = createContext<RouterContextProps | null>(null);
 
 function Routes() {
   const { pathname, searchParams } = useUrl();
+  const { router } = useAppContext();
   const { params, match } = useMatch();
   const { navigate } = useNavigation();
   const error = useRouteError();
@@ -41,29 +42,10 @@ function Routes() {
       return <NotFound />;
     }
 
-    let Comp = (
-      <RouteProvider id={match.id} path={match.path}>
-        <match.component />
-      </RouteProvider>
-    );
+    return <RouteComponent route={match} />;
+  }, [match, router]);
 
-    const layouts = match.layouts || [];
-    for (const layout of layouts) {
-      const Layout = layout.component;
-      if (Layout == null) {
-        continue;
-      }
-
-      Comp = (
-        <RouteProvider id={layout.id} path={match.path}>
-          <Layout>{Comp}</Layout>
-        </RouteProvider>
-      );
-    }
-
-    return Comp;
-  }, [match]);
-
+  console.log(<Component />);
   return (
     <RouterContext.Provider
       value={{
@@ -77,6 +59,32 @@ function Routes() {
       </RouteErrorBoundary>
     </RouterContext.Provider>
   );
+}
+
+function RouteComponent({ route }: { route: Route }) {
+  return useMemo(() => {
+    let Component = (
+      <RouteProvider id={route.id} path={route.path}>
+        <route.component />
+      </RouteProvider>
+    );
+
+    const layouts = route.layouts || [];
+    for (const layout of layouts) {
+      const Layout = layout.component;
+      if (Layout == null) {
+        continue;
+      }
+
+      Component = (
+        <RouteProvider id={layout.id} path={route.path}>
+          <Layout>{Component}</Layout>
+        </RouteProvider>
+      );
+    }
+
+    return Component;
+  }, [route]);
 }
 
 export function Router() {
