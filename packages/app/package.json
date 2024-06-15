@@ -12,7 +12,8 @@
     "build:seria": "esbuild ./src/deps/seria.ts --bundle --format=esm --minify --outfile=./build/client/assets/seria.js",
     "build:client": "cross-env NODE_OPTIONS=\"--import tsx/esm\" vite build --outDir build/client --manifest --ssrManifest && npm run build:seria",
     "build:server": "cross-env NODE_OPTIONS=\"--import tsx/esm\" vite build --outDir build/server --ssr ./src/entry.server.tsx",
-    "serve": "cross-env NODE_ENV=development tsx ./src/entry.server.tsx"
+    "serve": "cross-env NODE_ENV=development tsx ./src/entry.server.tsx",
+    "vite:dev": "cross-env NODE_ENV=development NODE_OPTIONS=\"--import tsx/esm\" vite dev"
   },
   "dependencies": {
     "react": "^19.0.0-rc-a26e3f403e-20240611",

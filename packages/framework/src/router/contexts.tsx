@@ -2,17 +2,18 @@ import React, { useContext, useState } from "react";
 import { createContext, PropsWithChildren } from "react";
 import { AppContext, useAppContext } from "../react/context";
 
-const RouteContext = createContext<string | null>(null);
+const RouteContext = createContext<RouteProviderProps | null>(null);
 
 type RouteProviderProps = {
-  routePath: string;
+  id: string;
+  path: string;
 };
 
 export function RouteProvider(props: PropsWithChildren<RouteProviderProps>) {
-  return <RouteContext.Provider value={props.routePath}>{props.children}</RouteContext.Provider>;
+  return <RouteContext.Provider value={props}>{props.children}</RouteContext.Provider>;
 }
 
-export function useRoutePath() {
+export function useRoute() {
   const routePath = useContext(RouteContext);
 
   if (!routePath) {

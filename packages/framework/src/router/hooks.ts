@@ -2,7 +2,7 @@ import { useMemo, useCallback } from "react";
 import { useNavigation } from ".";
 import { HttpError, TypedJson } from "../server/http";
 import { LoaderFunction } from "../server/loader";
-import { useRouteData, useRoutePath } from "./contexts";
+import { useRouteData, useRoute } from "./contexts";
 import { useRouterContext } from "./router";
 import { Params } from "./routing";
 import { useAppContext } from "../react/context";
@@ -21,8 +21,10 @@ type LoaderDataType<T> =
 type LoaderReturnType<T> = T extends LoaderFunction<infer U> ? LoaderDataType<U> : never;
 
 export function useLoaderData<L extends LoaderFunction<unknown>>() {
-  const routePath = useRoutePath();
-  return useRouteData().loaderData[routePath] as LoaderReturnType<L>;
+  const route = useRoute();
+  const loaderData = useRouteData().loaderData;
+  console.log({ route, loaderData });
+  return loaderData[route.id] as LoaderReturnType<L>;
 }
 
 export function useMatch() {

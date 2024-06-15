@@ -2,7 +2,7 @@ import type { PluginOption, ResolvedConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import fs from "fs/promises";
-import { startViteServer } from "../dev/vite";
+import { preloadViteServer, startViteServer } from "../dev/vite";
 import { createClientServerActionProxyFromPath } from "./createClientServerActionProxy";
 import { removeServerExportsFromSource } from "./removeServerExports";
 import { getLoader } from "./utils";
@@ -10,6 +10,7 @@ import { invariant, normalizePath } from "../internal";
 import * as vmod from "./vmod";
 import { transform } from "esbuild";
 import { resolveFileSystemRoutes } from "../dev";
+import { preloadServerEntryRoutes } from "../dev/getServerEntryRoutes";
 
 type FrameworkPluginConfig = {
   routesDir?: string;
@@ -28,6 +29,7 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
         resolvedConfig = config;
       },
       async config(viteConfig) {
+        
         return {
           appType: "custom",
           optimizeDeps: {
@@ -82,6 +84,8 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
       async configureServer(server) {
         return async () => {
           if (!server.config.server.middlewareMode) {
+            await preloadViteServer();
+            await preloadServerEntryRoutes();
             await startViteServer(server);
           }
         };
