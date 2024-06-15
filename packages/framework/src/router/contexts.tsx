@@ -9,8 +9,8 @@ type RouteProviderProps = {
   path: string;
 };
 
-export function RouteProvider(props: PropsWithChildren<RouteProviderProps>) {
-  return <RouteContext.Provider value={props}>{props.children}</RouteContext.Provider>;
+export function RouteProvider({ id, path, children }: PropsWithChildren<RouteProviderProps>) {
+  return <RouteContext.Provider value={{ id, path }}>{children}</RouteContext.Provider>;
 }
 
 export function useRoute() {
