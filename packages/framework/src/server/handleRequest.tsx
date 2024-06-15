@@ -20,6 +20,7 @@ import { renderToPipeableStream } from "react-dom/server";
 import { Route } from "../router/routing";
 import { getServerEntryRoutesSync } from "../dev/getServerEntryRoutes";
 import * as routing from "../virtual/virtual__routes";
+import { getManifest } from "../dev/utils";
 
 const ABORT_DELAY = 10_000;
 
@@ -139,6 +140,7 @@ async function createLoaderResponse(args: CreateLoaderResponseArgs) {
 
 const encoder = new TextEncoder();
 const isDev = process.env.NODE_ENV !== "production";
+const manifest = isDev ? undefined : getManifest();
 
 function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
   const { json, resumeStream } = seria.stringifyToResumableStream(appContext.loaderData || {});
@@ -156,6 +158,7 @@ function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
         isResumable={isResumable}
         routes={routes}
         errorCatchers={errorCatchers}
+        manifest={manifest}
       />,
       {
         onAllReady() {
@@ -340,6 +343,7 @@ async function handleAction(request: Request) {
     });
   }
 }
+
 async function handlePageRequest(request: Request) {
   const { pathname } = new URL(request.url);
   const url = request.url;

@@ -2,6 +2,7 @@ import React from "react";
 import { App } from "../virtual/virtual__app";
 import { type AppContext, ServerContextProvider } from "./context";
 import type { ErrorCatcher, Route } from "../router/routing";
+import { type Manifest } from "vite";
 
 type EntryServerProps = {
   appContext: AppContext;
@@ -9,6 +10,7 @@ type EntryServerProps = {
   isResumable: boolean;
   routes: Route[];
   errorCatchers: ErrorCatcher[];
+  manifest: Manifest | undefined;
 };
 
 export function EntryServer({
@@ -17,13 +19,27 @@ export function EntryServer({
   isResumable,
   routes,
   errorCatchers,
+  manifest,
 }: EntryServerProps) {
   const { url } = appContext;
   const routeError = appContext.error ? `,error:${JSON.stringify(appContext.error)}` : "";
 
+  // TODO: Pass this in a more elegant way, preferably a context
+  // @ts-ignore
+  globalThis.MANIFEST = manifest;
+
   return (
     <ServerContextProvider appContext={appContext} errorCatchers={errorCatchers} routes={routes}>
       <App />
+      {manifest && (
+        <script
+          id="manifest"
+          dangerouslySetInnerHTML={{
+            __html: `window.MANIFEST = ${JSON.stringify(manifest)}`,
+          }}
+        />
+      )}
+
       {isResumable ? (
         <script
           id="app-context"
