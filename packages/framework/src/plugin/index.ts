@@ -29,7 +29,6 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
         resolvedConfig = config;
       },
       async config(viteConfig) {
-        
         return {
           appType: "custom",
           optimizeDeps: {
@@ -98,12 +97,24 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
         if (vmod.isVirtualModule(id)) {
           return vmod.resolveVirtualModule(id);
         }
+
+        if (id.includes("virtual__app")) {
+          return vmod.resolveVirtualModule(id);
+        }
       },
       async load(id) {
         if (id.includes("virtual:routes") || id.includes("virtual__routes")) {
           console.log({ id });
           const code = await resolveFileSystemRoutes({ routesDir });
           const result = await transform(code, { loader: "ts" });
+          return result.code;
+        }
+
+        if (id.includes("virtual__app")) {
+          const appEntryPath = path.join(process.cwd(), "src", "app.tsx");
+          const code = await fs.readFile(appEntryPath, "utf-8");
+          console.log({ appEntryPath, code });
+          const result = await transform(code, { loader: "tsx" });
           return result.code;
         }
       },
