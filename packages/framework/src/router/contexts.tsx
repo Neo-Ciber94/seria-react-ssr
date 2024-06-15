@@ -12,13 +12,20 @@ type RouteProviderProps = {
 export function RouteProvider(props: PropsWithChildren<RouteProviderProps>) {
   return (
     <RouteContext.Provider value={{ id: props.id, path: props.path }}>
-      {props.children}
+      <Forward>{props.children}</Forward>
     </RouteContext.Provider>
   );
 }
 
+function Forward({ children }: { children: React.ReactNode }) {
+  console.log({ ctx: useContext(RouteContext) });
+  return <React.Fragment>{children}</React.Fragment>;
+}
+
 export function useRoute() {
   const route = useContext(RouteContext);
+
+  console.log({ route });
 
   if (!route) {
     throw new Error("RouteContext was not available");

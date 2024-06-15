@@ -62,29 +62,35 @@ function Routes() {
 }
 
 function RouteComponent({ route }: { route: Route }) {
-  return useMemo(() => {
-    let Component = (
-      <RouteProvider id={route.id} path={route.path}>
-        <route.component />
-      </RouteProvider>
-    );
+  // return useMemo(() => {
+  //   let Component = (
+  //     <RouteProvider id={route.id} path={route.path}>
+  //       <route.component />
+  //     </RouteProvider>
+  //   );
 
-    const layouts = route.layouts || [];
-    for (const layout of layouts) {
-      const Layout = layout.component;
-      if (Layout == null) {
-        continue;
-      }
+  //   const layouts = route.layouts || [];
+  //   for (const layout of layouts) {
+  //     const Layout = layout.component;
+  //     if (Layout == null) {
+  //       continue;
+  //     }
 
-      Component = (
-        <RouteProvider id={layout.id} path={route.path}>
-          <Layout>{Component}</Layout>
-        </RouteProvider>
-      );
-    }
+  //     Component = (
+  //       <RouteProvider id={layout.id} path={route.path}>
+  //         <Layout>{Component}</Layout>
+  //       </RouteProvider>
+  //     );
+  //   }
 
-    return Component;
-  }, [route]);
+  //   return Component;
+  // }, [route]);
+
+  return (
+    <RouteProvider id={route.id} path={route.path}>
+      <route.component />
+    </RouteProvider>
+  );
 }
 
 export function Router() {
