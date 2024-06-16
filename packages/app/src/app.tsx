@@ -1,7 +1,7 @@
 import React from "react";
 import { Suspense } from "react";
-import { Router, useLoaderData } from "framework/router";
-import { Scripts } from "framework/react";
+import { Router } from "framework/router";
+import { LiveReload, Scripts } from "framework/react";
 
 export default function App() {
   console.log("Calling actual <App/>");
@@ -24,7 +24,8 @@ function Root({ children }: { children: React.ReactNode }) {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.png" />
-        <title>My App</title>
+        <title>This is my application</title>
+        <LiveReload />
       </head>
       <body>
         {children}

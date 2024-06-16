@@ -168,21 +168,11 @@ async function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
 
           let index = 0;
           const nextId = () => ++index;
-          const decoder = new TextDecoder();
 
           const stream = new ReadableStream({
             async start(controller) {
               for await (const chunk of body) {
-                if (viteServer) {
-                  const htmlChunk = decoder.decode(chunk);
-                  const transformedChunk = await viteServer.transformIndexHtml(
-                    appContext.url,
-                    htmlChunk,
-                  );
-                  controller.enqueue(transformedChunk);
-                } else {
-                  controller.enqueue(chunk);
-                }
+                controller.enqueue(chunk);
               }
 
               if (resumeStream) {
