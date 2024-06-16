@@ -5,7 +5,11 @@ import { routes, errorCatchers } from "../virtual/virtual__routes";
 
 export function EntryClient() {
   return (
-    <ServerContextProvider appContext={APP_CONTEXT} routes={routes} errorCatchers={errorCatchers}>
+    <ServerContextProvider
+      appContext={window.APP_CONTEXT}
+      routes={routes}
+      errorCatchers={errorCatchers}
+    >
       <App />
     </ServerContextProvider>
   );
