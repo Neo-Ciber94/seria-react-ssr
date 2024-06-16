@@ -6,7 +6,7 @@ import { RouteDataProvider, RouteProvider, useRouteData } from "./contexts";
 import { NavigationProvider, useNavigation } from "./navigation";
 import { useUrl, useMatch, useRouteError, usePathname } from "./hooks";
 import { Params, Route } from "./routing";
-import { useAppContext } from "../react/context";
+import { useServerContext } from "../react/context";
 
 type RouterContextProps = {
   params: Params;
@@ -126,7 +126,7 @@ export function useRouterContext() {
 
 function ErrorFallback() {
   const pathname = usePathname();
-  const { errorRouter } = useAppContext();
+  const { errorRouter } = useServerContext();
   const Component = useMemo(() => {
     const match = errorRouter.match(pathname);
     return match?.component ?? ErrorPage;

@@ -5,7 +5,7 @@ import { LoaderFunction } from "../server/loader";
 import { useRouteData, useRoute } from "./contexts";
 import { useRouterContext } from "./router";
 import { Params } from "./routing";
-import { useAppContext } from "../react/context";
+import { useServerContext } from "../react/context";
 
 type LoaderDataType<T> =
   T extends Promise<infer U>
@@ -28,7 +28,7 @@ export function useLoaderData<L extends LoaderFunction<unknown>>() {
 
 export function useMatch() {
   const pathname = usePathname();
-  const { router } = useAppContext();
+  const { router } = useServerContext();
   return useMemo(() => {
     const match = router.match(pathname);
     const params = match?.params || {};

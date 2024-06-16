@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { createContext, PropsWithChildren } from "react";
-import { AppContext, useAppContext } from "../react/context";
+import { AppContext, useServerContext } from "../react/context";
 
 const RouteContext = createContext<RouteProviderProps | null>(null);
 
@@ -35,7 +35,7 @@ type RouterDataProps = {
 const RouterDataContext = createContext<RouterDataProps | null>(null);
 
 export function RouteDataProvider(props: { children: React.ReactNode }) {
-  const { appContext } = useAppContext();
+  const { appContext } = useServerContext();;
   const [routeData, setRouteData] = useState(appContext);
 
   return (

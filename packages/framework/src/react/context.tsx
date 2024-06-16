@@ -46,7 +46,7 @@ export function ServerContextProvider(props: ServerContextProviderProps) {
   );
 }
 
-export function useAppContext() {
+export function useServerContext() {
   const ctx = useContext(ServerContext);
 
   if (!ctx) {
