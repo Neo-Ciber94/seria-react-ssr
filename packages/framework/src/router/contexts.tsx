@@ -20,10 +20,6 @@ export function RouteProvider(props: PropsWithChildren<RouteProviderProps>) {
 export function useRoute() {
   const route = useContext(RouteContext);
 
-  if (typeof window === "undefined") {
-    console.log("useRoute", new Error().stack);
-  }
-
   if (!route) {
     throw new Error("RouteContext was not available");
   }

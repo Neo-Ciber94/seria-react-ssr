@@ -140,12 +140,13 @@ async function createLoaderResponse(args: CreateLoaderResponseArgs) {
 const encoder = new TextEncoder();
 const isDev = process.env.NODE_ENV !== "production";
 
-function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
+async function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
   const { json, resumeStream } = seria.stringifyToResumableStream(appContext.loaderData || {});
   const isResumable = !!resumeStream;
   const viteServer = isDev ? getViteServer() : undefined;
   const { routes, errorCatchers } = isDev ? getServerEntryRoutesSync() : routing;
   const manifest = isDev ? undefined : getViteManifest();
+  const { default: App } = await getViteServer().ssrLoadModule("virtual:app");
 
   let statusCode = appContext.error?.status || 200;
 
@@ -158,6 +159,7 @@ function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
         routes={routes}
         errorCatchers={errorCatchers}
         manifest={manifest}
+        Entry={App}
       />,
       {
         onAllReady() {
@@ -299,6 +301,7 @@ async function getRouteData(args: GetRouteDataArgs) {
 async function matchRequestRoute(id: string) {
   const viteServer = process.env.NODE_ENV === "development" ? getViteServer() : undefined;
 
+  console.log({ routes: routing.routes });
   if (viteServer) {
     const mod = await viteServer.ssrLoadModule("virtual:routes");
     const $matchRoute = mod.matchRoute as typeof routing.matchRoute;

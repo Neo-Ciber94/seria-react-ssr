@@ -102,21 +102,26 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
           return vmod.resolveVirtualModule("virtual:app");
         }
 
-        if (vmod.isVirtualModule(id)) {
+        if (id === "virtual:routes") {
+          console.log({ virtualRoutes: id });
+          return vmod.resolveVirtualModule(id);
+        }
+
+        if (id === "virtual:app") {
+          console.log({ virtualApp: id });
           return vmod.resolveVirtualModule(id);
         }
       },
       async load(id) {
         if (id === vmod.resolveVirtualModule("virtual:routes")) {
-          console.log({ virtualModuleId: id });
+          console.log({ loadRoutes: id });
           const code = await resolveFileSystemRoutes({ routesDir });
           const result = await transform(code, { loader: "ts" });
           return result.code;
         }
 
         if (id === vmod.resolveVirtualModule("virtual:app")) {
-          console.log({ virtualModuleId: id });
-          
+          console.log({ loadApp: id });
           const appEntryPath = path.join(process.cwd(), "src", "app.tsx");
           const code = await fs.readFile(appEntryPath, "utf-8");
           const result = await transform(code, { loader: "tsx" });

@@ -4,6 +4,8 @@ import { Router, useLoaderData } from "framework/router";
 import { Scripts } from "framework/react";
 
 export default function App() {
+  console.log("Calling actual <App/>");
+
   return (
     <React.StrictMode>
       <Root>

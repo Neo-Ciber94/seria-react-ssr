@@ -4,7 +4,7 @@ import { Router } from "../router";
 import { Scripts } from "../react";
 
 export default function App() {
-  throw new Error("App is a virtual module and should not be imported");
+  console.log("Calling virtual <App/>");
 
   return (
     <React.StrictMode>

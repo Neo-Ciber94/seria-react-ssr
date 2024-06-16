@@ -1,5 +1,5 @@
 import React from "react";
-import App from "../virtual/virtual__app";
+import { default as AppEntry } from "../virtual/virtual__app";
 import { type AppContext, ServerContextProvider } from "./context";
 import type { ErrorCatcher, Route } from "../router/routing";
 import { type Manifest } from "vite";
@@ -11,6 +11,7 @@ type EntryServerProps = {
   routes: Route[];
   errorCatchers: ErrorCatcher[];
   manifest: Manifest | undefined;
+  Entry?: any;
 };
 
 export function EntryServer({
@@ -20,9 +21,11 @@ export function EntryServer({
   routes,
   errorCatchers,
   manifest,
+  Entry,
 }: EntryServerProps) {
   const { url } = appContext;
   const routeError = appContext.error ? `,error:${JSON.stringify(appContext.error)}` : "";
+  const Comp = Entry ?? AppEntry;
 
   // TODO: Pass this in a more elegant way, preferably a context
   // @ts-ignore
@@ -30,7 +33,7 @@ export function EntryServer({
 
   return (
     <ServerContextProvider appContext={appContext} errorCatchers={errorCatchers} routes={routes}>
-      <App />
+      <Comp />
       {manifest && (
         <script
           id="manifest"
