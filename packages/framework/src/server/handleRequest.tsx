@@ -291,7 +291,6 @@ async function getRouteData(args: GetRouteDataArgs) {
 async function matchRequestRoute(id: string) {
   const viteServer = process.env.NODE_ENV === "development" ? getViteServer() : undefined;
 
-  console.log({ routes: routing.routes });
   if (viteServer) {
     const mod = await viteServer.ssrLoadModule("virtual:routes");
     const $matchRoute = mod.matchRoute as typeof routing.matchRoute;
