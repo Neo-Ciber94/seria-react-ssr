@@ -5,7 +5,7 @@ import { RouteErrorBoundary } from "./error";
 import { RouteDataProvider, RouteProvider, useRouteData } from "./contexts";
 import { NavigationProvider, useNavigation } from "./navigation";
 import { useUrl, useMatch, useRouteError, usePathname } from "./hooks";
-import { Params, Route } from "./routing";
+import { createErrorRouter, Params, Route } from "./routing";
 import { useServerContext } from "../react/context";
 
 type RouterContextProps = {
@@ -85,23 +85,6 @@ function RouteComponent({ route }: { route: Route }) {
 
     return Component;
   }, [route]);
-
-  // return (
-  //   <RouteProvider id={route.id} path={route.path}>
-  //     <route.component />
-  //     <h1>Hey!</h1>
-  //   </RouteProvider>
-  // );
-}
-
-function HomePage() {
-  const data = useRouteData().loaderData["/index"];
-  return (
-    <div>
-      <h1>Hello {data.word}</h1>
-      <button onClick={() => alert("Hey, Hello there")}>Click Me</button>
-    </div>
-  );
 }
 
 export function Router() {

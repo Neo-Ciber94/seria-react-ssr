@@ -1,7 +1,7 @@
 import path from "path";
 import { glob } from "glob";
-import { normalizePath } from "../internal";
 import fs from "fs";
+import { normalizePath } from "../plugin/utils";
 
 type GetFileSystemRoutesOptions = {
   cwd?: string;

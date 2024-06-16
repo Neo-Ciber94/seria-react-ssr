@@ -4,7 +4,7 @@ import { HttpError, TypedJson } from "../server/http";
 import { LoaderFunction } from "../server/loader";
 import { useRouteData, useRoute } from "./contexts";
 import { useRouterContext } from "./router";
-import { Params } from "./routing";
+import { createRouter, Params } from "./routing";
 import { useServerContext } from "../react/context";
 
 type LoaderDataType<T> =

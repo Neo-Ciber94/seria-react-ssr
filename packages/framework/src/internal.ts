@@ -1,4 +1,3 @@
-import path from "path";
 
 class InvariantFailedError extends Error {}
 
@@ -6,10 +5,6 @@ export function invariant(value: unknown, message: string): asserts value {
   if (!value) {
     throw new InvariantFailedError(message);
   }
-}
-
-export function normalizePath(filepath: string) {
-  return filepath.replaceAll(path.win32.sep, path.posix.sep);
 }
 
 function deferred<T>() {

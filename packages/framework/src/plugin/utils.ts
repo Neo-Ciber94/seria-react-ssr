@@ -14,3 +14,7 @@ export function getLoader(filePath: string): JavascriptLoader {
   const ext = path.extname(filePath) as Ext;
   return loader[ext];
 }
+
+export function normalizePath(filepath: string) {
+  return filepath.replaceAll(path.win32.sep, path.posix.sep);
+}

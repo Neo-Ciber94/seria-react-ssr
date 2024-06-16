@@ -1,6 +1,8 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import { createContext, PropsWithChildren } from "react";
 import { AppContext, useServerContext } from "../react/context";
+import { ErrorCatcher, Route } from "./routing";
+import { invariant } from "../internal";
 
 const RouteContext = createContext<RouteProviderProps | null>(null);
 
@@ -35,7 +37,7 @@ type RouterDataProps = {
 const RouterDataContext = createContext<RouterDataProps | null>(null);
 
 export function RouteDataProvider(props: { children: React.ReactNode }) {
-  const { appContext } = useServerContext();;
+  const { appContext } = useServerContext();
   const [routeData, setRouteData] = useState(appContext);
 
   return (
