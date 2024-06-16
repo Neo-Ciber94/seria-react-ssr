@@ -94,22 +94,12 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
       name: "@framework-virtual-modules",
       enforce: "pre",
       resolveId(id) {
-        if (id.includes("virtual__routes")) {
+        if (id.includes("virtual__routes") || id === "virtual:routes") {
           return vmod.resolveVirtualModule("virtual:routes");
         }
 
-        if (id.includes("virtual__app")) {
+        if (id.includes("virtual__app") || id === "virtual:app") {
           return vmod.resolveVirtualModule("virtual:app");
-        }
-
-        if (id === "virtual:routes") {
-          console.log({ virtualRoutes: id });
-          return vmod.resolveVirtualModule(id);
-        }
-
-        if (id === "virtual:app") {
-          console.log({ virtualApp: id });
-          return vmod.resolveVirtualModule(id);
         }
       },
       async load(id) {
