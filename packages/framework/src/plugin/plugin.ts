@@ -28,7 +28,7 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
       configResolved(config) {
         resolvedConfig = config;
       },
-      async config(viteConfig) {
+      async config(viteConfig, { isSsrBuild }) {
         return {
           appType: "custom",
           optimizeDeps: {
@@ -37,13 +37,13 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
           build: {
             minify: false,
             rollupOptions: {
-              input: [path.join(process.cwd(), "src", "entry.client.tsx")],
-              output: viteConfig.ssr
+              input: isSsrBuild
+                ? [path.join(process.cwd(), "src", "entry.server.tsx")]
+                : [path.join(process.cwd(), "src", "entry.client.tsx")],
+              output: isSsrBuild
                 ? {
                     format: "es",
                     entryFileNames: "index.js",
-                    chunkFileNames: "assets/index-chunk.js",
-                    assetFileNames: "assets/[name].[ext]",
                   }
                 : {
                     format: "es",
