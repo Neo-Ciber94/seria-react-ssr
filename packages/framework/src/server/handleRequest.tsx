@@ -146,7 +146,7 @@ async function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
   const viteServer = isDev ? getViteServer() : undefined;
   const { routes, errorCatchers } = isDev ? getServerEntryRoutesSync() : routing;
   const manifest = isDev ? undefined : getViteManifest();
-  const { default: App } = await getViteServer().ssrLoadModule("virtual:app");
+  const appMod = await viteServer?.ssrLoadModule("virtual:app");
 
   let statusCode = appContext.error?.status || 200;
 
@@ -159,7 +159,7 @@ async function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
         routes={routes}
         errorCatchers={errorCatchers}
         manifest={manifest}
-        Entry={App}
+        Entry={appMod?.default}
       />,
       {
         onAllReady() {
