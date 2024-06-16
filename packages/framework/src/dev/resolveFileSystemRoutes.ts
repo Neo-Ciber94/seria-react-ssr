@@ -16,7 +16,6 @@ export async function resolveFileSystemRoutes(options: GetFileSystemRoutesOption
     routesDir += "/";
   }
 
-  console.log({ cwd });
   const absoluteRoutesDir = path.join(cwd, routesDir);
   console.log(`Reading routes from '${absoluteRoutesDir}'`);
 
@@ -135,7 +134,9 @@ async function getLayoutFiles(args: GetRouteFilesArgs) {
   }
 
   const layoutFiles = files.filter((filePath) => {
-    return !isIgnored(normalizePath(path.relative(cwd, filePath)), ignorePrefix);
+    // We only check if ignored only from the directory because the `_layout` file will be ignored otherwise because its prefix
+    const layoutPath = path.relative(cwd, path.dirname(filePath));
+    return !isIgnored(normalizePath(layoutPath), ignorePrefix);
   });
 
   if (layoutFiles.length !== files.length) {
@@ -152,7 +153,18 @@ async function getLayoutFiles(args: GetRouteFilesArgs) {
 }
 
 function isRouteLayoutFile(routesDir: string, layoutFile: string, routeFile: string) {
-  return false;
+  const normalizedLayoutFile = path.resolve(routesDir, layoutFile);
+  const normalizedRouteFile = path.resolve(routesDir, routeFile);
+
+  const layoutDir = path.dirname(normalizedLayoutFile);
+
+  if (path.dirname(normalizedRouteFile) === layoutDir) {
+    return true;
+  }
+
+  const relativePath = path.relative(layoutDir, normalizedRouteFile);
+
+  return !relativePath.startsWith("..") && !path.isAbsolute(relativePath);
 }
 
 function relativePath(cwd: string, filePath: string) {
@@ -205,4 +217,10 @@ function checkIsValidRoute(routesDir: string, filePath: string) {
   if (!isValidRoute) {
     throw new Error(`Invalid route: '${normalizePath(path.join(routesDir, filePath))}'`);
   }
+}
+
+function fileName(filePath: string) {
+  const name = path.basename(filePath);
+  const ext = path.extname(filePath);
+  return name.slice(0, name.length - ext.length);
 }
