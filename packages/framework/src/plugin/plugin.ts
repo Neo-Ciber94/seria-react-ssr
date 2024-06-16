@@ -28,7 +28,7 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
       configResolved(config) {
         resolvedConfig = config;
       },
-      async config(viteConfig, { isSsrBuild }) {
+      async config(_viteConfig, { isSsrBuild }) {
         return {
           appType: "custom",
           optimizeDeps: {
@@ -63,7 +63,7 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
                         return "vendor";
                       }
 
-                      if (!viteConfig.ssr) {
+                      if (!isSsrBuild) {
                         if (isInRoutesDir(routesDir, id)) {
                           const chunkName = path
                             .relative(routesDir, id)
