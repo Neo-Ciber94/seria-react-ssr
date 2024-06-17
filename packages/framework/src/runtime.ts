@@ -15,7 +15,7 @@ export async function callServerAction(input: CallServerActionInput) {
     body,
     method: "POST",
     headers: {
-      [HEADER_SERVER_ACTION]: input.id,
+      [HEADER_SERVER_ACTION]: `/${input.id}`,
     },
   });
 

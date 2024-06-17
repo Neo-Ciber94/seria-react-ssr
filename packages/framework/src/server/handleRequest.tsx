@@ -300,9 +300,21 @@ async function matchRequestRoute(id: string) {
   return routing.matchRoute(id);
 }
 
+async function matchRequestAction(id: string) {
+  const viteServer = process.env.NODE_ENV === "development" ? getViteServer() : undefined;
+
+  if (viteServer) {
+    const mod = await viteServer.ssrLoadModule("virtual:routes");
+    const $matchServerAction = mod.matchServerAction as typeof routing.matchServerAction;
+    return $matchServerAction(id);
+  }
+
+  return routing.matchServerAction(id);
+}
+
 async function handleAction(request: Request) {
   const actionId = request.headers.get(HEADER_SERVER_ACTION) ?? "";
-  const match = routing.matchServerAction(actionId);
+  const match = await matchRequestAction(actionId);
 
   if (!match) {
     return new Response(null, {

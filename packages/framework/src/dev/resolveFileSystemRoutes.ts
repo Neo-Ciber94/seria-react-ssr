@@ -23,20 +23,29 @@ export async function resolveFileSystemRoutes(options: GetFileSystemRoutesOption
     throw new Error(`Routes not found at: '${absoluteRoutesDir}'`);
   }
 
-  const routeFiles = await getRouteFiles({ cwd, routesDir, ignorePrefix });
-  const layoutFiles = await getLayoutFiles({ cwd, routesDir, ignorePrefix });
+  const [routeFiles, layoutFiles, actionFiles] = await Promise.all([
+    getRouteFiles({ cwd, routesDir, ignorePrefix }),
+    getLayoutFiles({ cwd, routesDir, ignorePrefix }),
+    getActionFiles({ cwd, routesDir, ignorePrefix }),
+  ]);
 
   const code = `
-    import { type Route, type ErrorCatcher, createRouter } from "framework/router/routing";
+    import { type Route, type ErrorCatcher, type ServerAction, createRouter, createServerActionRouter } from "framework/router/routing";
     ${routeFiles
       .map((routeFile, idx) => {
         const importPath = relativePath(cwd, routeFile).replaceAll(/\.(m|c)?(j|t)sx?$/g, "");
         return `import * as route$${idx} from "/${importPath}"`;
       })
       .join("\n")}
+
     ${layoutFiles.map((layoutFile, idx) => {
       const importPath = relativePath(cwd, layoutFile).replaceAll(/\.(m|c)?(j|t)sx?$/g, "");
       return `import * as layout$${idx} from "/${importPath}"`;
+    })}
+
+    ${actionFiles.map((actionFile, idx) => {
+      const importPath = relativePath(cwd, actionFile).replaceAll(/\.(m|c)?(j|t)sx?$/g, "");
+      return `import * as actions$${idx} from "/${importPath}"`;
     })}
 
     export const routes = [
@@ -66,7 +75,23 @@ export async function resolveFileSystemRoutes(options: GetFileSystemRoutesOption
 
     export const errorCatchers : ErrorCatcher[] = [];
 
+    const actions : ServerAction[] = [
+    ${actionFiles.map((actionFile, idx) => {
+      const actionFilePath = getRoutePath(routesDir, actionFile);
+      const actionId = getRouteId(routesDir, actionFile);
+      return `...Object.entries(actions$${idx}).map(([actionName, action]) => {
+        return {
+          id: ${JSON.stringify(actionId)}.concat("#", actionName),
+          path:  ${JSON.stringify(actionFilePath)}.concat("#", actionName),
+          action
+        }
+      })`;
+    })}
+    ];
+
     const router = createRouter(routes);
+
+    const actionRouter = createServerActionRouter(actions);
 
     export function matchRoute(id: string) {
       return router.match(id);
@@ -77,9 +102,8 @@ export async function resolveFileSystemRoutes(options: GetFileSystemRoutesOption
       return null;
     };
 
-    export const matchServerAction = (id: string): any => {
-      console.warn("'matchServerAction' is not implemented yet")
-      return null;
+    export const matchServerAction = (id: string) => {
+      return actionRouter.match(id);
     };
   `;
 
@@ -152,6 +176,34 @@ async function getLayoutFiles(args: GetRouteFilesArgs) {
   return layoutFiles;
 }
 
+async function getActionFiles(args: GetRouteFilesArgs) {
+  const { cwd, routesDir, ignorePrefix } = args;
+  const globPattern = `${routesDir}/**/_actions.{js,ts,cjs,mjs,jsx,tsx}`;
+  const files = await glob(globPattern, {
+    cwd,
+    posix: true,
+  });
+
+  if (files.length === 0) {
+    console.warn(`No actions found in '${globPattern}'`);
+  }
+
+  const actionFiles = files.filter((filePath) => {
+    // We only check if ignored only from the directory because the `_actions` file will be ignored otherwise because its prefix
+    const actionPath = path.relative(cwd, path.dirname(filePath));
+    return !isIgnored(normalizePath(actionPath), ignorePrefix);
+  });
+
+  if (actionFiles.length !== files.length) {
+    const ignoredFiles = files.length - actionFiles.length;
+    console.log(`${ignoredFiles} actions where ignored from '${routesDir}'`);
+  }
+
+  console.log(`${actionFiles.length} actions where found at '${routesDir}'`);
+
+  return actionFiles;
+}
+
 function isRouteLayoutFile(routesDir: string, layoutFile: string, routeFile: string) {
   const normalizedLayoutFile = path.resolve(routesDir, layoutFile);
   const normalizedRouteFile = path.resolve(routesDir, routeFile);
@@ -177,7 +229,7 @@ function isIgnored(relativeFilePath: string, ignorePrefix: string) {
 
 function getRouteId(routesDir: string, filePath: string) {
   const normalized = normalizePath(path.relative(routesDir, filePath));
-  const routePath = normalized.replaceAll(path.sep, "/").replaceAll(/\.(js|ts|jsx|tsx)$/g, "");
+  const routePath = normalized.replaceAll(path.sep, "/").replaceAll(/\.(c|m)?(j|t)sx?$/g, "");
   return `/${routePath}`;
 }
 
@@ -217,10 +269,4 @@ function checkIsValidRoute(routesDir: string, filePath: string) {
   if (!isValidRoute) {
     throw new Error(`Invalid route: '${normalizePath(path.join(routesDir, filePath))}'`);
   }
-}
-
-function fileName(filePath: string) {
-  const name = path.basename(filePath);
-  const ext = path.extname(filePath);
-  return name.slice(0, name.length - ext.length);
 }
