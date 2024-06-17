@@ -3,7 +3,7 @@
   "compilerOptions": {
     "target": "esnext",
     "noEmitOnError": true,
-    "jsx": "react",
+    "jsx": "react-jsx",
     "module": "esnext",
     "allowJs": true,
     "checkJs": true,

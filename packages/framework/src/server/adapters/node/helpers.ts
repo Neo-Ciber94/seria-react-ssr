@@ -164,9 +164,8 @@ export function getOrigin(req: http.IncomingMessage) {
     return new URL(headers.referer).origin;
   }
 
-  if (headers.host) {
-    const protocol = headers.protocol ?? "https://";
-    return `${protocol}${headers.host}`;
+  if (headers.host && headers.protocol) {
+    return `${headers.protocol}${headers.host}`;
   }
 
   throw new Error("Unable to get origin, set the `ORIGIN` environment variable");

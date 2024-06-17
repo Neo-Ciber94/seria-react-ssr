@@ -5,7 +5,7 @@
     "target": "esnext",
     "moduleResolution": "Bundler",
     "noEmitOnError": false,
-    "jsx": "react",
+    "jsx": "react-jsx",
     "module": "esnext",
     "allowJs": true,
     "checkJs": true,

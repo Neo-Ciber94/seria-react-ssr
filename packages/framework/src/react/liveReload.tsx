@@ -1,6 +1,8 @@
-import React from "react";
-
 export default function LiveReload() {
+  if (process.env.NODE_ENV === "production") {
+    return null;
+  }
+
   return (
     <>
       <script type="module" src="/@vite/client"></script>

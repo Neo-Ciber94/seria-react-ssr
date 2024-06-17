@@ -15,7 +15,6 @@ export function resolveVirtualModule(id: string) {
 
 export function loadVirtualModule(id: VirtualModule) {
   const resolvedId = id.replace(/\x00/, "");
-  console.log({ resolvedId });
 
   switch (true) {
     case resolvedId.includes("virtual__routes"): {

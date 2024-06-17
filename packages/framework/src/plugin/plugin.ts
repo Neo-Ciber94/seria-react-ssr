@@ -51,16 +51,17 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
                       invariant(resolvedConfig, "Vite config was not available");
 
                       const relativePath = normalizePath(path.relative(process.cwd(), id));
+
                       const isReact =
-                        relativePath.startsWith("node_modules/react") ||
-                        relativePath.startsWith("node_modules/react-dom");
+                        relativePath.includes("node_modules/react/") ||
+                        relativePath.includes("node_modules/react-dom/");
 
                       if (isReact) {
                         return "react";
                       }
 
                       if (isExternal(id)) {
-                        return "vendor";
+                        return relativePath.replace(/^.*\/node_modules\//, "").split("/")[0];
                       }
 
                       if (!isSsrBuild) {
@@ -104,14 +105,12 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
       },
       async load(id) {
         if (id === vmod.resolveVirtualModule("virtual:routes")) {
-          console.log({ loadRoutes: id });
           const code = await resolveFileSystemRoutes({ routesDir });
           const result = await transform(code, { loader: "ts" });
           return result.code;
         }
 
         if (id === vmod.resolveVirtualModule("virtual:app")) {
-          console.log({ loadApp: id });
           const appEntryPath = path.join(process.cwd(), "src", "app.tsx");
           const code = await fs.readFile(appEntryPath, "utf-8");
           const result = await transform(code, { loader: "tsx" });

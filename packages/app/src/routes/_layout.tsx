@@ -12,7 +12,7 @@ export async function loader() {
   const todos: Todo[] = await db.getAll();
   return {
     todos,
-    pending: delay(5000).then(() => "Pending Resolved!"),
+    pending: delay(1000).then(() => "Pending Resolved!"),
   };
 }
 

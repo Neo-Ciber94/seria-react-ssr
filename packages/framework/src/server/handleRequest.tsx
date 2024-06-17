@@ -327,14 +327,16 @@ async function handleAction(request: Request) {
   try {
     const args = decode(formData) as any[];
     const result = await match.action(...args);
-    const stream = seria.stringifyToStream(result);
-    return new Response(stream, {
+    const stream = seria.stringifyToStream(result).pipeThrough(new TextEncoderStream());
+    const res = new Response(stream, {
       status: 200,
       headers: {
-        "content-type": "application/json+seria",
+        "content-type": "application/json+stream",
         "cache-control": "no-cache",
       },
     });
+
+    return res;
   } catch (err) {
     console.error(err);
     return new Response(null, {
