@@ -1,26 +1,19 @@
-import React from "react";
-import type { Manifest } from "vite";
+import { useServerContext } from "./context";
 
-declare var MANIFEST: Manifest | undefined;
-
+const IS_DEV = process.env.NODE_ENV !== "production";
 const BROWSER_ENTRY = "src/entry.client.tsx";
 const SERIA_ENTRY = "assets/seria.js";
 
 export default function Scripts() {
-  const seriaFile =
-    process.env.NODE_ENV !== "production" ? `build/client/${SERIA_ENTRY}` : SERIA_ENTRY;
-  const entryFile = (() => {
-    if (process.env.NODE_ENV !== "production" || typeof MANIFEST === "undefined") {
-      return BROWSER_ENTRY;
-    }
+  const { manifest } = useServerContext();
 
-    return MANIFEST[BROWSER_ENTRY].file;
-  })();
+  const seriaSrc = IS_DEV ? `build/client/${SERIA_ENTRY}` : SERIA_ENTRY;
+  const entrySrc = IS_DEV || !manifest ? BROWSER_ENTRY : manifest[BROWSER_ENTRY].file;
 
   return (
     <>
-      <script src={`/${seriaFile}`} />
-      <script type="module" rel="modulepreload" src={`/${entryFile}`} />
+      <script src={`/${seriaSrc}`} />
+      <script type="module" rel="modulepreload" src={`/${entrySrc}`} />
     </>
   );
 }

@@ -5,6 +5,7 @@ export function EntryClient() {
   return (
     <ServerContextProvider
       appContext={window.APP_CONTEXT}
+      manifest={window.MANIFEST}
       routes={routes}
       errorCatchers={errorCatchers}
     >

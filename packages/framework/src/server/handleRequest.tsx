@@ -17,8 +17,9 @@ import { getViteServer } from "../dev/vite";
 import { renderToPipeableStream } from "react-dom/server";
 import { Route } from "../router/routing";
 import { getServerEntryRoutesSync } from "../dev/getServerEntryRoutes";
-import * as routing from "../app-entry";
+import * as appEntry from "../app-entry";
 import { getViteManifest } from "../dev/utils";
+import { EntryServerContext } from "../react/server";
 
 const ABORT_DELAY = 10_000;
 
@@ -140,15 +141,20 @@ const encoder = new TextEncoder();
 const isDev = process.env.NODE_ENV !== "production";
 
 async function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
+  let statusCode = appContext.error?.status || 200;
+
   const { json, resumeStream } = seria.stringifyToResumableStream(appContext.loaderData || {});
   const isResumable = !!resumeStream;
   const viteServer = isDev ? getViteServer() : undefined;
-  const { routes, errorCatchers } = isDev ? getServerEntryRoutesSync() : routing;
+  const { routes, errorCatchers } = isDev ? getServerEntryRoutesSync() : appEntry;
   const manifest = isDev ? undefined : getViteManifest();
-
-  let statusCode = appContext.error?.status || 200;
-
   const entryModule = await viteServer?.ssrLoadModule("virtual:app");
+  const serverContext: EntryServerContext = {
+    routes,
+    errorCatchers,
+    manifest,
+    Component: entryModule?.default,
+  };
 
   return new Promise<Response>((resolve, reject) => {
     const { pipe, abort } = renderToPipeableStream(
@@ -156,10 +162,7 @@ async function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
         appContext={appContext}
         json={json}
         isResumable={isResumable}
-        routes={routes}
-        errorCatchers={errorCatchers}
-        manifest={manifest}
-        Entry={entryModule?.default}
+        serverContext={serverContext}
       />,
       {
         onAllReady() {
@@ -293,11 +296,11 @@ async function matchRequestRoute(id: string) {
 
   if (viteServer) {
     const mod = await viteServer.ssrLoadModule("virtual:routes");
-    const $matchRoute = mod.matchRoute as typeof routing.matchRoute;
+    const $matchRoute = mod.matchRoute as typeof appEntry.matchRoute;
     return $matchRoute(id);
   }
 
-  return routing.matchRoute(id);
+  return appEntry.matchRoute(id);
 }
 
 async function matchRequestAction(id: string) {
@@ -305,11 +308,11 @@ async function matchRequestAction(id: string) {
 
   if (viteServer) {
     const mod = await viteServer.ssrLoadModule("virtual:routes");
-    const $matchServerAction = mod.matchServerAction as typeof routing.matchServerAction;
+    const $matchServerAction = mod.matchServerAction as typeof appEntry.matchServerAction;
     return $matchServerAction(id);
   }
 
-  return routing.matchServerAction(id);
+  return appEntry.matchServerAction(id);
 }
 
 async function handleAction(request: Request) {

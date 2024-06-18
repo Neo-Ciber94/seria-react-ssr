@@ -1,5 +1,6 @@
-import React, { createContext, PropsWithChildren, useContext, useMemo } from "react";
+import { createContext, PropsWithChildren, useContext, useMemo } from "react";
 import { createErrorRouter, createRouter, ErrorCatcher, Route, Router } from "../router/routing";
+import { type Manifest } from "vite";
 
 export type AppContext = {
   loaderData: Record<string, any>;
@@ -12,12 +13,14 @@ export type AppContext = {
 
 declare global {
   var APP_CONTEXT: AppContext;
+  var MANIFEST: Manifest;
 }
 
 type ServerContextProps = {
   appContext: AppContext;
   router: Router<Route>;
   errorRouter: Router<ErrorCatcher>;
+  manifest: Manifest | undefined;
 };
 
 const ServerContext = createContext<ServerContextProps | null>(null);
@@ -26,10 +29,11 @@ type ServerContextProviderProps = PropsWithChildren<{
   appContext: AppContext;
   routes: Route[];
   errorCatchers: ErrorCatcher[];
+  manifest: Manifest | undefined;
 }>;
 
 export function ServerContextProvider(props: ServerContextProviderProps) {
-  const { appContext, errorCatchers, routes, children } = props;
+  const { appContext, errorCatchers, routes, manifest, children } = props;
   const router = useMemo(() => createRouter(routes), [routes]);
   const errorRouter = useMemo(() => createErrorRouter(errorCatchers), [errorCatchers]);
 
@@ -39,6 +43,7 @@ export function ServerContextProvider(props: ServerContextProviderProps) {
         appContext,
         router,
         errorRouter,
+        manifest,
       }}
     >
       {children}

@@ -1,6 +1,6 @@
 import path from "path";
 import fs from "fs";
-import { Manifest } from "vite";
+import type { Manifest } from "vite";
 
 let manifest: Manifest | undefined;
 

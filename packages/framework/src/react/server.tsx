@@ -1,38 +1,35 @@
-import { default as DefaultEntry } from "../app-entry";
+import { default as Entry } from "../app-entry";
 import { type AppContext, ServerContextProvider } from "./context";
 import type { ErrorCatcher, Route } from "../router/routing";
 import { type Manifest } from "vite";
+
+export type EntryServerContext = {
+  routes: Route[];
+  errorCatchers: ErrorCatcher[];
+  manifest: Manifest | undefined;
+  Component?: any;
+};
 
 type EntryServerProps = {
   appContext: AppContext;
   json: string;
   isResumable: boolean;
-  routes: Route[];
-  errorCatchers: ErrorCatcher[];
-  manifest: Manifest | undefined;
-  Entry?: any;
+  serverContext: EntryServerContext;
 };
 
-export function EntryServer({
-  appContext,
-  json,
-  isResumable,
-  routes,
-  errorCatchers,
-  manifest,
-  Entry,
-}: EntryServerProps) {
+export function EntryServer({ appContext, json, isResumable, serverContext }: EntryServerProps) {
   const { url } = appContext;
   const routeError = appContext.error ? `,error:${JSON.stringify(appContext.error)}` : "";
-  const App = Entry ?? DefaultEntry;
-
-  // TODO: Pass this in a more elegant way, preferably a context
-  // @ts-ignore
-  globalThis.MANIFEST = manifest;
+  const { routes, errorCatchers, manifest, Component = Entry } = serverContext;
 
   return (
-    <ServerContextProvider appContext={appContext} errorCatchers={errorCatchers} routes={routes}>
-      <App />
+    <ServerContextProvider
+      appContext={appContext}
+      errorCatchers={errorCatchers}
+      routes={routes}
+      manifest={manifest}
+    >
+      <Component />
       {manifest && (
         <script
           id="manifest"
