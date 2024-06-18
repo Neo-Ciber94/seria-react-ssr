@@ -3,10 +3,21 @@
 	"organizeImports": {
 		"enabled": true
 	},
+	"files": {
+		"ignore": [
+			"dist/**",
+			"build/**",
+			"node_modules/**",
+			"*.json"
+		]
+	},
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true
+			"recommended": true,
+			"suspicious": {
+				"noExplicitAny": "off"
+			}
 		}
 	}
 }

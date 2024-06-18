@@ -104,7 +104,10 @@ export class Router<T extends WithPath> {
 		this.#entries = entries;
 		this.#router = createBaseRouter({
 			routes: entries.reduce(
-				(acc, r) => ({ ...acc, [r.path]: r }),
+				(acc, r) => {
+					acc[r.path] = r;
+					return acc;
+				},
 				{} as Record<string, T>,
 			),
 		});

@@ -101,7 +101,9 @@ function AwaitWithUse<T>(props: AwaitProps<T>) {
 		const state = promise.state as PromiseState<T>;
 		if (state.status === "resolved") {
 			return props.resolved(state.data);
-		} else if (state.status === "rejected") {
+		}
+
+		if (state.status === "rejected") {
 			throw state.error;
 		}
 	} else {

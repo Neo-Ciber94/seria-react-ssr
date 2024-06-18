@@ -1,5 +1,5 @@
-import path from "path";
-import fs from "fs/promises";
+import path from "node:path";
+import fs from "node:fs/promises";
 
 const VIRTUAL_MODULES = ["virtual:app", "virtual:routes"] as const;
 
@@ -10,10 +10,11 @@ export function isVirtualModule(id: string): id is VirtualModule {
 }
 
 export function resolveVirtualModule(id: string) {
-	return "\0" + id;
+	return `\0${id}`;
 }
 
 export function loadVirtualModule(id: VirtualModule) {
+	// biome-ignore lint/suspicious/noControlCharactersInRegex: <explanation>
 	const resolvedId = id.replace(/\x00/, "");
 
 	switch (true) {

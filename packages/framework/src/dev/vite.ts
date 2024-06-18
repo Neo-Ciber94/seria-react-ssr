@@ -1,5 +1,5 @@
 import type { ViteDevServer, Manifest } from "vite";
-import fs from "fs/promises";
+import fs from "node:fs/promises";
 import { createServer } from "vite";
 import { invariant } from "../internal";
 import {

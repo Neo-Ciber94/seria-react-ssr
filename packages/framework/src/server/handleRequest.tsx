@@ -1,4 +1,4 @@
-import { PassThrough } from "stream";
+import { PassThrough } from "node:stream";
 import {
 	HEADER_LOADER_DATA,
 	HEADER_ROUTE_ERROR,
@@ -109,11 +109,12 @@ async function createLoaderResponse(args: CreateLoaderResponseArgs) {
 					data.headers.has(HEADER_ROUTE_REDIRECT)
 				) {
 					// We strip the `Location` header, we don't need it when the client request loader data
-					const to = data.headers.get(HEADER_ROUTE_REDIRECT)!;
+					// biome-ignore lint/style/noNonNullAssertion: We already check it have the header
+					const location = data.headers.get(HEADER_ROUTE_REDIRECT)!;
 					return new Response(null, {
 						status: data.status,
 						headers: {
-							[HEADER_ROUTE_REDIRECT]: to,
+							[HEADER_ROUTE_REDIRECT]: location,
 						},
 					});
 				}

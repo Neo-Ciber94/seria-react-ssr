@@ -21,5 +21,6 @@ export const matchServerAction = (id: string): MatchedRoute<ServerAction> => {
 
 export default function App() {
 	throw new Error("Not implemented");
+	// biome-ignore lint/correctness/noUnreachable: This code is not suppose to run
 	return null;
 }

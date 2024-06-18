@@ -1,6 +1,6 @@
 import type * as esbuild from "esbuild";
-import fs from "fs/promises";
-import path from "path";
+import fs from "node:fs/promises";
+import path from "node:path";
 import { getLoader } from "./utils";
 import { parse } from "@babel/parser";
 import babelTraverse from "@babel/traverse";
@@ -22,7 +22,7 @@ const createProxyCallExpression = (
 		.replaceAll(path.sep, "/")
 		.replace(/^src\/routes\//, "");
 
-	const actionId = actionRoute + "#" + functionName;
+	const actionId = `${actionRoute}#${functionName}`;
 
 	return t.blockStatement([
 		t.returnStatement(
@@ -103,6 +103,7 @@ function createClientServerActionProxyFromSource(
 				return;
 			}
 
+			// biome-ignore lint/complexity/noForEach: <explanation>
 			path.node.declarations.forEach((declaration) => {
 				if (
 					t.isVariableDeclarator(declaration) &&
