@@ -1,4 +1,4 @@
-import http from "http";
+import type http from "http";
 import sirv from "sirv";
 import { createRequest, getOrigin, setResponse } from "./helpers";
 import { createRequestHandler } from "../../handleRequest";

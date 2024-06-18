@@ -5,7 +5,7 @@ import { RouteErrorBoundary } from "./error";
 import { RouteDataProvider, RouteProvider, RouterProvider } from "./contexts";
 import { NavigationProvider, useNavigation } from "./navigation";
 import { useUrl, useMatch, useRouteError, usePathname } from "./hooks";
-import { Route } from "./routing";
+import type { Route } from "./routing";
 import { useServerContext } from "../react/context";
 
 function Routes() {

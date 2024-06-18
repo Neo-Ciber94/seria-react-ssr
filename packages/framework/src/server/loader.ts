@@ -1,4 +1,4 @@
-import { Params } from "../router";
+import type { Params } from "../router";
 
 export type LoaderFunctionArgs = {
   params: Params;

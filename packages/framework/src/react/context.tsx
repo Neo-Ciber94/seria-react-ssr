@@ -1,6 +1,6 @@
-import { createContext, PropsWithChildren, useContext, useMemo } from "react";
-import { createErrorRouter, createRouter, ErrorCatcher, Route, Router } from "../router/routing";
-import { type Manifest } from "vite";
+import { createContext, type PropsWithChildren, useContext, useMemo } from "react";
+import { createErrorRouter, createRouter, type ErrorCatcher, type Route, type Router } from "../router/routing";
+import type { Manifest } from "vite";
 
 export type AppContext = {
   loaderData: Record<string, any>;

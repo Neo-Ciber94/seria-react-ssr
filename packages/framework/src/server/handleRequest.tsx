@@ -9,17 +9,17 @@ import {
 import { untilAll } from "../internal";
 import { type AppContext, EntryServer } from "../react";
 import { HttpError, TypedJson } from "./http";
-import { type LoaderFunctionArgs } from "./loader";
+import type { LoaderFunctionArgs } from "./loader";
 import * as seria from "seria";
 import { decode } from "seria/form-data";
-import { type Params } from "../router";
+import type { Params } from "../router";
 import { getViteServer } from "../dev/vite";
 import { renderToPipeableStream } from "react-dom/server";
-import { Route } from "../router/routing";
+import type { Route } from "../router/routing";
 import { getServerEntryRoutesSync } from "../dev/getServerEntryRoutes";
 import * as appEntry from "../app-entry";
 import { getViteManifest } from "../dev/utils";
-import { EntryServerContext } from "../react/server";
+import type { EntryServerContext } from "../react/server";
 
 const ABORT_DELAY = 10_000;
 
@@ -419,7 +419,7 @@ async function handlePageRequest(request: Request) {
 }
 
 export function createRequestHandler() {
-  return async function (request: Request): Promise<Response> {
+  return async (request: Request): Promise<Response> => {
     const { pathname } = new URL(request.url);
 
     if (pathname.startsWith("/_action") && request.method === "POST") {

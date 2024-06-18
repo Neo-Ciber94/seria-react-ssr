@@ -1,4 +1,5 @@
-import React, { Suspense, useEffect, useState } from "react";
+import type React from "react";
+import { Suspense, useEffect, useState } from "react";
 import { usePageError } from "./error";
 import { useNavigation } from "./navigation";
 

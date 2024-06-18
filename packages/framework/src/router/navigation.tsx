@@ -1,11 +1,12 @@
-import React, { useState, useCallback, createContext, useContext } from "react";
+import type React from "react";
+import { useState, useCallback, createContext, useContext } from "react";
 import {
   HEADER_LOADER_DATA,
   HEADER_SERIA_STREAM,
   HEADER_ROUTE_REDIRECT,
   HEADER_ROUTE_ERROR,
 } from "../constants";
-import { AppContext } from "../react";
+import type { AppContext } from "../react";
 import { useRouteDataContext } from "./contexts";
 import * as seria from "seria";
 import { HttpError } from "../server/http";

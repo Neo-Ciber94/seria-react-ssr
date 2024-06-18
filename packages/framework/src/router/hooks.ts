@@ -1,7 +1,7 @@
 import { useMemo, useCallback } from "react";
-import { Params, useNavigation } from ".";
-import { HttpError, TypedJson } from "../server/http";
-import { LoaderFunction } from "../server/loader";
+import { type Params, useNavigation } from ".";
+import { HttpError, type TypedJson } from "../server/http";
+import type { LoaderFunction } from "../server/loader";
 import { useRouteContext, useRouteDataContext, useRouterContext } from "./contexts";
 import { useServerContext } from "../react/context";
 

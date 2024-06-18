@@ -1,4 +1,4 @@
-import * as esbuild from "esbuild";
+import type * as esbuild from "esbuild";
 import fs from "fs/promises";
 import path from "path";
 import { getLoader } from "./utils";

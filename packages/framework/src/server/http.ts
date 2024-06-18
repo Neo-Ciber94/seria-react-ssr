@@ -55,7 +55,7 @@ export class HttpError extends Error {
  * Returns a 404 not found error.
  * @param message Error message to display
  */
-export function notFound(message: string = "Not Found") {
+export function notFound(message = "Not Found") {
   return new HttpError(404, message);
 }
 

@@ -1,7 +1,7 @@
 import { default as Entry } from "../app-entry";
 import { type AppContext, ServerContextProvider } from "./context";
 import type { ErrorCatcher, Route } from "../router/routing";
-import { type Manifest } from "vite";
+import type { Manifest } from "vite";
 
 export type EntryServerContext = {
   routes: Route[];

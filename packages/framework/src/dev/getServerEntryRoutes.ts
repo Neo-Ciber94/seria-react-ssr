@@ -1,5 +1,5 @@
 import { invariant } from "../internal";
-import { ErrorCatcher, Route } from "../router/routing";
+import type { ErrorCatcher, Route } from "../router/routing";
 import { getViteServer } from "./vite";
 
 type ServerEntryRoutes = {

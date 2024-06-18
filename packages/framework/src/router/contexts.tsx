@@ -1,7 +1,8 @@
-import React, { useContext, useState } from "react";
-import { createContext, PropsWithChildren } from "react";
-import { AppContext, useServerContext } from "../react/context";
-import { Params } from "./routing";
+import type React from "react";
+import { useContext, useState } from "react";
+import { createContext, type PropsWithChildren } from "react";
+import { type AppContext, useServerContext } from "../react/context";
+import type { Params } from "./routing";
 
 type RouterContextProps = {
   params: Params;
