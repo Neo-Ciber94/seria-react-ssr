@@ -1,8 +1,29 @@
 import React, { useContext, useState } from "react";
 import { createContext, PropsWithChildren } from "react";
 import { AppContext, useServerContext } from "../react/context";
-import { ErrorCatcher, Route } from "./routing";
-import { invariant } from "../internal";
+import { Params } from "./routing";
+
+type RouterContextProps = {
+  params: Params;
+  pathname: string;
+  searchParams: URLSearchParams;
+};
+
+const RouterContext = createContext<RouterContextProps | null>(null);
+
+export function RouterProvider({ children, ...rest }: PropsWithChildren<RouterContextProps>) {
+  return <RouterContext.Provider value={rest}>{children}</RouterContext.Provider>;
+}
+
+export function useRouterContext() {
+  const ctx = useContext(RouterContext);
+
+  if (!ctx) {
+    throw new Error("RouterContext is not available");
+  }
+
+  return ctx;
+}
 
 const RouteContext = createContext<RouteProviderProps | null>(null);
 
@@ -19,7 +40,7 @@ export function RouteProvider(props: PropsWithChildren<RouteProviderProps>) {
   );
 }
 
-export function useRoute() {
+export function useRouteContext() {
   const route = useContext(RouteContext);
 
   if (!route) {
@@ -55,8 +76,4 @@ export function useRouteDataContext() {
   }
 
   return ctx;
-}
-
-export function useRouteData() {
-  return useRouteDataContext().routeData;
 }
