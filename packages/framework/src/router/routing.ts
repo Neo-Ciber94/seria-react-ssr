@@ -6,6 +6,11 @@ import { createRouter as createBaseRouter, RadixRouter } from "radix3";
 export type Params = Record<string, string | string[] | undefined>;
 
 /**
+ * A route module.
+ */
+type RouteModule = { loader?: any; default: any };
+
+/**
  * A route in the app.
  */
 export interface Route {
@@ -26,14 +31,9 @@ export interface Route {
   layouts?: Layout[];
 
   /**
-   * The component of this route.
+   * The exports of a module.
    */
-  component: () => any;
-
-  /**
-   * A function that loads data for this route.
-   */
-  loader?: (...args: any[]) => any;
+  module: RouteModule;
 }
 
 /**
@@ -53,7 +53,7 @@ export interface Layout {
   /**
    * The exports of a module.
    */
-  module: any;
+  module: RouteModule;
 }
 
 /**

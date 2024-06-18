@@ -1,8 +1,7 @@
 import { ErrorCatcher, Route, ServerAction } from "../router/routing";
-import { MatchedRoute } from "radix3";
+import { type MatchedRoute } from "radix3";
 
 export const routes: Route[] = [];
-
 export const errorCatchers: ErrorCatcher[] = [];
 
 export const matchRoute = (id: string): MatchedRoute<Route> => {

@@ -256,12 +256,12 @@ async function getRouteData(args: GetRouteDataArgs) {
   const promises: Record<string, Promise<any>> = {};
 
   promises[route.id] = (() => {
-    if (!route.loader) {
+    if (!route.module.loader) {
       return Promise.resolve();
     }
 
     return getLoaderData({
-      loader: route.loader,
+      loader: route.module.loader,
       request,
       params,
     });
@@ -349,7 +349,6 @@ async function handlePageRequest(request: Request) {
   const { pathname } = new URL(request.url);
   const url = request.url;
   const match = await matchRequestRoute(pathname);
-  // const match = matchRoute(pathname);
 
   if (request.headers.has(HEADER_LOADER_DATA)) {
     if (match == null) {

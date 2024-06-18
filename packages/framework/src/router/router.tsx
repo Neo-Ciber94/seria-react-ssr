@@ -39,7 +39,7 @@ function Routes() {
   console.log({ match, pathname });
 
   const Component = useCallback(() => {
-    if (match?.component == null) {
+    if (match?.module.default == null) {
       return <NotFound />;
     }
 
@@ -63,15 +63,17 @@ function Routes() {
 
 function RouteComponent({ route }: { route: Route }) {
   return useMemo(() => {
-    let Component = (
+    let Component = route.module.default;
+
+    Component = (
       <RouteProvider id={route.id} path={route.path}>
-        <route.component />
+        {Component}
       </RouteProvider>
     );
 
     const layouts = route.layouts || [];
     for (const layout of layouts) {
-      const Layout = layout.component;
+      const Layout = layout.module.default;
       if (Layout == null) {
         continue;
       }
@@ -112,7 +114,7 @@ function ErrorFallback() {
   const { errorRouter } = useServerContext();
   const Component = useMemo(() => {
     const match = errorRouter.match(pathname);
-    return match?.component ?? ErrorPage;
+    return match?.module.default ?? ErrorPage;
   }, [pathname, errorRouter]);
 
   return <Component />;
