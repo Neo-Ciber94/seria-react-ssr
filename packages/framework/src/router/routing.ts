@@ -51,14 +51,9 @@ export interface Layout {
   path: string;
 
   /**
-   * The component of this route.
+   * The exports of a module.
    */
-  component: (props: { children: any }) => any;
-
-  /**
-   * A function that loads data for this layout.
-   */
-  loader?: (...args: any[]) => any;
+  module: any;
 }
 
 /**
@@ -77,9 +72,9 @@ export interface ErrorCatcher {
   path: string;
 
   /**
-   * The component of this route.
+   * The exports of a module.
    */
-  component: () => any;
+  module: any;
 }
 
 export type ServerAction = {

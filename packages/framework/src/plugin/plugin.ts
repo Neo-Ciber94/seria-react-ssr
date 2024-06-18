@@ -119,7 +119,7 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
       },
     },
     {
-      name: "create-server-action-proxy",
+      name: "@framework-create-server-action-proxy",
       async load(id, options) {
         if (
           isExternal(id) ||
@@ -138,7 +138,7 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
       },
     },
     {
-      name: "remove-server-exports",
+      name: "@framework-remove-server-exports",
       //enforce: "pre",
       async load(id, options) {
         if (
@@ -160,7 +160,7 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
       },
     },
     {
-      name: "ignore-server-files",
+      name: "@framework-ignore-server-files",
       resolveId(id, _, options) {
         if (isExternal(id) || options.ssr) {
           return;
@@ -172,6 +172,10 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
 
         return null;
       },
+    },
+    {
+      name: "jsx-preamble",
+      banner: "import React from 'react'",
     },
   ];
 }

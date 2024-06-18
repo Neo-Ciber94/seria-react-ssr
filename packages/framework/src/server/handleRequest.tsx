@@ -1,4 +1,3 @@
-import React from "react";
 import { PassThrough } from "stream";
 import {
   HEADER_LOADER_DATA,
@@ -20,8 +19,6 @@ import { Route } from "../router/routing";
 import { getServerEntryRoutesSync } from "../dev/getServerEntryRoutes";
 import * as routing from "../virtual/virtual__routes";
 import { getViteManifest } from "../dev/utils";
-import path from "path";
-import * as url from "url";
 
 const ABORT_DELAY = 10_000;
 
@@ -151,30 +148,7 @@ async function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
 
   let statusCode = appContext.error?.status || 200;
 
-  const dir = path.join(process.cwd(), "src", "routes");
-
-  // const entryModule = await viteServer?.ssrLoadModule("virtual:app");
-  const appPath = path.resolve(dir, "../app");
-  const entryModule = await import(url.pathToFileURL(appPath).href);
-
-  for (const route of routes) {
-    const routePath = `${route.id}`.slice(1);
-    const routeModulePath = path.resolve(dir, routePath);
-    const routeMod = await import(url.pathToFileURL(routeModulePath).href);
-
-    if (route.layouts) {
-      for (const layout of route.layouts) {
-        const layoutPath = `${layout.id}`.slice(1);
-        const moduleLayoutPath = path.resolve(dir, layoutPath);
-        const layoutMod = await import(url.pathToFileURL(moduleLayoutPath).href);
-        layout.component = layoutMod.default;
-        layout.loader = layoutMod.loader;
-      }
-    }
-
-    route.component = routeMod.default;
-    route.loader = routeMod.loader;
-  }
+  const entryModule = await viteServer?.ssrLoadModule("virtual:app");
 
   return new Promise<Response>((resolve, reject) => {
     const { pipe, abort } = renderToPipeableStream(
@@ -294,12 +268,12 @@ async function getRouteData(args: GetRouteDataArgs) {
   })();
 
   for (const layout of route.layouts || []) {
-    if (!layout.loader) {
+    if (!layout.module.loader) {
       continue;
     }
 
     promises[layout.id] = getLoaderData({
-      loader: layout.loader,
+      loader: layout.module.loader,
       request,
       params,
     });
