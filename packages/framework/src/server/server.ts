@@ -10,47 +10,47 @@ const HOST = process.env.HOST ?? "localhost";
 const DEV = process.env.NODE_ENV !== "production";
 
 async function startProductionServer() {
-  const app = polka();
-  app.use(handle);
-  app.listen(PORT, () => {
-    console.log(`Listening on http://${HOST}:${PORT}`);
-  });
+	const app = polka();
+	app.use(handle);
+	app.listen(PORT, () => {
+		console.log(`Listening on http://${HOST}:${PORT}`);
+	});
 }
 
 async function startDevelopmentServer() {
-  const viteServer = await preloadViteServer();
-  await preloadServerEntryRoutes();
+	const viteServer = await preloadViteServer();
+	await preloadServerEntryRoutes();
 
-  const app = polka();
+	const app = polka();
 
-  app.use(viteServer.middlewares);
-  const handleRequest = createRequestHandler();
+	app.use(viteServer.middlewares);
+	const handleRequest = createRequestHandler();
 
-  console.log("RUNNING VITE SERVER");
+	console.log("RUNNING VITE SERVER");
 
-  app.use(async (req, res) => {
-    try {
-      const devOrigin = DEV ? `http://${HOST}:${PORT}` : undefined;
-      const baseUrl = process.env.ORIGIN ?? devOrigin ?? getOrigin(req);
-      const request = await createRequest({ req, baseUrl });
-      const response = await handleRequest(request);
-      setResponse(response, res);
-    } catch (err) {
-      console.error(err);
-      res.statusCode = 500;
-      res.end();
-    }
-  });
+	app.use(async (req, res) => {
+		try {
+			const devOrigin = DEV ? `http://${HOST}:${PORT}` : undefined;
+			const baseUrl = process.env.ORIGIN ?? devOrigin ?? getOrigin(req);
+			const request = await createRequest({ req, baseUrl });
+			const response = await handleRequest(request);
+			setResponse(response, res);
+		} catch (err) {
+			console.error(err);
+			res.statusCode = 500;
+			res.end();
+		}
+	});
 
-  app.listen(PORT, () => {
-    console.log(`Listening on http://${HOST}:${PORT}`);
-  });
+	app.listen(PORT, () => {
+		console.log(`Listening on http://${HOST}:${PORT}`);
+	});
 }
 
 export async function startServer() {
-  if (DEV) {
-    await startDevelopmentServer();
-  } else {
-    await startProductionServer();
-  }
+	if (DEV) {
+		await startDevelopmentServer();
+	} else {
+		await startProductionServer();
+	}
 }

@@ -1,100 +1,96 @@
 {
-  "name": "framework",
-  "version": "0.1.0",
-  "license": "MIT",
-  "type": "module",
-  "scripts": {
-    "build": "rimraf ./dist && tsc",
-    "typecheck": "tsc --noEmit",
-    "format": "prettier --write ./src"
-  },
-  "dependencies": {
-    "radix3": "^1.1.2",
-    "react": "^19.0.0-rc-a26e3f403e-20240611",
-    "react-dom": "^19.0.0-rc-a26e3f403e-20240611",
-    "seria": "^0.2.0-beta4"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.24.7",
-    "@babel/generator": "^7.24.7",
-    "@babel/parser": "^7.24.7",
-    "@babel/plugin-transform-react-jsx": "^7.24.7",
-    "@babel/plugin-transform-react-jsx-development": "^7.24.7",
-    "@babel/plugin-transform-typescript": "^7.24.7",
-    "@babel/template": "^7.24.7",
-    "@babel/traverse": "^7.24.7",
-    "@babel/types": "^7.24.7",
-    "@types/babel__core": "^7.20.5",
-    "@types/fs-extra": "^11.0.4",
-    "@types/node": "^20.13.0",
-    "@types/polka": "^0.5.7",
-    "@types/react": "npm:types-react@rc",
-    "@types/react-dom": "npm:types-react-dom@rc",
-    "@vitejs/plugin-react": "^4.3.1",
-    "esbuild": "^0.21.4",
-    "fs-extra": "^11.2.0",
-    "glob": "^10.4.1",
-    "polka": "^0.5.2",
-    "prettier": "^3.3.0",
-    "rimraf": "^5.0.7",
-    "sirv": "^2.0.4",
-    "tsx": "^4.11.0",
-    "typescript": "^5.4.5",
-    "vite": "^5.2.13"
-  },
-  "overrides": {
-    "@types/react": "npm:types-react@rc",
-    "@types/react-dom": "npm:types-react-dom@rc"
-  },
-  "exports": {
-    "./generateRoutes": {
-      "import": "./dist/generateRoutes.js",
-      "types": "./dist/generateRoutes.d.ts"
-    },
-    "./server": {
-      "import": "./dist/server/index.js",
-      "types": "./dist/server/index.d.ts"
-    },
-    "./server/vite": {
-      "import": "./dist/server/vite.js",
-      "types": "./dist/server/vite.d.ts"
-    },
-    "./server/adapters/node/helpers": {
-      "import": "./dist/server/adapters/node/helpers.js",
-      "types": "./dist/server/adapters/node/helpers.d.ts"
-    },
-    "./server/adapters/node/handler": {
-      "import": "./dist/server/adapters/node/handler.js",
-      "types": "./dist/server/adapters/node/handler.d.ts"
-    },
-    "./router": {
-      "import": "./dist/router/index.js",
-      "types": "./dist/router/index.d.ts"
-    },
-    "./router/routing": {
-      "import": "./dist/router/routing.js",
-      "types": "./dist/router/routing.d.ts"
-    },
-    "./react": {
-      "import": "./dist/react/index.js",
-      "types": "./dist/react/index.d.ts"
-    },
-    "./plugin": {
-      "import": "./dist/plugin/index.js",
-      "types": "./dist/plugin/index.d.ts"
-    },
-    "./dev": {
-      "import": "./dist/dev/index.js",
-      "types": "./dist/dev/index.d.ts"
-    },
-    "./runtime": {
-      "import": "./dist/runtime.js",
-      "types": "./dist/runtime.d.ts"
-    }
-  },
-  "files": [
-    "./dist",
-    "src",
-    "package.json"
-  ]
+	"name": "framework",
+	"version": "0.1.0",
+	"license": "MIT",
+	"type": "module",
+	"scripts": {
+		"build": "rimraf ./dist && tsc",
+		"typecheck": "tsc --noEmit",
+		"format": "prettier --write ./src"
+	},
+	"dependencies": {
+		"radix3": "^1.1.2",
+		"react": "^19.0.0-rc-a26e3f403e-20240611",
+		"react-dom": "^19.0.0-rc-a26e3f403e-20240611",
+		"seria": "^0.2.0-beta4"
+	},
+	"devDependencies": {
+		"@babel/core": "^7.24.7",
+		"@babel/generator": "^7.24.7",
+		"@babel/parser": "^7.24.7",
+		"@babel/plugin-transform-react-jsx": "^7.24.7",
+		"@babel/plugin-transform-react-jsx-development": "^7.24.7",
+		"@babel/plugin-transform-typescript": "^7.24.7",
+		"@babel/template": "^7.24.7",
+		"@babel/traverse": "^7.24.7",
+		"@babel/types": "^7.24.7",
+		"@types/babel__core": "^7.20.5",
+		"@types/fs-extra": "^11.0.4",
+		"@types/node": "^20.13.0",
+		"@types/polka": "^0.5.7",
+		"@types/react": "npm:types-react@rc",
+		"@types/react-dom": "npm:types-react-dom@rc",
+		"@vitejs/plugin-react": "^4.3.1",
+		"esbuild": "^0.21.4",
+		"fs-extra": "^11.2.0",
+		"glob": "^10.4.1",
+		"polka": "^0.5.2",
+		"prettier": "^3.3.0",
+		"rimraf": "^5.0.7",
+		"sirv": "^2.0.4",
+		"tsx": "^4.11.0",
+		"typescript": "^5.4.5",
+		"vite": "^5.2.13"
+	},
+	"overrides": {
+		"@types/react": "npm:types-react@rc",
+		"@types/react-dom": "npm:types-react-dom@rc"
+	},
+	"exports": {
+		"./generateRoutes": {
+			"import": "./dist/generateRoutes.js",
+			"types": "./dist/generateRoutes.d.ts"
+		},
+		"./server": {
+			"import": "./dist/server/index.js",
+			"types": "./dist/server/index.d.ts"
+		},
+		"./server/vite": {
+			"import": "./dist/server/vite.js",
+			"types": "./dist/server/vite.d.ts"
+		},
+		"./server/adapters/node/helpers": {
+			"import": "./dist/server/adapters/node/helpers.js",
+			"types": "./dist/server/adapters/node/helpers.d.ts"
+		},
+		"./server/adapters/node/handler": {
+			"import": "./dist/server/adapters/node/handler.js",
+			"types": "./dist/server/adapters/node/handler.d.ts"
+		},
+		"./router": {
+			"import": "./dist/router/index.js",
+			"types": "./dist/router/index.d.ts"
+		},
+		"./router/routing": {
+			"import": "./dist/router/routing.js",
+			"types": "./dist/router/routing.d.ts"
+		},
+		"./react": {
+			"import": "./dist/react/index.js",
+			"types": "./dist/react/index.d.ts"
+		},
+		"./plugin": {
+			"import": "./dist/plugin/index.js",
+			"types": "./dist/plugin/index.d.ts"
+		},
+		"./dev": {
+			"import": "./dist/dev/index.js",
+			"types": "./dist/dev/index.d.ts"
+		},
+		"./runtime": {
+			"import": "./dist/runtime.js",
+			"types": "./dist/runtime.d.ts"
+		}
+	},
+	"files": ["./dist", "src", "package.json"]
 }

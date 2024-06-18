@@ -3,7 +3,7 @@ import fs from "fs/promises";
 import * as prettier from "prettier";
 
 const code = await resolveFileSystemRoutes({
-  routesDir: "./src/routes",
+	routesDir: "./src/routes",
 });
 
 const formatted = await prettier.format(code, { filepath: "$routes.ts" });

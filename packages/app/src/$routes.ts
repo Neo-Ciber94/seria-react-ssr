@@ -11,104 +11,104 @@ import { toggleTodo as action$2 } from "./routes/_actions";
 import { updateTodo as action$3 } from "./routes/_actions";
 
 export interface Layout {
-  id: string;
-  layoutPath: string;
-  component?: (props: { children: any }) => any;
-  loader?: (...args: any[]) => any | Promise<any>;
+	id: string;
+	layoutPath: string;
+	component?: (props: { children: any }) => any;
+	loader?: (...args: any[]) => any | Promise<any>;
 }
 
 export interface Route {
-  id: string;
-  routePath: string;
-  component?: () => any;
-  loader?: (...args: any[]) => any | Promise<any>;
-  layouts?: Layout[];
+	id: string;
+	routePath: string;
+	component?: () => any;
+	loader?: (...args: any[]) => any | Promise<any>;
+	layouts?: Layout[];
 }
 
 export interface ErrorRoute {
-  id: string;
-  routePath: string;
-  component: () => any;
+	id: string;
+	routePath: string;
+	component: () => any;
 }
 
 export interface ServerAction {
-  id: string;
-  actionPath: string;
-  functionName: string;
-  action: (...args: any[]) => Promise<any>;
+	id: string;
+	actionPath: string;
+	functionName: string;
+	action: (...args: any[]) => Promise<any>;
 }
 
 const router = createRouter<Route>({
-  routes: {
-    "/": {
-      id: "/",
-      component: IndexPage,
-      routePath: "/index",
-      loader: undefined,
-      layouts: [
-        {
-          id: "/",
-          layoutPath: "/_layout",
-          component: _layoutPage,
-          loader: _layoutPage_loader,
-        },
-      ],
-    },
-    "/todos/:id": {
-      id: "/todos/:id",
-      component: Todos$idPage,
-      routePath: "/todos/$id",
-      loader: loader$1,
-      layouts: [
-        {
-          id: "/",
-          layoutPath: "/_layout",
-          component: _layoutPage,
-          loader: _layoutPage_loader,
-        },
-      ],
-    },
-  },
+	routes: {
+		"/": {
+			id: "/",
+			component: IndexPage,
+			routePath: "/index",
+			loader: undefined,
+			layouts: [
+				{
+					id: "/",
+					layoutPath: "/_layout",
+					component: _layoutPage,
+					loader: _layoutPage_loader,
+				},
+			],
+		},
+		"/todos/:id": {
+			id: "/todos/:id",
+			component: Todos$idPage,
+			routePath: "/todos/$id",
+			loader: loader$1,
+			layouts: [
+				{
+					id: "/",
+					layoutPath: "/_layout",
+					component: _layoutPage,
+					loader: _layoutPage_loader,
+				},
+			],
+		},
+	},
 });
 
 const errorRouter = createRouter<ErrorRoute>({
-  routes: {
-    "/**": {
-      id: "/**",
-      component: $errorPage,
-      routePath: "_error.tsx",
-    },
-  },
+	routes: {
+		"/**": {
+			id: "/**",
+			component: $errorPage,
+			routePath: "_error.tsx",
+		},
+	},
 });
 
 const actionRouter = createRouter<ServerAction>({
-  routes: {
-    "_actions#createTodo": {
-      id: "_actions#createTodo",
-      actionPath: "_actions.ts",
-      action: action$0,
-    },
-    "_actions#deleteTodo": {
-      id: "_actions#deleteTodo",
-      actionPath: "_actions.ts",
-      action: action$1,
-    },
-    "_actions#toggleTodo": {
-      id: "_actions#toggleTodo",
-      actionPath: "_actions.ts",
-      action: action$2,
-    },
-    "_actions#updateTodo": {
-      id: "_actions#updateTodo",
-      actionPath: "_actions.ts",
-      action: action$3,
-    },
-  },
+	routes: {
+		"_actions#createTodo": {
+			id: "_actions#createTodo",
+			actionPath: "_actions.ts",
+			action: action$0,
+		},
+		"_actions#deleteTodo": {
+			id: "_actions#deleteTodo",
+			actionPath: "_actions.ts",
+			action: action$1,
+		},
+		"_actions#toggleTodo": {
+			id: "_actions#toggleTodo",
+			actionPath: "_actions.ts",
+			action: action$2,
+		},
+		"_actions#updateTodo": {
+			id: "_actions#updateTodo",
+			actionPath: "_actions.ts",
+			action: action$3,
+		},
+	},
 });
 
 export const matchRoute = (pathname: string) => router.lookup(pathname);
 
 export const matchErrorRoute = (pathname: string) =>
-  errorRouter.lookup(pathname);
+	errorRouter.lookup(pathname);
 
 export const matchAction = (id: string) => actionRouter.lookup(id);
