@@ -4,7 +4,7 @@ import { lazy, useState } from "react";
 import { useLoaderData } from "framework/router";
 import { db } from "../../lib/db";
 import { type LoaderFunctionArgs, notFound } from "framework/server";
-import { Todo, updateTodo } from "../_actions";
+import { type Todo, updateTodo } from "../_actions";
 
 const LazyComponent = lazy(() => import("../../components/big-component"));
 
