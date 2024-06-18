@@ -30,7 +30,7 @@ async function startDevelopmentServer() {
 
   app.use(async (req, res) => {
     try {
-      const devOrigin = DEV ? undefined : `http://${HOST}:${PORT}`;
+      const devOrigin = DEV ? `http://${HOST}:${PORT}` : undefined;
       const baseUrl = process.env.ORIGIN ?? devOrigin ?? getOrigin(req);
       const request = await createRequest({ req, baseUrl });
       const response = await handleRequest(request);

@@ -20,6 +20,8 @@ import { Route } from "../router/routing";
 import { getServerEntryRoutesSync } from "../dev/getServerEntryRoutes";
 import * as routing from "../virtual/virtual__routes";
 import { getViteManifest } from "../dev/utils";
+import path from "path";
+import * as url from "url";
 
 const ABORT_DELAY = 10_000;
 
@@ -146,9 +148,33 @@ async function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
   const viteServer = isDev ? getViteServer() : undefined;
   const { routes, errorCatchers } = isDev ? getServerEntryRoutesSync() : routing;
   const manifest = isDev ? undefined : getViteManifest();
-  const appMod = await viteServer?.ssrLoadModule("virtual:app");
 
   let statusCode = appContext.error?.status || 200;
+
+  const dir = path.join(process.cwd(), "src", "routes");
+
+  // const entryModule = await viteServer?.ssrLoadModule("virtual:app");
+  const appPath = path.resolve(dir, "../app.tsx");
+  const entryModule = await import(url.pathToFileURL(appPath).href);
+
+  for (const route of routes) {
+    const routePath = `${route.id}.tsx`.slice(1);
+    const routeModulePath = path.resolve(dir, routePath);
+    const routeMod = await import(url.pathToFileURL(routeModulePath).href);
+
+    if (route.layouts) {
+      for (const layout of route.layouts) {
+        const layoutPath = `${layout.id}.tsx`.slice(1);
+        const moduleLayoutPath = path.resolve(dir, layoutPath);
+        const layoutMod = await import(url.pathToFileURL(moduleLayoutPath).href);
+        layout.component = layoutMod.default;
+        layout.loader = layoutMod.loader;
+      }
+    }
+
+    route.component = routeMod.default;
+    route.loader = routeMod.loader;
+  }
 
   return new Promise<Response>((resolve, reject) => {
     const { pipe, abort } = renderToPipeableStream(
@@ -159,7 +185,7 @@ async function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
         routes={routes}
         errorCatchers={errorCatchers}
         manifest={manifest}
-        Entry={appMod?.default}
+        Entry={entryModule?.default}
       />,
       {
         onAllReady() {

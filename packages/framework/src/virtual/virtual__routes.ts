@@ -16,3 +16,11 @@ export const matchErrorCatcher = (id: string): MatchedRoute<ErrorCatcher> => {
 export const matchServerAction = (id: string): MatchedRoute<ServerAction> => {
   throw new Error("Not implemented");
 };
+
+/*
+
+export const routes: Route[] = []
+export const errorCatchers: ErrorCatcher[] = []
+export const serverActions: ServerAction[] = []
+
+*/

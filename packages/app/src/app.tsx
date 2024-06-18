@@ -1,34 +1,10 @@
-import React from "react";
 import { Suspense } from "react";
 import { Router } from "framework/router";
-import { AppContext, LiveReload, Scripts, ServerContextProvider } from "framework/react";
-import { ErrorCatcher, Route } from "framework/router/routing";
+import { LiveReload, Scripts } from "framework/react";
 
-// export default function App() {
-//   console.log("Calling actual <App/>");
-
-//   return (
-//     <React.StrictMode>
-//       <Root>
-//         <Suspense>
-//           <Router />
-//         </Suspense>
-//       </Root>
-//     </React.StrictMode>
-//   );
-// }
-
-type AppProps = {
-  appContext: AppContext;
-  routes: Route[];
-  errorCatchers: ErrorCatcher[];
-  children: React.ReactNode;
-};
-
-export default function App({ children, appContext, routes, errorCatchers }: AppProps) {
+export default function App() {
   console.log("Calling actual <App/>");
 
-  console.log({ routes, errorCatchers });
   return (
     <html>
       <head>
@@ -40,14 +16,7 @@ export default function App({ children, appContext, routes, errorCatchers }: App
       </head>
       <body>
         <Suspense>
-          <ServerContextProvider
-            appContext={appContext}
-            routes={routes}
-            errorCatchers={errorCatchers}
-          >
-            {/* {children} */}
-            <Router />
-          </ServerContextProvider>
+          <Router />
         </Suspense>
         <Scripts />
       </body>

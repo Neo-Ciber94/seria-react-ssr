@@ -120,7 +120,6 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
     },
     {
       name: "create-server-action-proxy",
-      //enforce: "pre",
       async load(id, options) {
         if (
           isExternal(id) ||

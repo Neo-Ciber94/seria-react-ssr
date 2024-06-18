@@ -1,30 +1,8 @@
-import React from "react";
 import { Suspense } from "react";
-import { AppContext, LiveReload, Scripts, ServerContextProvider } from "../react";
-import { Route, ErrorCatcher } from "../router/routing";
+import { LiveReload, Scripts } from "../react";
+import { Router } from "../router";
 
-// export default function App() {
-//   console.log("Calling virtual <App/>");
-
-//   return (
-//     <React.StrictMode>
-//       <Root>
-//         <Suspense>
-//           <Router />
-//         </Suspense>
-//       </Root>
-//     </React.StrictMode>
-//   );
-// }
-
-type AppProps = {
-  routes: Route[];
-  errorCatchers: ErrorCatcher[];
-  children: React.ReactNode;
-  appContext: AppContext;
-};
-
-export default function App({ children, routes, errorCatchers, appContext }: AppProps) {
+export default function App() {
   console.log("Calling virtual <App/>");
 
   return (
@@ -37,13 +15,9 @@ export default function App({ children, routes, errorCatchers, appContext }: App
         <LiveReload />
       </head>
       <body>
-        <ServerContextProvider
-          routes={routes}
-          errorCatchers={errorCatchers}
-          appContext={appContext}
-        >
-          {children}
-        </ServerContextProvider>
+        <Suspense>
+          <Router />
+        </Suspense>
         <Scripts />
       </body>
     </html>
