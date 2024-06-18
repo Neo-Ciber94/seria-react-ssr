@@ -3,11 +3,19 @@ import { parseFromStream } from "seria";
 import { HEADER_SERVER_ACTION } from "./constants";
 import { HttpError } from "./server/http";
 
+// TODO: this should be defined by vite
+export const isServer = process.env.IS_SERVER;
+export const isBrowser = !isServer;
+export const isDev = process.env.NODE_ENV === "development";
+
 type CallServerActionInput = {
   id: string;
   args: any[];
 };
 
+/**
+ * @internal
+ */
 export async function callServerAction(input: CallServerActionInput) {
   const args = input.args;
   const body = await encodeAsync(args);
