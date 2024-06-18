@@ -1,6 +1,5 @@
 import { ServerContextProvider } from "./context";
-import App from "../virtual/virtual__app";
-import { routes, errorCatchers } from "../virtual/virtual__routes";
+import { routes, errorCatchers, default as App } from "../app-entry";
 
 export function EntryClient() {
   return (

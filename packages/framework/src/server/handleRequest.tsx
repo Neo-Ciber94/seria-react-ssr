@@ -17,7 +17,7 @@ import { getViteServer } from "../dev/vite";
 import { renderToPipeableStream } from "react-dom/server";
 import { Route } from "../router/routing";
 import { getServerEntryRoutesSync } from "../dev/getServerEntryRoutes";
-import * as routing from "../virtual/virtual__routes";
+import * as routing from "../app-entry";
 import { getViteManifest } from "../dev/utils";
 
 const ABORT_DELAY = 10_000;

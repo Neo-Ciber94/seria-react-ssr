@@ -1,4 +1,4 @@
-export default function LiveReload() {
+export default function DevScripts() {
   if (process.env.NODE_ENV === "production") {
     return null;
   }

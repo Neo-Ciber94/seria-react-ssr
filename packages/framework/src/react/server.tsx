@@ -1,4 +1,4 @@
-import { default as AppEntry } from "../virtual/virtual__app";
+import { default as DefaultEntry } from "../app-entry";
 import { type AppContext, ServerContextProvider } from "./context";
 import type { ErrorCatcher, Route } from "../router/routing";
 import { type Manifest } from "vite";
@@ -24,7 +24,7 @@ export function EntryServer({
 }: EntryServerProps) {
   const { url } = appContext;
   const routeError = appContext.error ? `,error:${JSON.stringify(appContext.error)}` : "";
-  const App = Entry ?? AppEntry;
+  const App = Entry ?? DefaultEntry;
 
   // TODO: Pass this in a more elegant way, preferably a context
   // @ts-ignore
