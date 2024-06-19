@@ -33,7 +33,7 @@ export async function resolveFileSystemRoutes(
 
 	const entryFilePath = path.join(cwd, "src", "app");
 
-	const code = `
+	return `
     import type { Route, ErrorCatcher, ServerAction } from "framework/router/routing";
 	import RootComponent from "/${relativePath(cwd, entryFilePath)}";
 
@@ -107,8 +107,6 @@ export async function resolveFileSystemRoutes(
     export const routesDir = ${JSON.stringify(routesDir)};
     export default RootComponent;
   `;
-
-	return code;
 }
 
 type GetRouteFilesArgs = {
