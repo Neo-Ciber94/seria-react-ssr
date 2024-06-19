@@ -1,6 +1,6 @@
 // import "./styles.css";
 import { Link, useLoaderData, useNavigation } from "framework/router";
-import type React from "react";
+import React from "react";
 import { useEffect } from "react";
 
 import { db } from "@/lib/db";

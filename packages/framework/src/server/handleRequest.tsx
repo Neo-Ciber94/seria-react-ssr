@@ -157,12 +157,11 @@ async function renderPage(
 	const isResumable = !!resumeStream;
 	const viteServer = isDev ? getViteServer() : undefined;
 	const manifest = isDev ? undefined : getViteManifest();
-	const entryModule = await viteServer?.ssrLoadModule("virtual:app");
 	const context: EntryServerContext = {
 		routes: serverContext.router.entries,
 		errorCatchers: serverContext.errorCatcherRouter.entries,
 		manifest,
-		Component: entryModule?.default,
+		Component: serverContext.EntryComponent,
 	};
 
 	return new Promise<Response>((resolve, reject) => {

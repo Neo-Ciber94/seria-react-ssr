@@ -59,7 +59,7 @@ function RouteComponent({ route }: { route: Route }) {
 
 		Component = (
 			<RouteProvider id={route.id} path={route.path}>
-				{Component}
+				<Component />
 			</RouteProvider>
 		);
 

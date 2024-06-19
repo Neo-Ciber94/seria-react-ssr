@@ -32,8 +32,10 @@ export async function createDevServerEntryContext(
 		throw new Error(`Routes directory was not found: '${dir}'`);
 	}
 
-	const entryFilePath = path.join(rootDir, "app"); // no extension
-	const entryMod = await import(url.pathToFileURL(entryFilePath).href);
+	const entryFilePath = path.join(rootDir, "src", "app"); // no extension
+	const entryMod = await import(
+		/* @vite-ignore */ url.pathToFileURL(entryFilePath).href
+	);
 
 	if (typeof entryMod.default !== "function") {
 		throw new Error(`App entry point not found at: '${rootDir}'`);
@@ -46,12 +48,16 @@ export async function createDevServerEntryContext(
 	for (const route of serverRoutes) {
 		// We replace the virtual module loaded, with the actual module
 		const routeFilePath = path.join(dir, remoteLeadingSlash(route.id));
-		route.module = await import(url.pathToFileURL(routeFilePath).href);
+		route.module = await import(
+			/* @vite-ignore */ url.pathToFileURL(routeFilePath).href
+		);
 
 		if (route.layouts) {
 			for (const layout of route.layouts) {
 				const layoutFilePath = path.join(dir, remoteLeadingSlash(layout.id));
-				layout.module = await import(url.pathToFileURL(layoutFilePath).href);
+				layout.module = await import(
+					/* @vite-ignore */ url.pathToFileURL(layoutFilePath).href
+				);
 			}
 		}
 	}
@@ -59,7 +65,9 @@ export async function createDevServerEntryContext(
 	for (const errorCatcher of errorCatchers) {
 		// We replace the virtual module loaded, with the actual module
 		const routeFilePath = path.join(dir, remoteLeadingSlash(errorCatcher.id));
-		errorCatcher.module = await import(url.pathToFileURL(routeFilePath).href);
+		errorCatcher.module = await import(
+			/* @vite-ignore */ url.pathToFileURL(routeFilePath).href
+		);
 	}
 
 	for (const action of serverActions) {
@@ -67,7 +75,9 @@ export async function createDevServerEntryContext(
 		const fileName = parts[0];
 		const name = parts[1];
 		const actionFilePath = path.join(dir, remoteLeadingSlash(fileName));
-		const actionMod = await import(url.pathToFileURL(actionFilePath).href);
+		const actionMod = await import(
+			/* @vite-ignore */ url.pathToFileURL(actionFilePath).href
+		);
 		action.action = actionMod[name];
 	}
 

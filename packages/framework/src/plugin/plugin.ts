@@ -44,6 +44,12 @@ export default function frameworkPlugin(
 							"react-dom/client",
 						],
 					},
+					define: {
+						"process.env.IS_SERVER": JSON.stringify(isSsrBuild),
+						"process.env.NODE_ENV": JSON.stringify(
+							process.env.NODE_ENV ?? "production",
+						),
+					},
 					build: {
 						minify: false,
 						rollupOptions: {
@@ -111,7 +117,7 @@ export default function frameworkPlugin(
 			name: "@framework-virtual-modules",
 			enforce: "pre",
 			resolveId(id, importer) {
-				if (!importer || !/\/framework\/dist\//.test(importer)) {
+				if (importer == null) {
 					return;
 				}
 
@@ -184,6 +190,11 @@ export default function frameworkPlugin(
 
 				return null;
 			},
+		},
+		{
+			name: "jsx-react",
+			enforce: "pre",
+			banner: "import * as React from 'react'",
 		},
 	];
 }

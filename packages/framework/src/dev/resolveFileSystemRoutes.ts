@@ -90,7 +90,7 @@ export async function resolveFileSystemRoutes(
 
     export const errorCatchers : ErrorCatcher[] = [];
 
-    const actions : ServerAction[] = [
+    export const actions : ServerAction[] = [
     ${actionFiles.map((actionFile, idx) => {
 			const actionFilePath = getRoutePath(routesDir, actionFile);
 			const actionId = getRouteId(routesDir, actionFile);

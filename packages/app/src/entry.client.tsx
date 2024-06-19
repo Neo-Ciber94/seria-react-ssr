@@ -1,5 +1,5 @@
-import { EntryClient } from "framework/react";
 import React from "react";
+import { EntryClient } from "framework/react";
 import { hydrateRoot } from "react-dom/client";
 
 hydrateRoot(
