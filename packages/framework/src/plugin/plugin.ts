@@ -189,8 +189,6 @@ export default function frameworkPlugin(
 					fileName,
 				});
 
-				console.log(result.code);
-
 				return {
 					code: result.code,
 				};
