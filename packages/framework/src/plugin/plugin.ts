@@ -182,10 +182,6 @@ export default function frameworkPlugin(
 				return null;
 			},
 		},
-		{
-			name: "jsx-preamble",
-			banner: "import React from 'react'",
-		},
 	];
 }
 

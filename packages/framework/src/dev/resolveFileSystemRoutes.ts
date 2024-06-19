@@ -31,8 +31,12 @@ export async function resolveFileSystemRoutes(
 		getActionFiles({ cwd, routesDir, ignorePrefix }),
 	]);
 
+	const entryFile = path.join(routesDir, "app.tsx");
+
 	const code = `
-    import { type Route, type ErrorCatcher, type ServerAction, createRouter, createServerActionRouter } from "framework/router/routing";
+    import type { Route, ErrorCatcher, ServerAction } from "framework/router/routing";
+	import AppEntry from "${relativePath(cwd, entryFile)}";
+
     ${routeFiles
 			.map((routeFile, idx) => {
 				const importPath = relativePath(cwd, routeFile).replaceAll(
@@ -102,22 +106,8 @@ export async function resolveFileSystemRoutes(
 		})}
     ];
 
-    const router = createRouter(routes);
-
-    const actionRouter = createServerActionRouter(actions);
-
-    export function matchRoute(id: string) {
-      return router.match(id);
-    }
-
-    export const matchErrorCatcher = (id: string): any => {
-      console.warn("'matchErrorCatcher' is not implemented yet")
-      return null;
-    };
-
-    export const matchServerAction = (id: string) => {
-      return actionRouter.match(id);
-    };
+    export const routesDir = ${JSON.stringify(routesDir)};
+    export default App;
   `;
 
 	return code;
