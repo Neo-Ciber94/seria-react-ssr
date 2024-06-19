@@ -111,7 +111,10 @@ export default function frameworkPlugin(
 			name: "@framework-virtual-modules",
 			enforce: "pre",
 			resolveId(id, importer) {
-				console.log({ id, importer });
+				if (!importer || !/\/framework\/dist\//.test(importer)) {
+					return;
+				}
+
 				if (id.includes(appEntryImport) || id === virtualAppEntry) {
 					return resolveVirtualModule(virtualAppEntry);
 				}

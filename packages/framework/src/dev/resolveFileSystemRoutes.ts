@@ -31,11 +31,11 @@ export async function resolveFileSystemRoutes(
 		getActionFiles({ cwd, routesDir, ignorePrefix }),
 	]);
 
-	const entryFile = path.join(routesDir, "app.tsx");
+	const entryFilePath = path.join(cwd, "src", "app");
 
 	const code = `
     import type { Route, ErrorCatcher, ServerAction } from "framework/router/routing";
-	import AppEntry from "${relativePath(cwd, entryFile)}";
+	import RootComponent from "/${relativePath(cwd, entryFilePath)}";
 
     ${routeFiles
 			.map((routeFile, idx) => {
@@ -78,13 +78,11 @@ export async function resolveFileSystemRoutes(
 							return `{
                 id: ${JSON.stringify(getRouteId(routesDir, layoutFile))},
                 path: ${JSON.stringify(getRoutePath(routesDir, layoutFile))},
-                component: layout$${idx}.default,
-                loader: (layout$${idx} as any).loader
+                module: layout$${idx}
               }`;
 						})}
           ],
-          component: route$${idx}.default,
-          loader: (route$${idx} as any).loader,
+          module: route$${idx}
         }`;
 				})
 				.join(",\n")}
@@ -107,7 +105,7 @@ export async function resolveFileSystemRoutes(
     ];
 
     export const routesDir = ${JSON.stringify(routesDir)};
-    export default App;
+    export default RootComponent;
   `;
 
 	return code;
