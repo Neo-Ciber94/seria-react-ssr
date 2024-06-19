@@ -1,5 +1,5 @@
-import Scripts from "./scripts";
 import DevScripts from "./devScripts";
+import Scripts from "./scripts";
 
 export { EntryClient } from "./client";
 export { EntryServer } from "./server";

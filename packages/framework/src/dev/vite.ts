@@ -1,10 +1,10 @@
-import type { ViteDevServer, Manifest } from "vite";
 import fs from "node:fs/promises";
+import type { Manifest, ViteDevServer } from "vite";
 import { createServer } from "vite";
 import { invariant } from "../internal";
 import {
-	getOrigin,
 	createRequest,
+	getOrigin,
 	setResponse,
 } from "../server/adapters/node/helpers";
 import { createRequestHandler } from "../server/handleRequest";

@@ -1,5 +1,5 @@
 import type { MatchedRoute } from "radix3";
-import type { Route, ErrorCatcher, ServerAction } from "./router/routing";
+import type { ErrorCatcher, Route, ServerAction } from "./router/routing";
 
 // TODO: This module is not suppose to be imported, will be generated a build time
 

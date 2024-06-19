@@ -1,5 +1,5 @@
-import path from "node:path";
 import fs from "node:fs/promises";
+import path from "node:path";
 
 const VIRTUAL_MODULES = ["virtual:app", "virtual:routes"] as const;
 

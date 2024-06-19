@@ -1,4 +1,4 @@
-import { createRouter as createBaseRouter, type RadixRouter } from "radix3";
+import { type RadixRouter, createRouter as createBaseRouter } from "radix3";
 
 /**
  * Route params.

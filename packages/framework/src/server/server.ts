@@ -1,9 +1,9 @@
 import polka from "polka";
-import { getOrigin, createRequest, setResponse } from "./adapters/node/helpers";
-import { createRequestHandler } from "./handleRequest";
+import { preloadServerEntryRoutes } from "../dev/getServerEntryRoutes";
 import { preloadViteServer } from "../dev/vite";
 import { handle } from "./adapters/node/handler";
-import { preloadServerEntryRoutes } from "../dev/getServerEntryRoutes";
+import { createRequest, getOrigin, setResponse } from "./adapters/node/helpers";
+import { createRequestHandler } from "./handleRequest";
 
 const PORT = process.env.PORT ?? 5000;
 const HOST = process.env.HOST ?? "localhost";

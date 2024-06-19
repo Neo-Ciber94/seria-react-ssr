@@ -1,5 +1,5 @@
+import { default as App, errorCatchers, routes } from "../app-entry";
 import { ServerContextProvider } from "./context";
-import { routes, errorCatchers, default as App } from "../app-entry";
 
 export function EntryClient() {
 	return (

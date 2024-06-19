@@ -3,9 +3,9 @@ import { Link, useLoaderData, useNavigation } from "framework/router";
 import type React from "react";
 import { useEffect } from "react";
 
-import { createTodo, type Todo } from "./_actions";
-import { Await } from "framework/router";
 import { db } from "@/lib/db";
+import { Await } from "framework/router";
+import { type Todo, createTodo } from "./_actions";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

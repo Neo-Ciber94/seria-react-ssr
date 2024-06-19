@@ -1,6 +1,6 @@
-import { Suspense } from "react";
-import { Router } from "framework/router";
 import { DevScripts, Scripts } from "framework/react";
+import { Router } from "framework/router";
+import { Suspense } from "react";
 
 export default function App() {
 	console.log("Calling actual <App/>");

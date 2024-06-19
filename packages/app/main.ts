@@ -1,6 +1,6 @@
-import { resolveFileSystemRoutes } from "../../node_modules/framework/dist/dev/resolveFileSystemRoutes";
 import fs from "node:fs/promises";
 import * as prettier from "prettier";
+import { resolveFileSystemRoutes } from "../../node_modules/framework/dist/dev/resolveFileSystemRoutes";
 
 const code = await resolveFileSystemRoutes({
 	routesDir: "./src/routes",

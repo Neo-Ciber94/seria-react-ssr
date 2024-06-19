@@ -1,16 +1,16 @@
-import type { PluginOption, ResolvedConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import path from "node:path";
 import fs from "node:fs/promises";
+import path from "node:path";
+import react from "@vitejs/plugin-react";
+import { transform } from "esbuild";
+import type { PluginOption, ResolvedConfig } from "vite";
+import { resolveFileSystemRoutes } from "../dev";
+import { preloadServerEntryRoutes } from "../dev/getServerEntryRoutes";
 import { preloadViteServer, startViteServer } from "../dev/vite";
+import { invariant } from "../internal";
 import { createClientServerActionProxyFromPath } from "./createClientServerActionProxy";
 import { removeServerExportsFromSource } from "./removeServerExports";
 import { getLoader, normalizePath } from "./utils";
-import { invariant } from "../internal";
 import * as vmod from "./vmod";
-import { transform } from "esbuild";
-import { resolveFileSystemRoutes } from "../dev";
-import { preloadServerEntryRoutes } from "../dev/getServerEntryRoutes";
 
 type FrameworkPluginConfig = {
 	routesDir?: string;

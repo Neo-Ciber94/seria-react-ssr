@@ -1,5 +1,6 @@
-import { useMemo, useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { type Params, useNavigation } from ".";
+import { useServerContext } from "../react/context";
 import { HttpError, type TypedJson } from "../server/http";
 import type { LoaderFunction } from "../server/loader";
 import {
@@ -7,7 +8,6 @@ import {
 	useRouteDataContext,
 	useRouterContext,
 } from "./contexts";
-import { useServerContext } from "../react/context";
 
 type LoaderDataType<T> = T extends Promise<infer U>
 	? LoaderDataType<U>

@@ -1,10 +1,10 @@
+import fs from "node:fs";
 import type http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import fs from "node:fs";
 import sirv from "sirv";
-import { createRequest, getOrigin, setResponse } from "./helpers";
 import { createRequestHandler } from "../../handleRequest";
+import { createRequest, getOrigin, setResponse } from "./helpers";
 
 type Next = () => void;
 type RequestHandler = (

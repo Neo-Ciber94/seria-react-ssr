@@ -1,15 +1,15 @@
 import type React from "react";
-import { useState, useCallback, createContext, useContext } from "react";
+import { createContext, useCallback, useContext, useState } from "react";
+import * as seria from "seria";
 import {
 	HEADER_LOADER_DATA,
-	HEADER_SERIA_STREAM,
-	HEADER_ROUTE_REDIRECT,
 	HEADER_ROUTE_ERROR,
+	HEADER_ROUTE_REDIRECT,
+	HEADER_SERIA_STREAM,
 } from "../constants";
 import type { AppContext } from "../react";
-import { useRouteDataContext } from "./contexts";
-import * as seria from "seria";
 import { HttpError } from "../server/http";
+import { useRouteDataContext } from "./contexts";
 
 type NavigationStatus = "pending" | "error" | "loaded";
 

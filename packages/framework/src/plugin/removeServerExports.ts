@@ -1,11 +1,11 @@
-import * as esbuild from "esbuild";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { getLoader, type JavascriptLoader } from "./utils";
+import babelGenerate from "@babel/generator";
 import { parse } from "@babel/parser";
 import babelTraverse from "@babel/traverse";
-import babelGenerate from "@babel/generator";
 import * as t from "@babel/types";
+import * as esbuild from "esbuild";
+import { type JavascriptLoader, getLoader } from "./utils";
 
 // @ts-ignore
 const traverse = babelTraverse.default as typeof babelTraverse;
