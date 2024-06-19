@@ -6,9 +6,9 @@ import type { PluginOption, ResolvedConfig } from "vite";
 import { resolveFileSystemRoutes } from "../dev";
 import { preloadViteServer, startViteServer } from "../dev/vite";
 import { invariant } from "../internal";
-import { createClientServerActionProxyFromPath } from "./createClientServerActionProxy";
-import { removeServerExportsFromSource } from "./removeServerExports";
-import { getLoader, normalizePath } from "./utils";
+import { createClientServerActionProxy } from "./createClientServerActionProxy";
+import { removeServerExports } from "./removeServerExports";
+import { normalizePath } from "./utils";
 import * as esbuild from "esbuild";
 
 const virtualAppEntry = "virtual:app-entry";
@@ -135,9 +135,13 @@ export default function frameworkPlugin(
 					const code = await resolveFileSystemRoutes({ routesDir });
 					const result = await transform(code, {
 						loader: "tsx",
-						jsx: "automatic",
+						jsx: "transform",
 					});
-					return result.code;
+
+					return {
+						code: result.code,
+						map: result.map,
+					};
 				}
 			},
 		},
@@ -153,16 +157,21 @@ export default function frameworkPlugin(
 					return;
 				}
 
-				const result = await createClientServerActionProxyFromPath(id);
+				const [fileName] = id.split("?");
+				const contents = await fs.readFile(fileName, "utf8");
+				const result = await createClientServerActionProxy({
+					contents,
+					fileName,
+				});
 
 				return {
 					code: result.code,
+					map: result.map,
 				};
 			},
 		},
 		{
 			name: "@framework-remove-server-exports",
-			//enforce: "pre",
 			async load(id, options) {
 				if (
 					isExternal(id) ||
@@ -173,9 +182,14 @@ export default function frameworkPlugin(
 					return;
 				}
 
-				const contents = await fs.readFile(id, "utf8");
-				const loader = getLoader(id);
-				const result = await removeServerExportsFromSource(contents, loader);
+				const [fileName] = id.split("?");
+				const source = await fs.readFile(fileName, "utf8");
+				const result = await removeServerExports({
+					source,
+					fileName,
+				});
+
+				console.log(result.code);
 
 				return {
 					code: result.code,
@@ -198,7 +212,7 @@ export default function frameworkPlugin(
 		},
 		{
 			name: "@framework/transform-jsx-dev",
-			async transform(code, id, options) {
+			async transform(code, id) {
 				invariant(resolvedConfig, "unable to resolve vite config");
 
 				if (resolvedConfig.command !== "serve" || isExternal(id)) {
@@ -212,7 +226,6 @@ export default function frameworkPlugin(
 					return;
 				}
 
-				const isSsr = Boolean(options?.ssr);
 				const loader = fileName.endsWith(".jsx") ? "jsx" : "tsx";
 				const result = await esbuild.transform(code, {
 					loader,
@@ -220,10 +233,6 @@ export default function frameworkPlugin(
 					sourcemap: true,
 					jsx: "transform",
 				});
-
-				if (fileName.includes("_layout")) {
-					console.log({ fileName, code: result.code, isSsr });
-				}
 
 				return {
 					code: result.code,

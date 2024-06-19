@@ -8,9 +8,9 @@ const loader = {
 } as const;
 
 type Ext = keyof typeof loader;
-export type JavascriptLoader = (typeof loader)[Ext];
+type Loader = (typeof loader)[Ext];
 
-export function getLoader(filePath: string): JavascriptLoader {
+export function getLoader(filePath: string): Loader {
 	const ext = path.extname(filePath) as Ext;
 	return loader[ext];
 }

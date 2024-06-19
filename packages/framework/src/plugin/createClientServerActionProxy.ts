@@ -4,7 +4,7 @@ import babelGenerate from "@babel/generator";
 import { parse } from "@babel/parser";
 import babelTraverse from "@babel/traverse";
 import * as t from "@babel/types";
-import type * as esbuild from "esbuild";
+import * as esbuild from "esbuild";
 import { getLoader } from "./utils";
 
 // @ts-ignore
@@ -39,17 +39,16 @@ const createProxyCallExpression = (
 	]);
 };
 
-export async function createClientServerActionProxyFromPath(filePath: string) {
-	const contents = await fs.readFile(filePath, "utf8");
-	const result = createClientServerActionProxyFromSource(contents, filePath);
-	return result;
-}
+type CreateClientServerActionProxyOptions = {
+	contents: string;
+	fileName: string;
+};
 
-function createClientServerActionProxyFromSource(
-	source: string,
-	filePath: string,
+export async function createClientServerActionProxy(
+	options: CreateClientServerActionProxyOptions,
 ) {
-	const actionPath = path.relative(process.cwd(), filePath);
+	const { contents, fileName } = options;
+	const actionPath = path.relative(process.cwd(), fileName);
 
 	let importInserted = false;
 
@@ -69,7 +68,14 @@ function createClientServerActionProxyFromSource(
 		}
 	};
 
-	const ast = parse(source, {
+	const loader = getLoader(fileName);
+	const { code } = await esbuild.transform(contents, {
+		loader,
+		jsx: "automatic",
+		sourcefile: fileName,
+	});
+
+	const ast = parse(code, {
 		plugins: ["typescript", "jsx"],
 		sourceType: "module",
 	});
@@ -138,31 +144,7 @@ function createClientServerActionProxyFromSource(
 		},
 	});
 
-	const output = generate(ast, {});
+	const result = generate(ast);
 
-	return {
-		code: output.code,
-	};
+	return result;
 }
-
-export const createClientServerActionProxy: esbuild.Plugin = {
-	name: "create-client-server-action-proxy",
-	setup(build) {
-		build.onLoad(
-			{ filter: /_actions\.(js|ts|jsx|tsx)$/, namespace: "file" },
-			async (args) => {
-				if (!args.path.startsWith(path.join(process.cwd(), "src/routes"))) {
-					return;
-				}
-
-				const loader = getLoader(args.path);
-				const result = await createClientServerActionProxyFromPath(args.path);
-
-				return {
-					contents: result.code,
-					loader,
-				};
-			},
-		);
-	},
-};

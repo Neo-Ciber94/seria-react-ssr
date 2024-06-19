@@ -1,11 +1,9 @@
-import fs from "node:fs/promises";
-import path from "node:path";
 import babelGenerate from "@babel/generator";
 import { parse } from "@babel/parser";
 import babelTraverse from "@babel/traverse";
 import * as t from "@babel/types";
 import * as esbuild from "esbuild";
-import { type JavascriptLoader, getLoader } from "./utils";
+import { getLoader } from "./utils";
 
 // @ts-ignore
 const traverse = babelTraverse.default as typeof babelTraverse;
@@ -24,11 +22,19 @@ const throwErrorReplacement = (identifierName: string) =>
 		),
 	]);
 
-export async function removeServerExportsFromSource(
-	source: string,
-	loader: JavascriptLoader,
-) {
-	const { code } = await esbuild.transform(source, { loader });
+type RemoveExportsOptions = {
+	source: string;
+	fileName: string;
+};
+
+export async function removeServerExports(options: RemoveExportsOptions) {
+	const { source, fileName } = options;
+	const loader = getLoader(fileName);
+	const { code } = await esbuild.transform(source, {
+		loader,
+		jsx: "automatic",
+		sourcefile: fileName,
+	});
 
 	const ast = parse(code, {
 		plugins: ["typescript", "jsx"],
@@ -67,38 +73,11 @@ export async function removeServerExportsFromSource(
 		},
 	});
 
-	const result = generate(ast, {});
-	return { code: result.code };
+	const result = generate(ast, {
+		sourceMaps: true,
+		sourceFileName: fileName,
+		filename: fileName,
+	});
+
+	return result;
 }
-
-async function removeServerExportsFromPath(filePath: string) {
-	if (!filePath.startsWith(path.join(process.cwd(), "src/routes"))) {
-		return;
-	}
-
-	const loader = getLoader(filePath);
-	const contents = await fs.readFile(filePath, "utf8");
-	return removeServerExportsFromSource(contents, loader);
-}
-
-export const removeServerExports: esbuild.Plugin = {
-	name: "remove-server-exports",
-	setup(build) {
-		build.onLoad(
-			{ filter: /\.(jsx|tsx)$/, namespace: "file" },
-			async (args) => {
-				const result = await removeServerExportsFromPath(args.path);
-				const loader = getLoader(args.path);
-
-				if (!result) {
-					return;
-				}
-
-				return {
-					contents: result.code,
-					loader,
-				};
-			},
-		);
-	},
-};
