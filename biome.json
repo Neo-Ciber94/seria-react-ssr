@@ -4,6 +4,9 @@
 		"enabled": true
 	},
 	"files": {
+		"include": [
+			"packages/**/*"
+		],
 		"ignore": [
 			"dist/**",
 			"build/**",
@@ -17,6 +20,12 @@
 			"recommended": true,
 			"suspicious": {
 				"noExplicitAny": "off"
+			},
+			"style": {
+				"noUselessElse": "off"
+			},
+			"complexity": {
+				"noForEach": "off"
 			}
 		}
 	}

@@ -84,7 +84,7 @@ export function useSearchParams() {
 			const url = `${pathname}?${urlParams}`;
 			navigate(url, { replace: true });
 		},
-		[searchParams],
+		[navigate, pathname, searchParams],
 	);
 
 	return [searchParams, setSearchParams] as const;

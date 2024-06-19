@@ -163,7 +163,7 @@ export function NavigationProvider({
 				}
 			}
 		},
-		[],
+		[setRouteData],
 	);
 
 	const navigate = useCallback(
@@ -173,7 +173,7 @@ export function NavigationProvider({
 		[navigateToUrl],
 	);
 
-	const refresh = useCallback(() => navigate(url), [navigate]);
+	const refresh = useCallback(() => navigate(url), [navigate, url]);
 
 	return (
 		<NavigationContext.Provider

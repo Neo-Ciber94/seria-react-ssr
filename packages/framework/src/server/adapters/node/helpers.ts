@@ -1,4 +1,4 @@
-import type http from "http";
+import type http from "node:http";
 
 type CreateRequestArgs = {
 	baseUrl: string;
@@ -14,7 +14,9 @@ export async function createRequest({ baseUrl, req }: CreateRequestArgs) {
 		}
 
 		if (Array.isArray(value)) {
-			value.forEach((v) => headers.append(name, v));
+			for (const v of value) {
+				headers.append(name, v);
+			}
 		} else {
 			headers.append(name, value);
 		}
@@ -44,7 +46,7 @@ function getBody(req: http.IncomingMessage) {
 	const headers = req.headers;
 	const contentLength = Number(headers.contentLength);
 
-	if (!isNaN(contentLength) && contentLength === 0) {
+	if (!Number.isNaN(contentLength) && contentLength === 0) {
 		return null;
 	}
 

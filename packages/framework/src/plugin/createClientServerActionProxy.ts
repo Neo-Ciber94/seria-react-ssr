@@ -103,7 +103,6 @@ function createClientServerActionProxyFromSource(
 				return;
 			}
 
-			// biome-ignore lint/complexity/noForEach: <explanation>
 			path.node.declarations.forEach((declaration) => {
 				if (
 					t.isVariableDeclarator(declaration) &&

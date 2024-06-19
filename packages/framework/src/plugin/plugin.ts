@@ -1,7 +1,7 @@
 import type { PluginOption, ResolvedConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import path from "path";
-import fs from "fs/promises";
+import path from "node:path";
+import fs from "node:fs/promises";
 import { preloadViteServer, startViteServer } from "../dev/vite";
 import { createClientServerActionProxyFromPath } from "./createClientServerActionProxy";
 import { removeServerExportsFromSource } from "./removeServerExports";

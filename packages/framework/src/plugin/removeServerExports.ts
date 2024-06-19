@@ -1,6 +1,6 @@
 import * as esbuild from "esbuild";
-import fs from "fs/promises";
-import path from "path";
+import fs from "node:fs/promises";
+import path from "node:path";
 import { getLoader, type JavascriptLoader } from "./utils";
 import { parse } from "@babel/parser";
 import babelTraverse from "@babel/traverse";
