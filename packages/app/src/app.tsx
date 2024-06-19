@@ -3,8 +3,6 @@ import { Router } from "framework/router";
 import { Suspense } from "react";
 
 export default function App() {
-	console.log("Calling actual <App/>");
-
 	return (
 		<html lang="en">
 			<head>

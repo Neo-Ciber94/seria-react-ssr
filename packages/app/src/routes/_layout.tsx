@@ -1,8 +1,5 @@
 // import "./styles.css";
 import { Link, useLoaderData, useNavigation } from "framework/router";
-import React from "react";
-import { useEffect } from "react";
-
 import { db } from "@/lib/db";
 import { Await } from "framework/router";
 import { type Todo, createTodo } from "./_actions";

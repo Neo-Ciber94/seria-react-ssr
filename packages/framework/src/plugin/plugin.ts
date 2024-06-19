@@ -9,6 +9,7 @@ import { invariant } from "../internal";
 import { createClientServerActionProxyFromPath } from "./createClientServerActionProxy";
 import { removeServerExportsFromSource } from "./removeServerExports";
 import { getLoader, normalizePath } from "./utils";
+import * as esbuild from "esbuild";
 
 const virtualAppEntry = "virtual:app-entry";
 const appEntryImport = "./app-entry";
@@ -33,7 +34,7 @@ export default function frameworkPlugin(
 			configResolved(config) {
 				resolvedConfig = config;
 			},
-			async config(_viteConfig, { isSsrBuild }) {
+			async config(_viteConfig, { isSsrBuild, command }) {
 				return {
 					appType: "custom",
 					optimizeDeps: {
@@ -49,6 +50,10 @@ export default function frameworkPlugin(
 						"process.env.NODE_ENV": JSON.stringify(
 							process.env.NODE_ENV ?? "production",
 						),
+					},
+					esbuild: {
+						jsx: "automatic",
+						jsxDev: command !== "build",
 					},
 					build: {
 						minify: false,
@@ -192,9 +197,39 @@ export default function frameworkPlugin(
 			},
 		},
 		{
-			name: "jsx-react",
-			enforce: "pre",
-			banner: "import * as React from 'react'",
+			name: "@framework/transform-jsx-dev",
+			async transform(code, id, options) {
+				invariant(resolvedConfig, "unable to resolve vite config");
+
+				if (resolvedConfig.command !== "serve" || isExternal(id)) {
+					return;
+				}
+
+				const [fileName] = id.split("?");
+				const isJsx = /\.(jsx|tsx)$/.test(fileName);
+
+				if (!isJsx) {
+					return;
+				}
+
+				const isSsr = Boolean(options?.ssr);
+				const loader = fileName.endsWith(".jsx") ? "jsx" : "tsx";
+				const result = await esbuild.transform(code, {
+					loader,
+					sourcefile: fileName,
+					sourcemap: true,
+					jsx: "transform",
+				});
+
+				if (fileName.includes("_layout")) {
+					console.log({ fileName, code: result.code, isSsr });
+				}
+
+				return {
+					code: result.code,
+					map: result.map,
+				};
+			},
 		},
 	];
 }
