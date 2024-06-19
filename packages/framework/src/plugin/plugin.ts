@@ -4,13 +4,16 @@ import react from "@vitejs/plugin-react";
 import { transform } from "esbuild";
 import type { PluginOption, ResolvedConfig } from "vite";
 import { resolveFileSystemRoutes } from "../dev";
-import { preloadServerEntryRoutes } from "../dev/getServerEntryRoutes";
 import { preloadViteServer, startViteServer } from "../dev/vite";
 import { invariant } from "../internal";
 import { createClientServerActionProxyFromPath } from "./createClientServerActionProxy";
 import { removeServerExportsFromSource } from "./removeServerExports";
 import { getLoader, normalizePath } from "./utils";
-import * as vmod from "./vmod";
+
+const virtualAppEntry = "virtual:app-entry";
+const appEntryImport = "./app-entry";
+
+const resolveVirtualModule = (virtualModule: string) => `\0${virtualModule}`;
 
 type FrameworkPluginConfig = {
 	routesDir?: string;
@@ -99,7 +102,6 @@ export default function frameworkPlugin(
 				return async () => {
 					if (!server.config.server.middlewareMode) {
 						await preloadViteServer();
-						await preloadServerEntryRoutes();
 						await startViteServer(server);
 					}
 				};
@@ -108,26 +110,19 @@ export default function frameworkPlugin(
 		{
 			name: "@framework-virtual-modules",
 			enforce: "pre",
-			resolveId(id) {
-				if (id.includes("virtual__routes") || id === "virtual:routes") {
-					return vmod.resolveVirtualModule("virtual:routes");
-				}
-
-				if (id.includes("virtual__app") || id === "virtual:app") {
-					return vmod.resolveVirtualModule("virtual:app");
+			resolveId(id, importer) {
+				console.log({ id, importer });
+				if (id.includes(appEntryImport) || id === virtualAppEntry) {
+					return resolveVirtualModule(virtualAppEntry);
 				}
 			},
 			async load(id) {
-				if (id === vmod.resolveVirtualModule("virtual:routes")) {
+				if (id === resolveVirtualModule(virtualAppEntry)) {
 					const code = await resolveFileSystemRoutes({ routesDir });
-					const result = await transform(code, { loader: "ts" });
-					return result.code;
-				}
-
-				if (id === vmod.resolveVirtualModule("virtual:app")) {
-					const appEntryPath = path.join(process.cwd(), "src", "app.tsx");
-					const code = await fs.readFile(appEntryPath, "utf-8");
-					const result = await transform(code, { loader: "tsx" });
+					const result = await transform(code, {
+						loader: "tsx",
+						jsx: "automatic",
+					});
 					return result.code;
 				}
 			},

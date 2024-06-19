@@ -9,7 +9,6 @@ import {
 	type ErrorCatcher,
 	type Route,
 	type Router,
-	createErrorRouter,
 	createRouter,
 } from "../router/routing";
 
@@ -47,7 +46,7 @@ export function ServerContextProvider(props: ServerContextProviderProps) {
 	const { appContext, errorCatchers, routes, manifest, children } = props;
 	const router = useMemo(() => createRouter(routes), [routes]);
 	const errorRouter = useMemo(
-		() => createErrorRouter(errorCatchers),
+		() => createRouter(errorCatchers),
 		[errorCatchers],
 	);
 

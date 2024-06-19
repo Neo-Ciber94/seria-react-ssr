@@ -8,8 +8,10 @@ import {
 	setResponse,
 } from "../server/adapters/node/helpers";
 import { createRequestHandler } from "../server/handleRequest";
+import { createDevServerEntryContext } from "../server/server-entry";
+import { isDev } from "../runtime";
 
-const isDev = process.env.NODE_ENV !== "production";
+export type AppEntryModule = typeof import("../app-entry");
 
 export async function getViteManifest() {
 	const manifestPath = "./build/client/.vite/manifest.json";
@@ -41,7 +43,19 @@ export function getViteServer() {
 
 export async function startViteServer(server: ViteDevServer) {
 	viteServer = server;
-	const handleRequest = createRequestHandler();
+
+	const mod = (await viteServer.ssrLoadModule(
+		"virtual:app-entry",
+	)) as AppEntryModule;
+
+	const serverContext = await createDevServerEntryContext(
+		mod.routesDir,
+		mod.routes,
+		mod.errorCatchers,
+		mod.actions,
+	);
+
+	const handleRequest = createRequestHandler(serverContext);
 
 	server.middlewares.use(async (req, res, next) => {
 		try {

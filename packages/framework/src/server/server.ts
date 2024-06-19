@@ -1,17 +1,32 @@
 import polka from "polka";
-import { preloadServerEntryRoutes } from "../dev/getServerEntryRoutes";
-import { preloadViteServer } from "../dev/vite";
-import { handle } from "./adapters/node/handler";
+import { type AppEntryModule, preloadViteServer } from "../dev/vite";
 import { createRequest, getOrigin, setResponse } from "./adapters/node/helpers";
+import { createHandler } from "./adapters/node/handler";
 import { createRequestHandler } from "./handleRequest";
+import {
+	type ServerEntryContext,
+	createDevServerEntryContext,
+} from "./server-entry";
+import { createRouter } from "../router/routing";
 
 const PORT = process.env.PORT ?? 5000;
 const HOST = process.env.HOST ?? "localhost";
 const DEV = process.env.NODE_ENV !== "production";
 
 async function startProductionServer() {
+	/* @ts-ignore */
+	const mod: AppEntryModule = await import("virtual:app-entry");
+	const serverContext: ServerEntryContext = {
+		router: createRouter(mod.routes),
+		errorCatcherRouter: createRouter(mod.errorCatchers),
+		serverActionRouter: createRouter(mod.actions),
+		EntryComponent: mod.default,
+	};
+
 	const app = polka();
-	app.use(handle);
+	const handler = createHandler(serverContext);
+
+	app.use(handler);
 	app.listen(PORT, () => {
 		console.log(`Listening on http://${HOST}:${PORT}`);
 	});
@@ -19,12 +34,22 @@ async function startProductionServer() {
 
 async function startDevelopmentServer() {
 	const viteServer = await preloadViteServer();
-	await preloadServerEntryRoutes();
 
+	const mod = (await viteServer.ssrLoadModule(
+		"virtual:app-entry",
+	)) as AppEntryModule;
+
+	const serverContext = await createDevServerEntryContext(
+		mod.routesDir,
+		mod.routes,
+		mod.errorCatchers,
+		mod.actions,
+	);
+
+	const handleRequest = createRequestHandler(serverContext);
 	const app = polka();
 
 	app.use(viteServer.middlewares);
-	const handleRequest = createRequestHandler();
 
 	console.log("RUNNING VITE SERVER");
 

@@ -2,7 +2,6 @@ import { PassThrough } from "node:stream";
 import { renderToPipeableStream } from "react-dom/server";
 import * as seria from "seria";
 import { decode } from "seria/form-data";
-import * as appEntry from "../app-entry";
 import {
 	HEADER_LOADER_DATA,
 	HEADER_ROUTE_ERROR,
@@ -10,7 +9,6 @@ import {
 	HEADER_SERIA_STREAM,
 	HEADER_SERVER_ACTION,
 } from "../constants";
-import { getServerEntryRoutesSync } from "../dev/getServerEntryRoutes";
 import { getViteManifest } from "../dev/utils";
 import { getViteServer } from "../dev/vite";
 import { untilAll } from "../internal";
@@ -20,6 +18,8 @@ import type { Params } from "../router";
 import type { Route } from "../router/routing";
 import { HttpError, TypedJson } from "./http";
 import type { LoaderFunctionArgs } from "./loader";
+import type { ServerEntryContext } from "./server-entry";
+import { isDev } from "../runtime";
 
 const ABORT_DELAY = 10_000;
 
@@ -143,9 +143,12 @@ async function createLoaderResponse(args: CreateLoaderResponseArgs) {
 }
 
 const encoder = new TextEncoder();
-const isDev = process.env.NODE_ENV !== "production";
 
-async function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
+async function renderPage(
+	appContext: AppContext,
+	serverContext: ServerEntryContext,
+	responseInit?: ResponseInit,
+) {
 	let statusCode = appContext.error?.status || 200;
 
 	const { json, resumeStream } = seria.stringifyToResumableStream(
@@ -153,14 +156,11 @@ async function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
 	);
 	const isResumable = !!resumeStream;
 	const viteServer = isDev ? getViteServer() : undefined;
-	const { routes, errorCatchers } = isDev
-		? getServerEntryRoutesSync()
-		: appEntry;
 	const manifest = isDev ? undefined : getViteManifest();
 	const entryModule = await viteServer?.ssrLoadModule("virtual:app");
-	const serverContext: EntryServerContext = {
-		routes,
-		errorCatchers,
+	const context: EntryServerContext = {
+		routes: serverContext.router.entries,
+		errorCatchers: serverContext.errorCatcherRouter.entries,
 		manifest,
 		Component: entryModule?.default,
 	};
@@ -171,7 +171,7 @@ async function renderPage(appContext: AppContext, responseInit?: ResponseInit) {
 				appContext={appContext}
 				json={json}
 				isResumable={isResumable}
-				serverContext={serverContext}
+				serverContext={context}
 			/>,
 			{
 				onAllReady() {
@@ -300,36 +300,12 @@ async function getRouteData(args: GetRouteDataArgs) {
 	return routeData;
 }
 
-async function matchRequestRoute(id: string) {
-	const viteServer =
-		process.env.NODE_ENV === "development" ? getViteServer() : undefined;
-
-	if (viteServer) {
-		const mod = await viteServer.ssrLoadModule("virtual:routes");
-		const $matchRoute = mod.matchRoute as typeof appEntry.matchRoute;
-		return $matchRoute(id);
-	}
-
-	return appEntry.matchRoute(id);
-}
-
-async function matchRequestAction(id: string) {
-	const viteServer =
-		process.env.NODE_ENV === "development" ? getViteServer() : undefined;
-
-	if (viteServer) {
-		const mod = await viteServer.ssrLoadModule("virtual:routes");
-		const $matchServerAction =
-			mod.matchServerAction as typeof appEntry.matchServerAction;
-		return $matchServerAction(id);
-	}
-
-	return appEntry.matchServerAction(id);
-}
-
-async function handleAction(request: Request) {
+async function handleAction(
+	request: Request,
+	serverContext: ServerEntryContext,
+) {
 	const actionId = request.headers.get(HEADER_SERVER_ACTION) ?? "";
-	const match = await matchRequestAction(actionId);
+	const match = serverContext.serverActionRouter.match(actionId);
 
 	if (!match) {
 		return new Response(null, {
@@ -362,10 +338,13 @@ async function handleAction(request: Request) {
 	}
 }
 
-async function handlePageRequest(request: Request) {
+async function handlePageRequest(
+	request: Request,
+	serverContext: ServerEntryContext,
+) {
 	const { pathname } = new URL(request.url);
 	const url = request.url;
-	const match = await matchRequestRoute(pathname);
+	const match = serverContext.router.match(pathname);
 
 	if (request.headers.has(HEADER_LOADER_DATA)) {
 		if (match == null) {
@@ -379,8 +358,15 @@ async function handlePageRequest(request: Request) {
 		return routeData;
 	}
 
+	function renderError(status: number, message?: string) {
+		return renderPage(
+			{ url, loaderData: {}, error: { status, message } },
+			serverContext,
+		);
+	}
+
 	if (match == null) {
-		return renderPage({ url, loaderData: {}, error: { status: 404 } });
+		return renderError(404);
 	}
 
 	const { params = {}, ...route } = match;
@@ -401,22 +387,11 @@ async function handlePageRequest(request: Request) {
 					},
 				};
 			} else if (data instanceof HttpError) {
-				return renderPage({
-					url,
-					loaderData: {},
-					error: { status: data.status, message: data.message },
-				});
+				return renderError(data.status, data.message);
 			} else if (data instanceof Response) {
 				if (data.status >= 400) {
 					const message = await getResponseErrorMessage(data);
-					return renderPage({
-						url,
-						loaderData: {},
-						error: {
-							status: data.status,
-							message,
-						},
-					});
+					return renderError(data.status, message);
 				}
 
 				return data;
@@ -424,24 +399,24 @@ async function handlePageRequest(request: Request) {
 		}
 
 		const appContext: AppContext = { loaderData, url };
-		const response = await renderPage(appContext, responseInit);
+		const response = await renderPage(appContext, serverContext, responseInit);
 		return response;
 	} catch (err) {
 		console.error("Failed to create page response", err);
-		return renderPage({ url, loaderData: {}, error: { status: 500 } });
+		return renderError(500);
 	}
 }
 
-export function createRequestHandler() {
+export function createRequestHandler(context: ServerEntryContext) {
 	return async (request: Request): Promise<Response> => {
 		const { pathname } = new URL(request.url);
 
 		if (pathname.startsWith("/_action") && request.method === "POST") {
-			return handleAction(request);
+			return handleAction(request, context);
 		}
 
 		if (request.method === "GET") {
-			return handlePageRequest(request);
+			return handlePageRequest(request, context);
 		}
 
 		return new Response(null, {

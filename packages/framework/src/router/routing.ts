@@ -122,14 +122,6 @@ export class Router<T extends WithPath> {
 	}
 }
 
-export function createRouter(routes: Route[]) {
-	return new Router(routes);
-}
-
-export function createErrorRouter(catchers: ErrorCatcher[]) {
-	return new Router(catchers);
-}
-
-export function createServerActionRouter(actions: ServerAction[]) {
-	return new Router(actions);
+export function createRouter<T extends WithPath>(entries: T[]) {
+	return new Router(entries);
 }

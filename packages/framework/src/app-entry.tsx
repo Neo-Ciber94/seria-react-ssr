@@ -6,6 +6,7 @@ import type { ErrorCatcher, Route, ServerAction } from "./router/routing";
 export const routes: Route[] = [];
 export const errorCatchers: ErrorCatcher[] = [];
 export const actions: ServerAction[] = [];
+export const routesDir = "";
 
 export const matchRoute = (id: string): MatchedRoute<Route> => {
 	throw new Error("Not implemented");
