@@ -43,7 +43,7 @@ export class HttpError extends Error {
 		message: string,
 	) {
 		invariant(
-			status >= 400 && status <= 600,
+			status >= 400 && status < 600,
 			"Invalid error status code, expected code between 400 and 599",
 		);
 
