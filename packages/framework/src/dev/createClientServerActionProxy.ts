@@ -13,10 +13,7 @@ const traverse = babelTraverse.default as typeof babelTraverse;
 // @ts-ignore
 const generate = babelGenerate.default as typeof babelGenerate;
 
-const createProxyCallExpression = (
-	functionName: string,
-	actionPath: string,
-) => {
+const createProxyCallExpression = (functionName: string, actionPath: string) => {
 	const actionRoute = actionPath
 		.replace(/.(js|jsx|ts|tsx)$/, "")
 		.replaceAll(path.sep, "/")
@@ -44,9 +41,7 @@ type CreateClientServerActionProxyOptions = {
 	fileName: string;
 };
 
-export async function createClientServerActionProxy(
-	options: CreateClientServerActionProxyOptions,
-) {
+export async function createClientServerActionProxy(options: CreateClientServerActionProxyOptions) {
 	const { contents, fileName } = options;
 	const actionPath = path.relative(process.cwd(), fileName);
 
@@ -55,12 +50,7 @@ export async function createClientServerActionProxy(
 	const insertImport = () => {
 		if (!importInserted) {
 			const importDeclaration = t.importDeclaration(
-				[
-					t.importSpecifier(
-						t.identifier("callServerAction"),
-						t.identifier("callServerAction"),
-					),
-				],
+				[t.importSpecifier(t.identifier("callServerAction"), t.identifier("callServerAction"))],
 				t.stringLiteral("framework/runtime"),
 			);
 			ast.program.body.unshift(importDeclaration);
@@ -91,9 +81,7 @@ export async function createClientServerActionProxy(
 			const functionName = path.node.id?.name;
 
 			if (!path.node.async) {
-				throw new Error(
-					`_actions can only export async functions: '${actionPath}'`,
-				);
+				throw new Error(`_actions can only export async functions: '${actionPath}'`);
 			}
 
 			if (functionName) {
@@ -110,16 +98,11 @@ export async function createClientServerActionProxy(
 			}
 
 			path.node.declarations.forEach((declaration) => {
-				if (
-					t.isVariableDeclarator(declaration) &&
-					t.isIdentifier(declaration.id)
-				) {
+				if (t.isVariableDeclarator(declaration) && t.isIdentifier(declaration.id)) {
 					const functionName = declaration.id.name;
 
 					if (t.isLiteral(declaration.init)) {
-						throw new Error(
-							`_actions can only export async functions: '${actionPath}'`,
-						);
+						throw new Error(`_actions can only export async functions: '${actionPath}'`);
 					}
 
 					declaration.init = t.functionExpression(
@@ -133,14 +116,10 @@ export async function createClientServerActionProxy(
 			});
 		},
 		ExportAllDeclaration() {
-			throw new Error(
-				`_actions can only export async functions: '${actionPath}'`,
-			);
+			throw new Error(`_actions can only export async functions: '${actionPath}'`);
 		},
 		ExportNamespaceSpecifier() {
-			throw new Error(
-				`_actions can only export async functions: '${actionPath}'`,
-			);
+			throw new Error(`_actions can only export async functions: '${actionPath}'`);
 		},
 	});
 

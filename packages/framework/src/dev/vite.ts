@@ -2,16 +2,9 @@ import fs from "node:fs/promises";
 import type { Manifest, ViteDevServer } from "vite";
 import { createServer } from "vite";
 import { invariant } from "../internal";
-import {
-	createRequest,
-	getRequestOrigin,
-	setResponse,
-} from "../server/adapters/node/helpers";
+import { createRequest, getRequestOrigin, setResponse } from "../server/adapters/node/helpers";
 import { createRequestHandler } from "../server/handleRequest";
-import {
-	type EntryModule,
-	createServerEntry,
-} from "../server/serverEntry";
+import { type EntryModule, createServerEntry } from "../server/serverEntry";
 import { isDev } from "../runtime";
 
 export async function getViteManifest() {
@@ -35,10 +28,7 @@ export async function preloadViteServer() {
 }
 
 export function getViteServer() {
-	invariant(
-		viteServer,
-		"'preloadViteDevServer' should be called before 'getViteServer'",
-	);
+	invariant(viteServer, "'preloadViteDevServer' should be called before 'getViteServer'");
 	return viteServer;
 }
 
@@ -46,10 +36,7 @@ export async function startViteServer(server: ViteDevServer) {
 	viteServer = server;
 
 	const mod = await viteServer.ssrLoadModule("virtual:app-entry");
-	const serverContext = await createServerEntry(
-		mod as EntryModule,
-		"development",
-	);
+	const serverContext = await createServerEntry(mod as EntryModule, "development");
 
 	const handleRequest = createRequestHandler(serverContext);
 

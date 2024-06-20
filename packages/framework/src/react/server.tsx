@@ -17,16 +17,9 @@ type EntryServerProps = {
 	serverContext: EntryServerContext;
 };
 
-export function EntryServer({
-	appContext,
-	json,
-	isResumable,
-	serverContext,
-}: EntryServerProps) {
+export function EntryServer({ appContext, json, isResumable, serverContext }: EntryServerProps) {
 	const { url } = appContext;
-	const routeError = appContext.error
-		? `,error:${JSON.stringify(appContext.error)}`
-		: "";
+	const routeError = appContext.error ? `,error:${JSON.stringify(appContext.error)}` : "";
 	const { routes, errorCatchers, manifest, Component = Entry } = serverContext;
 
 	return (

@@ -20,9 +20,7 @@ type FrameworkPluginConfig = {
 	routesDir?: string;
 };
 
-export default function frameworkPlugin(
-	config?: FrameworkPluginConfig,
-): PluginOption {
+export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginOption {
 	const { routesDir = "./src/routes" } = config || {};
 
 	let resolvedConfig: ResolvedConfig | undefined;
@@ -38,18 +36,11 @@ export default function frameworkPlugin(
 				return {
 					appType: "custom",
 					optimizeDeps: {
-						entries: [
-							"react",
-							"react/jsx-runtime",
-							"react/jsx-dev-runtime",
-							"react-dom/client",
-						],
+						entries: ["react", "react/jsx-runtime", "react/jsx-dev-runtime", "react-dom/client"],
 					},
 					define: {
 						"process.env.IS_SERVER": JSON.stringify(isSsrBuild),
-						"process.env.NODE_ENV": JSON.stringify(
-							process.env.NODE_ENV ?? "production",
-						),
+						"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV ?? "production"),
 					},
 					esbuild: {
 						jsx: "automatic",
@@ -64,48 +55,41 @@ export default function frameworkPlugin(
 								: [path.join(process.cwd(), "src", "entry.client.tsx")],
 							output: isSsrBuild
 								? {
-									format: "es",
-									entryFileNames: "index.js",
-								}
+										format: "es",
+										entryFileNames: "index.js",
+									}
 								: {
-									format: "es",
-									manualChunks(id) {
-										invariant(
-											resolvedConfig,
-											"Vite config was not available",
-										);
+										format: "es",
+										manualChunks(id) {
+											invariant(resolvedConfig, "Vite config was not available");
 
-										const relativePath = normalizePath(
-											path.relative(process.cwd(), id),
-										);
+											const relativePath = normalizePath(path.relative(process.cwd(), id));
 
-										const isReact =
-											relativePath.includes("node_modules/react/") ||
-											relativePath.includes("node_modules/react-dom/");
+											const isReact =
+												relativePath.includes("node_modules/react/") ||
+												relativePath.includes("node_modules/react-dom/");
 
-										if (isReact) {
-											return "react";
-										}
-
-										if (isExternal(id)) {
-											return relativePath
-												.replace(/^.*\/node_modules\//, "")
-												.split("/")[0];
-										}
-
-										if (!isSsrBuild) {
-											if (isInRoutesDir(routesDir, id)) {
-												const chunkName = path
-													.relative(routesDir, id)
-													.replaceAll(path.sep, "/")
-													.replaceAll("/", "_")
-													.replaceAll(/\.(j|t)sx?$/g, "");
-
-												return `routes_${chunkName}`;
+											if (isReact) {
+												return "react";
 											}
-										}
+
+											if (isExternal(id)) {
+												return relativePath.replace(/^.*\/node_modules\//, "").split("/")[0];
+											}
+
+											if (!isSsrBuild) {
+												if (isInRoutesDir(routesDir, id)) {
+													const chunkName = path
+														.relative(routesDir, id)
+														.replaceAll(path.sep, "/")
+														.replaceAll("/", "_")
+														.replaceAll(/\.(j|t)sx?$/g, "");
+
+													return `routes_${chunkName}`;
+												}
+											}
+										},
 									},
-								},
 						},
 					},
 				};

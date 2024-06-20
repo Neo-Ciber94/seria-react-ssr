@@ -103,11 +103,7 @@ async function createLoaderResponse(args: CreateLoaderResponseArgs) {
 					});
 				}
 
-				if (
-					data.status >= 300 &&
-					data.status < 400 &&
-					data.headers.has(HEADER_ROUTE_REDIRECT)
-				) {
+				if (data.status >= 300 && data.status < 400 && data.headers.has(HEADER_ROUTE_REDIRECT)) {
 					// We strip the `Location` header, we don't need it when the client request loader data
 					// biome-ignore lint/style/noNonNullAssertion: We already check it have the header
 					const location = data.headers.get(HEADER_ROUTE_REDIRECT)!;
@@ -144,16 +140,10 @@ async function createLoaderResponse(args: CreateLoaderResponseArgs) {
 
 const encoder = new TextEncoder();
 
-async function renderPage(
-	appContext: AppContext,
-	entry: ServerEntry,
-	responseInit?: ResponseInit,
-) {
+async function renderPage(appContext: AppContext, entry: ServerEntry, responseInit?: ResponseInit) {
 	let statusCode = appContext.error?.status || 200;
-	
-	const { json, resumeStream } = seria.stringifyToResumableStream(
-		appContext.loaderData || {},
-	);
+
+	const { json, resumeStream } = seria.stringifyToResumableStream(appContext.loaderData || {});
 	const isResumable = !!resumeStream;
 	const manifest = isDev ? undefined : getViteManifest();
 	const context: EntryServerContext = {
@@ -309,9 +299,7 @@ async function handleAction(request: Request, serverContext: ServerEntry) {
 	try {
 		const args = decode(formData) as any[];
 		const result = await match.action(...args);
-		const stream = seria
-			.stringifyToStream(result)
-			.pipeThrough(new TextEncoderStream());
+		const stream = seria.stringifyToStream(result).pipeThrough(new TextEncoderStream());
 		const res = new Response(stream, {
 			status: 200,
 			headers: {
@@ -347,10 +335,7 @@ async function handlePageRequest(request: Request, entry: ServerEntry) {
 	}
 
 	function renderError(status: number, message?: string) {
-		return renderPage(
-			{ url, loaderData: {}, error: { status, message } },
-			entry,
-		);
+		return renderPage({ url, loaderData: {}, error: { status, message } }, entry);
 	}
 
 	if (match == null) {

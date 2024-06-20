@@ -89,12 +89,9 @@ function isExternalUrl(url: string) {
 	return false;
 }
 
-export function NavigationProvider({
-	children,
-}: { children: React.ReactNode }) {
+export function NavigationProvider({ children }: { children: React.ReactNode }) {
 	const [navigationError, setNavigationError] = useState<Error>();
-	const [navigationStatus, setNavigationStatus] =
-		useState<NavigationStatus>("loaded");
+	const [navigationStatus, setNavigationStatus] = useState<NavigationStatus>("loaded");
 	const { routeData, setRouteData } = useRouteDataContext();
 	const url = routeData.url;
 

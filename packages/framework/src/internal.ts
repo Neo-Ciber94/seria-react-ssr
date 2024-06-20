@@ -18,9 +18,7 @@ function deferred<T>() {
 	return { promise, resolve, reject };
 }
 
-type PromiseState<T> =
-	| { state: "resolved"; data: T }
-	| { state: "rejected"; error: any };
+type PromiseState<T> = { state: "resolved"; data: T } | { state: "rejected"; error: any };
 
 export async function untilAll(promises: Record<string, Promise<any>>) {
 	const entries = Object.entries(promises);

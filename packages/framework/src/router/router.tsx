@@ -37,16 +37,8 @@ function Routes() {
 	}, [match]);
 
 	return (
-		<RouterProvider
-			params={params}
-			pathname={pathname}
-			searchParams={searchParams}
-		>
-			<RouteErrorBoundary
-				key={pathname}
-				error={error}
-				fallback={() => <ErrorFallback />}
-			>
+		<RouterProvider params={params} pathname={pathname} searchParams={searchParams}>
+			<RouteErrorBoundary key={pathname} error={error} fallback={() => <ErrorFallback />}>
 				<Component />
 			</RouteErrorBoundary>
 		</RouterProvider>

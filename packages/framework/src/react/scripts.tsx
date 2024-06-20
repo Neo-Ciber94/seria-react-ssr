@@ -8,8 +8,7 @@ export default function Scripts() {
 	const { manifest } = useServerContext();
 
 	const seriaSrc = IS_DEV ? `build/client/${SERIA_ENTRY}` : SERIA_ENTRY;
-	const entrySrc =
-		IS_DEV || !manifest ? BROWSER_ENTRY : manifest[BROWSER_ENTRY].file;
+	const entrySrc = IS_DEV || !manifest ? BROWSER_ENTRY : manifest[BROWSER_ENTRY].file;
 
 	return (
 		<>

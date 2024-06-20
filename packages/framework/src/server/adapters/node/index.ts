@@ -8,11 +8,7 @@ import type { ServerEntry } from "../../serverEntry";
 import { createRequestHandler as createWebHandler } from "../../handleRequest";
 
 type Next = () => void;
-type RequestHandler = (
-	req: http.IncomingMessage,
-	res: http.ServerResponse,
-	next: Next,
-) => void;
+type RequestHandler = (req: http.IncomingMessage, res: http.ServerResponse, next: Next) => void;
 
 function serveDir(dir: string) {
 	return (

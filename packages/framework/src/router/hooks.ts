@@ -3,11 +3,7 @@ import { type Params, useNavigation } from ".";
 import { useServerContext } from "../react/context";
 import { HttpError, type TypedJson } from "../server/http";
 import type { LoaderFunction } from "../server/loader";
-import {
-	useRouteContext,
-	useRouteDataContext,
-	useRouterContext,
-} from "./contexts";
+import { useRouteContext, useRouteDataContext, useRouterContext } from "./contexts";
 
 type LoaderDataType<T> = T extends Promise<infer U>
 	? LoaderDataType<U>
@@ -19,9 +15,7 @@ type LoaderDataType<T> = T extends Promise<infer U>
 				? never
 				: T;
 
-type LoaderReturnType<T> = T extends LoaderFunction<infer U>
-	? LoaderDataType<U>
-	: never;
+type LoaderReturnType<T> = T extends LoaderFunction<infer U> ? LoaderDataType<U> : never;
 
 export function useLoaderData<L extends LoaderFunction<unknown>>() {
 	const route = useRouteContext();
@@ -78,8 +72,7 @@ export function useSearchParams() {
 
 	const setSearchParams = useCallback(
 		(newValue: React.SetStateAction<URLSearchParams>) => {
-			const val =
-				typeof newValue === "function" ? newValue(searchParams) : newValue;
+			const val = typeof newValue === "function" ? newValue(searchParams) : newValue;
 			const urlParams = new URLSearchParams(val);
 			const url = `${pathname}?${urlParams}`;
 			navigate(url, { replace: true });

@@ -5,6 +5,10 @@
     "workspaces": [
         "packages/*"
     ],
+    "scripts": {
+        "format": "npx @biomejs/biome format --write ./packages",
+        "lint": "npx @biomejs/biome lint --write ./packages"
+    },
     "devDependencies": {
         "@biomejs/biome": "1.8.1"
     }

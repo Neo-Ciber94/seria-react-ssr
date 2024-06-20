@@ -5,8 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"build": "rimraf ./dist && tsc && ncp ./src/types.d.ts ./dist/types.d.ts",
-		"typecheck": "tsc --noEmit",
-		"format": "prettier --write ./src"
+		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
 		"radix3": "^1.1.2",

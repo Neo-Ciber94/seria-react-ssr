@@ -63,10 +63,7 @@ export async function removeServerExports(options: RemoveExportsOptions) {
 					) {
 						declaration.init.body = throwErrorReplacement(functionName);
 					} else if (t.isIdentifier(declaration.init)) {
-						declaration.init = t.arrowFunctionExpression(
-							[],
-							throwErrorReplacement(functionName),
-						);
+						declaration.init = t.arrowFunctionExpression([], throwErrorReplacement(functionName));
 					}
 				}
 			});

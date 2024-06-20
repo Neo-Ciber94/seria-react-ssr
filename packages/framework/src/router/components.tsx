@@ -69,9 +69,7 @@ export function Await<T>(props: AwaitProps<T>) {
 	);
 }
 
-function AwaitWithSuspense<T>(
-	props: AwaitProps<T> & { fallback: React.ReactNode },
-) {
+function AwaitWithSuspense<T>(props: AwaitProps<T> & { fallback: React.ReactNode }) {
 	const [isMounted, setIsMounted] = useState(false);
 
 	useEffect(() => {

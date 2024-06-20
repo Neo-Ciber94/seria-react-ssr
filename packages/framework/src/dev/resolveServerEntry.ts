@@ -9,9 +9,7 @@ type GetFileSystemRoutesOptions = {
 	routesDir: string;
 };
 
-export async function resolveServerEntry(
-	options: GetFileSystemRoutesOptions,
-) {
+export async function resolveServerEntry(options: GetFileSystemRoutesOptions) {
 	let { cwd = process.cwd(), ignorePrefix = "_", routesDir } = options;
 
 	if (!routesDir.endsWith("/")) {
@@ -38,41 +36,30 @@ export async function resolveServerEntry(
 
     ${routeFiles
 			.map((routeFile, idx) => {
-				const importPath = relativePath(cwd, routeFile).replaceAll(
-					/\.(m|c)?(j|t)sx?$/g,
-					"",
-				);
+				const importPath = relativePath(cwd, routeFile).replaceAll(/\.(m|c)?(j|t)sx?$/g, "");
 				return `import * as route$${idx} from "/${importPath}"`;
 			})
 			.join("\n")}
 
     ${layoutFiles.map((layoutFile, idx) => {
-				const importPath = relativePath(cwd, layoutFile).replaceAll(
-					/\.(m|c)?(j|t)sx?$/g,
-					"",
-				);
-				return `import * as layout$${idx} from "/${importPath}"`;
-			})}
+			const importPath = relativePath(cwd, layoutFile).replaceAll(/\.(m|c)?(j|t)sx?$/g, "");
+			return `import * as layout$${idx} from "/${importPath}"`;
+		})}
 
     ${actionFiles.map((actionFile, idx) => {
-				const importPath = relativePath(cwd, actionFile).replaceAll(
-					/\.(m|c)?(j|t)sx?$/g,
-					"",
-				);
-				return `import * as actions$${idx} from "/${importPath}"`;
-			})}
+			const importPath = relativePath(cwd, actionFile).replaceAll(/\.(m|c)?(j|t)sx?$/g, "");
+			return `import * as actions$${idx} from "/${importPath}"`;
+		})}
 
     export const routes = [
       ${routeFiles
-			.map((routeFile, idx) => {
-				return `{
+				.map((routeFile, idx) => {
+					return `{
           id: ${JSON.stringify(getRouteId(routesDir, routeFile))},
           path: ${JSON.stringify(getRoutePath(routesDir, routeFile))},
           layouts: [${layoutFiles
 						.map((f, idx) => [f, idx] as const)
-						.filter(([layoutFile]) =>
-							isRouteLayoutFile(routesDir, layoutFile, routeFile),
-						)
+						.filter(([layoutFile]) => isRouteLayoutFile(routesDir, layoutFile, routeFile))
 						.map(([layoutFile, idx]) => {
 							return `{
                 id: ${JSON.stringify(getRouteId(routesDir, layoutFile))},
@@ -83,24 +70,24 @@ export async function resolveServerEntry(
           ],
           module: route$${idx}
         }`;
-			})
-			.join(",\n")}
+				})
+				.join(",\n")}
     ] satisfies Route[];
 
     export const errorCatchers : ErrorCatcher[] = [];
 
     export const actions : ServerAction[] = [
     ${actionFiles.map((actionFile, idx) => {
-				const actionFilePath = getRoutePath(routesDir, actionFile);
-				const actionId = getRouteId(routesDir, actionFile);
-				return `...Object.entries(actions$${idx}).map(([actionName, action]) => {
+			const actionFilePath = getRoutePath(routesDir, actionFile);
+			const actionId = getRouteId(routesDir, actionFile);
+			return `...Object.entries(actions$${idx}).map(([actionName, action]) => {
         return {
           id: ${JSON.stringify(actionId)}.concat("#", actionName),
           path:  ${JSON.stringify(actionFilePath)}.concat("#", actionName),
           action
         }
       })`;
-			})}
+		})}
     ];
 
     export const routesDir = ${JSON.stringify(routesDir)};
@@ -127,10 +114,7 @@ async function getRouteFiles(args: GetRouteFilesArgs) {
 	}
 
 	const routeFiles = files.filter((filePath) => {
-		return !isIgnored(
-			normalizePath(path.relative(cwd, filePath)),
-			ignorePrefix,
-		);
+		return !isIgnored(normalizePath(path.relative(cwd, filePath)), ignorePrefix);
 	});
 
 	// Check if all routes are valid
@@ -184,11 +168,7 @@ async function getActionFiles(args: GetRouteFilesArgs) {
 	return actionFiles;
 }
 
-function isRouteLayoutFile(
-	routesDir: string,
-	layoutFile: string,
-	routeFile: string,
-) {
+function isRouteLayoutFile(routesDir: string, layoutFile: string, routeFile: string) {
 	const normalizedLayoutFile = path.resolve(routesDir, layoutFile);
 	const normalizedRouteFile = path.resolve(routesDir, routeFile);
 
@@ -213,9 +193,7 @@ function isIgnored(relativeFilePath: string, ignorePrefix: string) {
 
 function getRouteId(routesDir: string, filePath: string) {
 	const normalized = normalizePath(path.relative(routesDir, filePath));
-	const routePath = normalized
-		.replaceAll(path.sep, "/")
-		.replaceAll(/\.(c|m)?(j|t)sx?$/g, "");
+	const routePath = normalized.replaceAll(path.sep, "/").replaceAll(/\.(c|m)?(j|t)sx?$/g, "");
 	return `/${routePath}`;
 }
 
@@ -253,8 +231,6 @@ function checkIsValidRoute(routesDir: string, filePath: string) {
 		.every(isValidRouteSegment);
 
 	if (!isValidRoute) {
-		throw new Error(
-			`Invalid route: '${normalizePath(path.join(routesDir, filePath))}'`,
-		);
+		throw new Error(`Invalid route: '${normalizePath(path.join(routesDir, filePath))}'`);
 	}
 }

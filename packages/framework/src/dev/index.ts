@@ -1,2 +1,2 @@
 export * from "./resolveServerEntry";
-export { normalizePath } from "./utils"
+export { normalizePath } from "./utils";

@@ -6,10 +6,9 @@ type RouterErrorBoundaryContextProps = {
 	resetBoundary: () => void;
 };
 
-const RouterErrorBoundaryContext =
-	createContext<RouterErrorBoundaryContextProps>({
-		resetBoundary: () => {},
-	});
+const RouterErrorBoundaryContext = createContext<RouterErrorBoundaryContextProps>({
+	resetBoundary: () => {},
+});
 
 type RouterErrorBoundaryState = { error: unknown };
 
@@ -51,9 +50,7 @@ export class RouteErrorBoundary extends React.Component<
 					resetBoundary: this.resetBoundary.bind(this),
 				}}
 			>
-				{this.state.error
-					? this.props.fallback(this.state.error)
-					: this.props.children}
+				{this.state.error ? this.props.fallback(this.state.error) : this.props.children}
 			</RouterErrorBoundaryContext.Provider>
 		);
 	}

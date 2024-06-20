@@ -12,13 +12,8 @@ type RouterContextProps = {
 
 const RouterContext = createContext<RouterContextProps | null>(null);
 
-export function RouterProvider({
-	children,
-	...rest
-}: PropsWithChildren<RouterContextProps>) {
-	return (
-		<RouterContext.Provider value={rest}>{children}</RouterContext.Provider>
-	);
+export function RouterProvider({ children, ...rest }: PropsWithChildren<RouterContextProps>) {
+	return <RouterContext.Provider value={rest}>{children}</RouterContext.Provider>;
 }
 
 export function useRouterContext() {

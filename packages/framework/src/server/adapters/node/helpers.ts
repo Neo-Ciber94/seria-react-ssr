@@ -170,7 +170,5 @@ export function getRequestOrigin(req: http.IncomingMessage) {
 		return `${headers.protocol}${headers.host}`;
 	}
 
-	throw new Error(
-		"Unable to get origin, set the `ORIGIN` environment variable",
-	);
+	throw new Error("Unable to get origin, set the `ORIGIN` environment variable");
 }
