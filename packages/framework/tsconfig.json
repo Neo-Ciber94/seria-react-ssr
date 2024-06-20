@@ -24,10 +24,9 @@
 	},
 	"include": [
 		"src/**/*.ts",
-		"vitest.config.ts"
 	],
 	"exclude": [
-		"**/**/*.test.ts",
-		"**/test/"
+		"src/**/*.test.ts",
+		"src/**/test"
 	]
 }
