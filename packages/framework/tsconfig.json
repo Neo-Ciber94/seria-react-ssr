@@ -1,6 +1,9 @@
 {
 	"extends": "../../tsconfig.base.json",
 	"compilerOptions": {
+		"types": [
+			"vitest/globals"
+		],
 		"outDir": "./dist",
 		"target": "esnext",
 		"moduleResolution": "Bundler",
@@ -17,9 +20,10 @@
 		"declarationMap": true,
 		"strict": true,
 		"skipLibCheck": true,
-		"incremental": true
+		"incremental": true,
 	},
 	"include": [
-		"src"
+		"src/**/*.ts",
+		"vitest.config.ts"
 	]
 }

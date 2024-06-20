@@ -55,41 +55,41 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
 								: [path.join(process.cwd(), "src", "entry.client.tsx")],
 							output: isSsrBuild
 								? {
-										format: "es",
-										entryFileNames: "index.js",
-									}
+									format: "es",
+									entryFileNames: "index.js",
+								}
 								: {
-										format: "es",
-										manualChunks(id) {
-											invariant(resolvedConfig, "Vite config was not available");
+									format: "es",
+									manualChunks(id) {
+										invariant(resolvedConfig, "Vite config was not available");
 
-											const relativePath = normalizePath(path.relative(process.cwd(), id));
+										const relativePath = normalizePath(path.relative(process.cwd(), id));
 
-											const isReact =
-												relativePath.includes("node_modules/react/") ||
-												relativePath.includes("node_modules/react-dom/");
+										const isReact =
+											relativePath.includes("node_modules/react/") ||
+											relativePath.includes("node_modules/react-dom/");
 
-											if (isReact) {
-												return "react";
+										if (isReact) {
+											return "react";
+										}
+
+										if (isExternal(id)) {
+											return relativePath.replace(/^.*\/node_modules\//, "").split("/")[0];
+										}
+
+										if (!isSsrBuild) {
+											if (isInRoutesDir(routesDir, id)) {
+												const chunkName = path
+													.relative(routesDir, id)
+													.replaceAll(path.sep, "/")
+													.replaceAll("/", "_")
+													.replaceAll(/\.(j|t)sx?$/g, "");
+
+												return `routes_${chunkName}`;
 											}
-
-											if (isExternal(id)) {
-												return relativePath.replace(/^.*\/node_modules\//, "").split("/")[0];
-											}
-
-											if (!isSsrBuild) {
-												if (isInRoutesDir(routesDir, id)) {
-													const chunkName = path
-														.relative(routesDir, id)
-														.replaceAll(path.sep, "/")
-														.replaceAll("/", "_")
-														.replaceAll(/\.(j|t)sx?$/g, "");
-
-													return `routes_${chunkName}`;
-												}
-											}
-										},
+										}
 									},
+								},
 						},
 					},
 				};
@@ -172,6 +172,7 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
 				const result = await removeServerExports({
 					source,
 					fileName,
+					removeExports: ["loader"]
 				});
 
 				return {

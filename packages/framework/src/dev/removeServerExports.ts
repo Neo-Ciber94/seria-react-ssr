@@ -1,17 +1,8 @@
-import babelGenerate from "@babel/generator";
 import { parse } from "@babel/parser";
-import babelTraverse from "@babel/traverse";
 import * as t from "@babel/types";
 import * as esbuild from "esbuild";
 import { getLoader } from "./utils";
-
-// @ts-ignore
-const traverse = babelTraverse.default as typeof babelTraverse;
-
-// @ts-ignore
-const generate = babelGenerate.default as typeof babelGenerate;
-
-const SERVER_EXPORTS = ["loader"];
+import { generate, traverse } from "./babel";
 
 const throwErrorReplacement = (identifierName: string) =>
 	t.blockStatement([
@@ -25,15 +16,18 @@ const throwErrorReplacement = (identifierName: string) =>
 type RemoveExportsOptions = {
 	source: string;
 	fileName: string;
+	removeExports: string[]
 };
 
+// TODO: rename to replaceServerExports
 export async function removeServerExports(options: RemoveExportsOptions) {
-	const { source, fileName } = options;
+	const { source, fileName, removeExports } = options;
 	const loader = getLoader(fileName);
 	const { code } = await esbuild.transform(source, {
 		loader,
 		jsx: "automatic",
 		sourcefile: fileName,
+		treeShaking: true
 	});
 
 	const ast = parse(code, {
@@ -44,7 +38,7 @@ export async function removeServerExports(options: RemoveExportsOptions) {
 	traverse(ast, {
 		FunctionDeclaration(path) {
 			const functionName = path.node.id?.name;
-			if (functionName && SERVER_EXPORTS.includes(functionName)) {
+			if (functionName && removeExports.includes(functionName)) {
 				path.node.body = throwErrorReplacement(functionName);
 			}
 		},
@@ -56,7 +50,7 @@ export async function removeServerExports(options: RemoveExportsOptions) {
 
 				const functionName = declaration.id.name;
 
-				if (functionName && SERVER_EXPORTS.includes(functionName)) {
+				if (functionName && removeExports.includes(functionName)) {
 					if (
 						t.isFunctionExpression(declaration.init) ||
 						t.isArrowFunctionExpression(declaration.init)

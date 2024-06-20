@@ -5,7 +5,8 @@
 	"type": "module",
 	"scripts": {
 		"build": "rimraf ./dist && tsc && ncp ./src/types.d.ts ./dist/types.d.ts",
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"test": "vitest --run"
 	},
 	"dependencies": {
 		"radix3": "^1.1.2",
@@ -39,7 +40,8 @@
 		"sirv": "^2.0.4",
 		"tsx": "^4.11.0",
 		"typescript": "^5.4.5",
-		"vite": "^5.2.13"
+		"vite": "^5.2.13",
+		"vitest": "^1.6.0"
 	},
 	"overrides": {
 		"@types/react": "npm:types-react@rc",
