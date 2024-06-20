@@ -1,1 +1,1 @@
-export * from "./resolveFileSystemRoutes";
+export * from "./resolveServerEntry";

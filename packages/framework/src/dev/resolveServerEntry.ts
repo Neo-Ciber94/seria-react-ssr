@@ -9,7 +9,7 @@ type GetFileSystemRoutesOptions = {
 	routesDir: string;
 };
 
-export async function resolveFileSystemRoutes(
+export async function resolveServerEntry(
 	options: GetFileSystemRoutesOptions,
 ) {
 	let { cwd = process.cwd(), ignorePrefix = "_", routesDir } = options;
@@ -47,25 +47,25 @@ export async function resolveFileSystemRoutes(
 			.join("\n")}
 
     ${layoutFiles.map((layoutFile, idx) => {
-			const importPath = relativePath(cwd, layoutFile).replaceAll(
-				/\.(m|c)?(j|t)sx?$/g,
-				"",
-			);
-			return `import * as layout$${idx} from "/${importPath}"`;
-		})}
+				const importPath = relativePath(cwd, layoutFile).replaceAll(
+					/\.(m|c)?(j|t)sx?$/g,
+					"",
+				);
+				return `import * as layout$${idx} from "/${importPath}"`;
+			})}
 
     ${actionFiles.map((actionFile, idx) => {
-			const importPath = relativePath(cwd, actionFile).replaceAll(
-				/\.(m|c)?(j|t)sx?$/g,
-				"",
-			);
-			return `import * as actions$${idx} from "/${importPath}"`;
-		})}
+				const importPath = relativePath(cwd, actionFile).replaceAll(
+					/\.(m|c)?(j|t)sx?$/g,
+					"",
+				);
+				return `import * as actions$${idx} from "/${importPath}"`;
+			})}
 
     export const routes = [
       ${routeFiles
-				.map((routeFile, idx) => {
-					return `{
+			.map((routeFile, idx) => {
+				return `{
           id: ${JSON.stringify(getRouteId(routesDir, routeFile))},
           path: ${JSON.stringify(getRoutePath(routesDir, routeFile))},
           layouts: [${layoutFiles
@@ -83,24 +83,24 @@ export async function resolveFileSystemRoutes(
           ],
           module: route$${idx}
         }`;
-				})
-				.join(",\n")}
+			})
+			.join(",\n")}
     ] satisfies Route[];
 
     export const errorCatchers : ErrorCatcher[] = [];
 
     export const actions : ServerAction[] = [
     ${actionFiles.map((actionFile, idx) => {
-			const actionFilePath = getRoutePath(routesDir, actionFile);
-			const actionId = getRouteId(routesDir, actionFile);
-			return `...Object.entries(actions$${idx}).map(([actionName, action]) => {
+				const actionFilePath = getRoutePath(routesDir, actionFile);
+				const actionId = getRouteId(routesDir, actionFile);
+				return `...Object.entries(actions$${idx}).map(([actionName, action]) => {
         return {
           id: ${JSON.stringify(actionId)}.concat("#", actionName),
           path:  ${JSON.stringify(actionFilePath)}.concat("#", actionName),
           action
         }
       })`;
-		})}
+			})}
     ];
 
     export const routesDir = ${JSON.stringify(routesDir)};

@@ -3,7 +3,7 @@ import path from "node:path";
 import react from "@vitejs/plugin-react";
 import { transform } from "esbuild";
 import type { PluginOption, ResolvedConfig } from "vite";
-import { resolveFileSystemRoutes } from "../dev";
+import { resolveServerEntry } from "../dev";
 import { preloadViteServer, startViteServer } from "../dev/vite";
 import { invariant } from "../internal";
 import { createClientServerActionProxy } from "./createClientServerActionProxy";
@@ -133,7 +133,7 @@ export default function frameworkPlugin(
 			},
 			async load(id) {
 				if (id === resolveVirtualModule(virtualAppEntry)) {
-					const code = await resolveFileSystemRoutes({ routesDir });
+					const code = await resolveServerEntry({ routesDir });
 					const result = await transform(code, {
 						loader: "tsx",
 						jsx: "transform",
