@@ -51,17 +51,21 @@
 			"import": "./dist/server/index.js",
 			"types": "./dist/server/index.d.ts"
 		},
-		"./server/vite": {
-			"import": "./dist/server/vite.js",
-			"types": "./dist/server/vite.d.ts"
+		"./server/adapters/node": {
+			"import": "./dist/server/adapters/node/index.js",
+			"types": "./dist/server/adapters/node/index.d.ts"
 		},
 		"./server/adapters/node/helpers": {
 			"import": "./dist/server/adapters/node/helpers.js",
 			"types": "./dist/server/adapters/node/helpers.d.ts"
 		},
-		"./server/adapters/node": {
-			"import": "./dist/server/adapters/node/index.js",
-			"types": "./dist/server/adapters/node/index.d.ts"
+		"./dev": {
+			"import": "./dist/dev/index.js",
+			"types": "./dist/dev/index.d.ts"
+		},
+		"./dev/plugin": {
+			"import": "./dist/dev/plugin.js",
+			"types": "./dist/dev/plugin.d.ts"
 		},
 		"./router": {
 			"import": "./dist/router/index.js",
@@ -74,14 +78,6 @@
 		"./react": {
 			"import": "./dist/react/index.js",
 			"types": "./dist/react/index.d.ts"
-		},
-		"./plugin": {
-			"import": "./dist/plugin/index.js",
-			"types": "./dist/plugin/index.d.ts"
-		},
-		"./dev": {
-			"import": "./dist/dev/index.js",
-			"types": "./dist/dev/index.d.ts"
 		},
 		"./runtime": {
 			"import": "./dist/runtime.js",

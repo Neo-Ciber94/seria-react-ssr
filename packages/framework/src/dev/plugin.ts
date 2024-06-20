@@ -3,8 +3,8 @@ import path from "node:path";
 import react from "@vitejs/plugin-react";
 import { transform } from "esbuild";
 import type { PluginOption, ResolvedConfig } from "vite";
-import { resolveServerEntry } from "../dev";
-import { preloadViteServer, startViteServer } from "../dev/vite";
+import { resolveServerEntry } from ".";
+import { preloadViteServer, startViteServer } from "./vite";
 import { invariant } from "../internal";
 import { createClientServerActionProxy } from "./createClientServerActionProxy";
 import { removeServerExports } from "./removeServerExports";
@@ -64,48 +64,48 @@ export default function frameworkPlugin(
 								: [path.join(process.cwd(), "src", "entry.client.tsx")],
 							output: isSsrBuild
 								? {
-										format: "es",
-										entryFileNames: "index.js",
-									}
+									format: "es",
+									entryFileNames: "index.js",
+								}
 								: {
-										format: "es",
-										manualChunks(id) {
-											invariant(
-												resolvedConfig,
-												"Vite config was not available",
-											);
+									format: "es",
+									manualChunks(id) {
+										invariant(
+											resolvedConfig,
+											"Vite config was not available",
+										);
 
-											const relativePath = normalizePath(
-												path.relative(process.cwd(), id),
-											);
+										const relativePath = normalizePath(
+											path.relative(process.cwd(), id),
+										);
 
-											const isReact =
-												relativePath.includes("node_modules/react/") ||
-												relativePath.includes("node_modules/react-dom/");
+										const isReact =
+											relativePath.includes("node_modules/react/") ||
+											relativePath.includes("node_modules/react-dom/");
 
-											if (isReact) {
-												return "react";
+										if (isReact) {
+											return "react";
+										}
+
+										if (isExternal(id)) {
+											return relativePath
+												.replace(/^.*\/node_modules\//, "")
+												.split("/")[0];
+										}
+
+										if (!isSsrBuild) {
+											if (isInRoutesDir(routesDir, id)) {
+												const chunkName = path
+													.relative(routesDir, id)
+													.replaceAll(path.sep, "/")
+													.replaceAll("/", "_")
+													.replaceAll(/\.(j|t)sx?$/g, "");
+
+												return `routes_${chunkName}`;
 											}
-
-											if (isExternal(id)) {
-												return relativePath
-													.replace(/^.*\/node_modules\//, "")
-													.split("/")[0];
-											}
-
-											if (!isSsrBuild) {
-												if (isInRoutesDir(routesDir, id)) {
-													const chunkName = path
-														.relative(routesDir, id)
-														.replaceAll(path.sep, "/")
-														.replaceAll("/", "_")
-														.replaceAll(/\.(j|t)sx?$/g, "");
-
-													return `routes_${chunkName}`;
-												}
-											}
-										},
+										}
 									},
+								},
 						},
 					},
 				};
