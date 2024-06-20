@@ -6,7 +6,7 @@ import type { PluginOption, ResolvedConfig } from "vite";
 import { resolveServerEntry } from ".";
 import { preloadViteServer, startViteServer } from "./vite";
 import { invariant } from "../internal";
-import { createClientServerActionProxy } from "./createClientServerActionProxy";
+import { createServerActionReference } from "./createServerActionReference";
 import { removeServerExports } from "./removeServerExports";
 import { normalizePath } from "./utils";
 import * as esbuild from "esbuild";
@@ -131,7 +131,7 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
 			},
 		},
 		{
-			name: "@framework-create-server-action-proxy",
+			name: "@framework-create-server-action-reference",
 			async load(id, options) {
 				if (
 					isExternal(id) ||
@@ -144,7 +144,7 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
 
 				const [fileName] = id.split("?");
 				const contents = await fs.readFile(fileName, "utf8");
-				const result = await createClientServerActionProxy({
+				const result = await createServerActionReference({
 					contents,
 					fileName,
 				});

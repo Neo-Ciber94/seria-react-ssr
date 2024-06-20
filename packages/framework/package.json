@@ -31,6 +31,7 @@
 		"@types/react": "npm:types-react@rc",
 		"@types/react-dom": "npm:types-react-dom@rc",
 		"@vitejs/plugin-react": "^4.3.1",
+		"babel-plugin-transform-dead-code-elimination": "^2.2.3",
 		"esbuild": "^0.21.4",
 		"fs-extra": "^11.2.0",
 		"glob": "^10.4.1",

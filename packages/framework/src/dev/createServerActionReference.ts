@@ -1,17 +1,9 @@
-import fs from "node:fs/promises";
 import path from "node:path";
-import babelGenerate from "@babel/generator";
 import { parse } from "@babel/parser";
-import babelTraverse from "@babel/traverse";
 import * as t from "@babel/types";
 import * as esbuild from "esbuild";
 import { getLoader } from "./utils";
-
-// @ts-ignore
-const traverse = babelTraverse.default as typeof babelTraverse;
-
-// @ts-ignore
-const generate = babelGenerate.default as typeof babelGenerate;
+import { generate, traverse } from "./babel";
 
 const createProxyCallExpression = (functionName: string, actionPath: string) => {
 	const actionRoute = actionPath
@@ -41,7 +33,7 @@ type CreateClientServerActionProxyOptions = {
 	fileName: string;
 };
 
-export async function createClientServerActionProxy(options: CreateClientServerActionProxyOptions) {
+export async function createServerActionReference(options: CreateClientServerActionProxyOptions) {
 	const { contents, fileName } = options;
 	const actionPath = path.relative(process.cwd(), fileName);
 
@@ -127,3 +119,4 @@ export async function createClientServerActionProxy(options: CreateClientServerA
 
 	return result;
 }
+

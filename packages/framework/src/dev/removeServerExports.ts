@@ -3,8 +3,10 @@ import * as t from "@babel/types";
 import * as esbuild from "esbuild";
 import { getLoader } from "./utils";
 import { generate, traverse } from "./babel";
+import * as babel from "@babel/core"
+import { invariant } from "../internal";
 
-const throwErrorReplacement = (identifierName: string) =>
+const throwErrorStatement = (identifierName: string) =>
 	t.blockStatement([
 		t.throwStatement(
 			t.newExpression(t.identifier("Error"), [
@@ -27,7 +29,6 @@ export async function removeServerExports(options: RemoveExportsOptions) {
 		loader,
 		jsx: "automatic",
 		sourcefile: fileName,
-		treeShaking: true
 	});
 
 	const ast = parse(code, {
@@ -39,7 +40,7 @@ export async function removeServerExports(options: RemoveExportsOptions) {
 		FunctionDeclaration(path) {
 			const functionName = path.node.id?.name;
 			if (functionName && removeExports.includes(functionName)) {
-				path.node.body = throwErrorReplacement(functionName);
+				path.node.body = throwErrorStatement(functionName);
 			}
 		},
 		VariableDeclaration(path) {
@@ -55,20 +56,35 @@ export async function removeServerExports(options: RemoveExportsOptions) {
 						t.isFunctionExpression(declaration.init) ||
 						t.isArrowFunctionExpression(declaration.init)
 					) {
-						declaration.init.body = throwErrorReplacement(functionName);
+						declaration.init.body = throwErrorStatement(functionName);
 					} else if (t.isIdentifier(declaration.init)) {
-						declaration.init = t.arrowFunctionExpression([], throwErrorReplacement(functionName));
+						declaration.init = t.arrowFunctionExpression([], throwErrorStatement(functionName));
 					}
 				}
 			});
 		},
 	});
 
-	const result = generate(ast, {
+	const generated = generate(ast, {
 		sourceMaps: true,
 		sourceFileName: fileName,
 		filename: fileName,
 	});
 
-	return result;
+	const result = await babel.transformAsync(generated.code, {
+		sourceMaps: true,
+		plugins: ["transform-dead-code-elimination"],
+		filename: fileName,
+		sourceFileName: fileName,
+		sourceType: "module",
+	});
+
+	const resultCode = result?.code;
+	const resultMap = result?.map;
+	invariant(resultCode && resultMap, "Failed to transform code after removing exports");
+
+	return {
+		code: resultCode,
+		map: resultMap,
+	}
 }
