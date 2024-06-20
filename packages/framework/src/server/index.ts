@@ -8,7 +8,6 @@ export {
 } from "./http";
 export type { LoaderFunction, LoaderFunctionArgs } from "./loader";
 export { createRequestHandler } from "./handleRequest";
-export { startServer } from "./server";
 export {
 	type EntryModule,
 	type ServerEntry,
