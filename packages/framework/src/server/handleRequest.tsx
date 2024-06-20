@@ -18,7 +18,7 @@ import type { Params } from "../router";
 import type { Route } from "../router/routing";
 import { HttpError, TypedJson } from "./http";
 import type { LoaderFunctionArgs } from "./loader";
-import type { ServerEntryContext } from "./server-entry";
+import type { ServerEntry } from "./serverEntry";
 import { isDev } from "../runtime";
 
 const ABORT_DELAY = 10_000;
@@ -146,7 +146,7 @@ const encoder = new TextEncoder();
 
 async function renderPage(
 	appContext: AppContext,
-	serverContext: ServerEntryContext,
+	entry: ServerEntry,
 	responseInit?: ResponseInit,
 ) {
 	let statusCode = appContext.error?.status || 200;
@@ -155,13 +155,12 @@ async function renderPage(
 		appContext.loaderData || {},
 	);
 	const isResumable = !!resumeStream;
-	const viteServer = isDev ? getViteServer() : undefined;
 	const manifest = isDev ? undefined : getViteManifest();
 	const context: EntryServerContext = {
-		routes: serverContext.router.entries,
-		errorCatchers: serverContext.errorCatcherRouter.entries,
+		Component: entry.EntryComponent,
+		routes: entry.router.entries,
+		errorCatchers: entry.errorCatcherRouter.entries,
 		manifest,
-		Component: serverContext.EntryComponent,
 	};
 
 	return new Promise<Response>((resolve, reject) => {
@@ -233,10 +232,6 @@ async function renderPage(
 					reject(error);
 				},
 				onError(error, info) {
-					if (viteServer && error instanceof Error) {
-						viteServer.ssrFixStacktrace(error);
-					}
-
 					statusCode = 500;
 					console.error(error, info);
 				},
@@ -299,10 +294,7 @@ async function getRouteData(args: GetRouteDataArgs) {
 	return routeData;
 }
 
-async function handleAction(
-	request: Request,
-	serverContext: ServerEntryContext,
-) {
+async function handleAction(request: Request, serverContext: ServerEntry) {
 	const actionId = request.headers.get(HEADER_SERVER_ACTION) ?? "";
 	const match = serverContext.serverActionRouter.match(actionId);
 
@@ -337,13 +329,10 @@ async function handleAction(
 	}
 }
 
-async function handlePageRequest(
-	request: Request,
-	serverContext: ServerEntryContext,
-) {
+async function handlePageRequest(request: Request, entry: ServerEntry) {
 	const { pathname } = new URL(request.url);
 	const url = request.url;
-	const match = serverContext.router.match(pathname);
+	const match = entry.router.match(pathname);
 
 	if (request.headers.has(HEADER_LOADER_DATA)) {
 		if (match == null) {
@@ -360,7 +349,7 @@ async function handlePageRequest(
 	function renderError(status: number, message?: string) {
 		return renderPage(
 			{ url, loaderData: {}, error: { status, message } },
-			serverContext,
+			entry,
 		);
 	}
 
@@ -398,7 +387,7 @@ async function handlePageRequest(
 		}
 
 		const appContext: AppContext = { loaderData, url };
-		const response = await renderPage(appContext, serverContext, responseInit);
+		const response = await renderPage(appContext, entry, responseInit);
 		return response;
 	} catch (err) {
 		console.error("Failed to create page response", err);
@@ -406,16 +395,16 @@ async function handlePageRequest(
 	}
 }
 
-export function createRequestHandler(context: ServerEntryContext) {
+export function createRequestHandler(entry: ServerEntry) {
 	return async (request: Request): Promise<Response> => {
 		const { pathname } = new URL(request.url);
 
 		if (pathname.startsWith("/_action") && request.method === "POST") {
-			return handleAction(request, context);
+			return handleAction(request, entry);
 		}
 
 		if (request.method === "GET") {
-			return handlePageRequest(request, context);
+			return handlePageRequest(request, entry);
 		}
 
 		return new Response(null, {

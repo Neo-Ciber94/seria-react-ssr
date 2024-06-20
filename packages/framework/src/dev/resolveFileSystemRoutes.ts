@@ -19,7 +19,6 @@ export async function resolveFileSystemRoutes(
 	}
 
 	const absoluteRoutesDir = path.join(cwd, routesDir);
-	console.log(`Reading routes from '${absoluteRoutesDir}'`);
 
 	if (!fs.existsSync(absoluteRoutesDir)) {
 		throw new Error(`Routes not found at: '${absoluteRoutesDir}'`);
@@ -134,13 +133,6 @@ async function getRouteFiles(args: GetRouteFilesArgs) {
 		);
 	});
 
-	if (routeFiles.length !== files.length) {
-		const ignoredFiles = files.length - routeFiles.length;
-		console.log(`${ignoredFiles} routes where ignored from '${routesDir}'`);
-	}
-
-	console.log(`${routeFiles.length} routes where found at '${routesDir}'`);
-
 	// Check if all routes are valid
 	routeFiles.forEach((filePath) => checkIsValidRoute(routesDir, filePath));
 
@@ -165,13 +157,6 @@ async function getLayoutFiles(args: GetRouteFilesArgs) {
 		return !isIgnored(normalizePath(layoutPath), ignorePrefix);
 	});
 
-	if (layoutFiles.length !== files.length) {
-		const ignoredFiles = files.length - layoutFiles.length;
-		console.log(`${ignoredFiles} layouts where ignored from '${routesDir}'`);
-	}
-
-	console.log(`${layoutFiles.length} layouts where found at '${routesDir}'`);
-
 	// Check if all layouts are valid
 	layoutFiles.forEach((filePath) => checkIsValidRoute(routesDir, filePath));
 
@@ -195,13 +180,6 @@ async function getActionFiles(args: GetRouteFilesArgs) {
 		const actionPath = path.relative(cwd, path.dirname(filePath));
 		return !isIgnored(normalizePath(actionPath), ignorePrefix);
 	});
-
-	if (actionFiles.length !== files.length) {
-		const ignoredFiles = files.length - actionFiles.length;
-		console.log(`${ignoredFiles} actions where ignored from '${routesDir}'`);
-	}
-
-	console.log(`${actionFiles.length} actions where found at '${routesDir}'`);
 
 	return actionFiles;
 }

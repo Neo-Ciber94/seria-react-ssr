@@ -155,7 +155,7 @@ export function setResponse(response: Response, target: http.ServerResponse) {
 	void next();
 }
 
-export function getOrigin(req: http.IncomingMessage) {
+export function getRequestOrigin(req: http.IncomingMessage) {
 	const headers = req.headers;
 
 	if (headers.origin) {

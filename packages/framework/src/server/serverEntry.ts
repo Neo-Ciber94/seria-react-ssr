@@ -12,19 +12,21 @@ import {
 
 type Empty = Record<string, never>;
 
-export type ServerEntryContext = {
+export type EntryModule = typeof import("../app-entry");
+
+export type ServerEntry = {
 	router: Router<Route>;
 	errorCatcherRouter: Router<ErrorCatcher>;
 	serverActionRouter: Router<ServerAction>;
 	EntryComponent: ComponentType<Empty>;
 };
 
-export async function createDevServerEntryContext(
+async function createDevServerEntryContext(
 	routesDir: string,
 	routes: Route[],
 	errorCatchers: ErrorCatcher[],
 	actions: ServerAction[],
-): Promise<ServerEntryContext> {
+): Promise<ServerEntry> {
 	const rootDir = process.cwd();
 	const dir = path.join(rootDir, routesDir);
 
@@ -86,6 +88,29 @@ export async function createDevServerEntryContext(
 		errorCatcherRouter: createRouter(serverCatchers),
 		serverActionRouter: createRouter(serverActions),
 		EntryComponent: entryMod.default,
+	};
+}
+
+type Env = "development" | "production";
+
+export async function createServerEntry(
+	module: EntryModule,
+	env: Env,
+): Promise<ServerEntry> {
+	if (env === "development") {
+		return createDevServerEntryContext(
+			module.routesDir,
+			module.routes,
+			module.errorCatchers,
+			module.actions,
+		);
+	}
+
+	return {
+		router: createRouter(module.routes),
+		errorCatcherRouter: createRouter(module.errorCatchers),
+		serverActionRouter: createRouter(module.actions),
+		EntryComponent: module.default,
 	};
 }
 

@@ -4,14 +4,15 @@ import { createServer } from "vite";
 import { invariant } from "../internal";
 import {
 	createRequest,
-	getOrigin,
+	getRequestOrigin,
 	setResponse,
 } from "../server/adapters/node/helpers";
 import { createRequestHandler } from "../server/handleRequest";
-import { createDevServerEntryContext } from "../server/server-entry";
+import {
+	type EntryModule,
+	createServerEntry,
+} from "../server/serverEntry";
 import { isDev } from "../runtime";
-
-export type AppEntryModule = typeof import("../app-entry");
 
 export async function getViteManifest() {
 	const manifestPath = "./build/client/.vite/manifest.json";
@@ -44,22 +45,17 @@ export function getViteServer() {
 export async function startViteServer(server: ViteDevServer) {
 	viteServer = server;
 
-	const mod = (await viteServer.ssrLoadModule(
-		"virtual:app-entry",
-	)) as AppEntryModule;
-
-	const serverContext = await createDevServerEntryContext(
-		mod.routesDir,
-		mod.routes,
-		mod.errorCatchers,
-		mod.actions,
+	const mod = await viteServer.ssrLoadModule("virtual:app-entry");
+	const serverContext = await createServerEntry(
+		mod as EntryModule,
+		"development",
 	);
 
 	const handleRequest = createRequestHandler(serverContext);
 
 	server.middlewares.use(async (req, res, next) => {
 		try {
-			const baseUrl = process.env.ORIGIN ?? getOrigin(req);
+			const baseUrl = process.env.ORIGIN ?? getRequestOrigin(req);
 			const request = await createRequest({ req, baseUrl });
 			const response = await handleRequest(request);
 			setResponse(response, res);

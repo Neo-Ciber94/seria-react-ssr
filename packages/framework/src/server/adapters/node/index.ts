@@ -3,9 +3,9 @@ import type http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import sirv from "sirv";
-import { createRequest, getOrigin, setResponse } from "./helpers";
-import type { ServerEntryContext } from "../../server-entry";
-import { createRequestHandler } from "../../handleRequest";
+import { createRequest, getRequestOrigin, setResponse } from "./helpers";
+import type { ServerEntry } from "../../serverEntry";
+import { createRequestHandler as createWebHandler } from "../../handleRequest";
 
 type Next = () => void;
 type RequestHandler = (
@@ -25,10 +25,11 @@ function serveDir(dir: string) {
 	);
 }
 
-function ssr(handler: (req: Request) => Promise<Response>) {
+function ssr(handler: (req: Request) => Promise<Response>, baseUrl?: string) {
+	const getOrigin = baseUrl ? () => baseUrl : getRequestOrigin;
 	return async (req: http.IncomingMessage, res: http.ServerResponse) => {
 		try {
-			const baseUrl = process.env.ORIGIN ?? getOrigin(req);
+			const baseUrl = getOrigin(req);
 			const request = await createRequest({ req, baseUrl });
 			const response = await handler(request);
 			setResponse(response, res);
@@ -61,12 +62,12 @@ function createMiddleware(...args: Handler[]): RequestHandler {
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.join(__dirname, "..", "client");
 
-export function createHandler(context: ServerEntryContext) {
-	const requestHandler = createRequestHandler(context);
+export function createRequestHandler(entry: ServerEntry, baseUrl?: string) {
+	const requestHandler = createWebHandler(entry);
 
 	return createMiddleware(
 		serveDir(path.join(rootDir, "assets")),
 		serveDir(path.join(rootDir, ".")),
-		ssr(requestHandler),
+		ssr(requestHandler, baseUrl),
 	);
 }
