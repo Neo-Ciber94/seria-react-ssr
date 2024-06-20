@@ -1404,10 +1404,10 @@ semver@^6.3.1:
   resolved "https://registry.yarnpkg.com/semver/-/semver-6.3.1.tgz#556d2ef8689146e46dcea4bfdd095f3434dffcb4"
   integrity sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==
 
-seria@^0.2.0-beta4:
-  version "0.2.0-beta4"
-  resolved "https://registry.yarnpkg.com/seria/-/seria-0.2.0-beta4.tgz#5e380780d74d618ebe577841ec835cdc54a8f296"
-  integrity sha512-O0jxjFv6oEAfG8FOpLXUg7z6oUBYf6FmSB38uHB4B7UgqxvtEcBTcaQpMc1LuguMixVcdJNZ2Aghv/P9cEliDA==
+seria@^0.2.0-beta5:
+  version "0.2.0-beta5"
+  resolved "https://registry.yarnpkg.com/seria/-/seria-0.2.0-beta5.tgz#9ad36088d435283e2157b46202bd0e33099d1a87"
+  integrity sha512-FIPPAaKNaExvHFLtURiPGeBIVaP3DpPV+Ug400UzwxNKvrgvQV21YNyivW74KcNr7VqtyKsSiJbMtlQwd5HLNA==
 
 shebang-command@^2.0.0:
   version "2.0.0"

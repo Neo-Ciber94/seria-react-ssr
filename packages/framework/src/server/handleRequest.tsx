@@ -150,7 +150,7 @@ async function renderPage(
 	responseInit?: ResponseInit,
 ) {
 	let statusCode = appContext.error?.status || 200;
-
+	
 	const { json, resumeStream } = seria.stringifyToResumableStream(
 		appContext.loaderData || {},
 	);

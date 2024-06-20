@@ -9,10 +9,10 @@
 		"format": "prettier --write ./src"
 	},
 	"dependencies": {
+		"radix3": "^1.1.2",
 		"react": "^19.0.0-rc-a26e3f403e-20240611",
 		"react-dom": "^19.0.0-rc-a26e3f403e-20240611",
-		"radix3": "^1.1.2",
-		"seria": "^0.2.0-beta4"
+		"seria": "^0.2.0-beta5"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.24.7",
