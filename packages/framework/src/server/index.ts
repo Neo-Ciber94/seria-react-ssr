@@ -9,3 +9,8 @@ export {
 export type { LoaderFunction, LoaderFunctionArgs } from "./loader";
 export { createRequestHandler } from "./handleRequest";
 export { startServer } from "./server";
+export {
+	type EntryModule,
+	type ServerEntry,
+	createServerEntry,
+} from "./serverEntry";

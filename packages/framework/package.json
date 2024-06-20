@@ -4,7 +4,7 @@
 	"license": "MIT",
 	"type": "module",
 	"scripts": {
-		"build": "rimraf ./dist && tsc",
+		"build": "rimraf ./dist && tsc && ncp ./src/types.d.ts ./dist/types.d.ts",
 		"typecheck": "tsc --noEmit",
 		"format": "prettier --write ./src"
 	},
@@ -34,6 +34,7 @@
 		"esbuild": "^0.21.4",
 		"fs-extra": "^11.2.0",
 		"glob": "^10.4.1",
+		"ncp": "^2.0.0",
 		"polka": "^0.5.2",
 		"prettier": "^3.3.0",
 		"rimraf": "^5.0.7",
@@ -47,10 +48,6 @@
 		"@types/react-dom": "npm:types-react-dom@rc"
 	},
 	"exports": {
-		"./generateRoutes": {
-			"import": "./dist/generateRoutes.js",
-			"types": "./dist/generateRoutes.d.ts"
-		},
 		"./server": {
 			"import": "./dist/server/index.js",
 			"types": "./dist/server/index.d.ts"
@@ -63,9 +60,9 @@
 			"import": "./dist/server/adapters/node/helpers.js",
 			"types": "./dist/server/adapters/node/helpers.d.ts"
 		},
-		"./server/adapters/node/handler": {
-			"import": "./dist/server/adapters/node/handler.js",
-			"types": "./dist/server/adapters/node/handler.d.ts"
+		"./server/adapters/node": {
+			"import": "./dist/server/adapters/node/index.js",
+			"types": "./dist/server/adapters/node/index.d.ts"
 		},
 		"./router": {
 			"import": "./dist/router/index.js",
@@ -90,6 +87,9 @@
 		"./runtime": {
 			"import": "./dist/runtime.js",
 			"types": "./dist/runtime.d.ts"
+		},
+		"./types.d.ts": {
+			"types": "./dist/types.d.ts"
 		}
 	},
 	"files": [

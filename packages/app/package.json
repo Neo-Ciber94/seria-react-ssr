@@ -17,6 +17,7 @@
 		"serve:prod": "cross-env NODE_ENV=production PORT=5030 ORIGIN=http://localhost:5030 node --import tsx/esm ./build/server/index.js"
 	},
 	"dependencies": {
+		"polka": "^0.5.2",
 		"react": "^19.0.0-rc-a26e3f403e-20240611",
 		"react-dom": "^19.0.0-rc-a26e3f403e-20240611"
 	},

@@ -1,10 +1,11 @@
 {
 	"extends": "../../tsconfig.base.json",
 	"compilerOptions": {
-		"target": "esnext",
-		"noEmitOnError": true,
+		"target": "ESNext",
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
 		"jsx": "react-jsx",
-		"module": "esnext",
+		"noEmitOnError": true,
 		"allowJs": true,
 		"checkJs": true,
 		"esModuleInterop": true,
@@ -13,9 +14,17 @@
 		"strict": true,
 		"skipLibCheck": true,
 		"outDir": "./dist",
+		"types": [
+			"framework/types.d.ts"
+		],
 		"paths": {
-			"@/*": ["./src/*"]
+			"@/*": [
+				"./src/*"
+			]
 		}
 	},
-	"include": ["src", "vite.config.ts"]
+	"include": [
+		"src",
+		"vite.config.ts"
+	]
 }

@@ -57,6 +57,7 @@ export default function frameworkPlugin(
 					},
 					build: {
 						minify: false,
+						target: "ES2022",
 						rollupOptions: {
 							input: isSsrBuild
 								? [path.join(process.cwd(), "src", "entry.server.tsx")]
