@@ -1,4 +1,4 @@
-// import "./styles.css";
+import "./styles.css";
 import { Link, useLoaderData, useNavigation } from "framework/router";
 import { db } from "@/lib/db";
 import { Await } from "framework/router";
@@ -19,14 +19,9 @@ export default function TodoLayout({ children }: { children: React.ReactNode }) 
 	const navigation = useNavigation();
 
 	return (
-		<div
-			style={{
-				display: "flex",
-				flexDirection: "row",
-				height: "100vh",
-			}}
-		>
+		<div id="sidebar-container">
 			<aside
+				id="sidebar"
 				style={{
 					width: 400,
 					display: "flex",

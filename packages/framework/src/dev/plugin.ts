@@ -4,12 +4,14 @@ import react from "@vitejs/plugin-react";
 import { transform } from "esbuild";
 import type { PluginOption, ResolvedConfig } from "vite";
 import { resolveServerEntry } from ".";
-import { preloadViteServer, startViteServer } from "./vite";
+import { getViteServer, preloadViteServer } from "./vite";
 import { invariant } from "../internal";
 import { createServerActionReference } from "./createServerActionReference";
 import { removeServerExports } from "./removeServerExports";
 import { normalizePath } from "./utils";
 import * as esbuild from "esbuild";
+import { createServerEntry, type EntryModule, createRequestHandler } from "../server";
+import { getRequestOrigin, createRequest, setResponse } from "../server/adapters/node/helpers";
 
 const virtualAppEntry = "virtual:app-entry";
 const appEntryImport = "./app-entry";
@@ -20,6 +22,7 @@ type FrameworkPluginConfig = {
 	routesDir?: string;
 };
 
+console.log(process.env.NODE_ENV);
 export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginOption {
 	const { routesDir = "./src/routes" } = config || {};
 
@@ -42,6 +45,7 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
 						"process.env.IS_SERVER": JSON.stringify(isSsrBuild),
 						"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV ?? "production"),
 					},
+					external: isSsrBuild ? [/\.css$/] : [],
 					esbuild: {
 						jsx: "automatic",
 						jsxDev: command !== "build",
@@ -55,41 +59,42 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
 								: [path.join(process.cwd(), "src", "entry.client.tsx")],
 							output: isSsrBuild
 								? {
-									format: "es",
-									entryFileNames: "index.js",
-								}
+										format: "es",
+										entryFileNames: "index.js",
+									}
 								: {
-									format: "es",
-									manualChunks(id) {
-										invariant(resolvedConfig, "Vite config was not available");
+										format: "es",
+										ssrEmitAssets: true,
+										manualChunks(id) {
+											invariant(resolvedConfig, "Vite config was not available");
 
-										const relativePath = normalizePath(path.relative(process.cwd(), id));
+											const relativePath = normalizePath(path.relative(process.cwd(), id));
 
-										const isReact =
-											relativePath.includes("node_modules/react/") ||
-											relativePath.includes("node_modules/react-dom/");
+											const isReact =
+												relativePath.includes("node_modules/react/") ||
+												relativePath.includes("node_modules/react-dom/");
 
-										if (isReact) {
-											return "react";
-										}
-
-										if (isExternal(id)) {
-											return relativePath.replace(/^.*\/node_modules\//, "").split("/")[0];
-										}
-
-										if (!isSsrBuild) {
-											if (isInRoutesDir(routesDir, id)) {
-												const chunkName = path
-													.relative(routesDir, id)
-													.replaceAll(path.sep, "/")
-													.replaceAll("/", "_")
-													.replaceAll(/\.(j|t)sx?$/g, "");
-
-												return `routes_${chunkName}`;
+											if (isReact) {
+												return "react";
 											}
-										}
+
+											if (isExternal(id)) {
+												return relativePath.replace(/^.*\/node_modules\//, "").split("/")[0];
+											}
+
+											if (!isSsrBuild) {
+												if (isInRoutesDir(routesDir, id)) {
+													const chunkName = path
+														.relative(routesDir, id)
+														.replaceAll(path.sep, "/")
+														.replaceAll("/", "_")
+														.replaceAll(/\.(j|t)sx?$/g, "");
+
+													return `routes_${chunkName}`;
+												}
+											}
+										},
 									},
-								},
 						},
 					},
 				};
@@ -98,7 +103,23 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
 				return async () => {
 					if (!server.config.server.middlewareMode) {
 						await preloadViteServer();
-						await startViteServer(server);
+
+						const viteServer = getViteServer();
+						const mod = await viteServer.ssrLoadModule("virtual:app-entry");
+						const serverContext = await createServerEntry(mod as EntryModule, "development");
+
+						const handleRequest = createRequestHandler(serverContext);
+
+						viteServer.middlewares.use(async (req, res, next) => {
+							try {
+								const baseUrl = process.env.ORIGIN ?? getRequestOrigin(req);
+								const request = await createRequest({ req, baseUrl });
+								const response = await handleRequest(request);
+								setResponse(response, res);
+							} catch (err) {
+								next(err);
+							}
+						});
 					}
 				};
 			},
@@ -172,7 +193,7 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
 				const result = await removeServerExports({
 					source,
 					fileName,
-					removeExports: ["loader"]
+					removeExports: ["loader"],
 				});
 
 				return {

@@ -1,0 +1,14 @@
+#sidebar-container {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+}
+
+#sidebar {
+  width: 400;
+  display: flex;
+  flex-direction: column;
+  gap: 2;
+  background: #b91c1c;
+  padding: 5;
+}
