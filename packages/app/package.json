@@ -4,7 +4,7 @@
 	"type": "module",
 	"license": "MIT",
 	"scripts": {
-		"vite:dev": "cross-env NODE_OPTIONS=\"--import tsx/esm\" vite dev",
+		"vite:dev": "vite dev",
 		"serve:dev": "cross-env NODE_ENV=development tsx ./src/entry.server.tsx",
 		"serve:prod": "cross-env NODE_ENV=production PORT=5030 ORIGIN=http://localhost:5030 node --import tsx/esm ./build/server/index.js",
 		"build": "npm run build:client && npm run build:server",
@@ -22,6 +22,7 @@
 		"@types/react-dom": "npm:types-react-dom@rc",
 		"cross-env": "^7.0.3",
 		"framework": "^0.1.0",
+		"tsup": "^8.1.0",
 		"tsx": "^4.15.2",
 		"typescript": "^5.4.5",
 		"vite": "^5.2.13",

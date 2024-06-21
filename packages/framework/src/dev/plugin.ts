@@ -3,7 +3,7 @@ import path from "node:path";
 import react from "@vitejs/plugin-react";
 import { transform } from "esbuild";
 import type { PluginOption, ResolvedConfig } from "vite";
-import { resolveServerEntry } from ".";
+import { resolveServerEntry } from "./resolveServerEntry";
 import { getViteServer, preloadViteServer } from "./vite";
 import { invariant } from "../internal";
 import { createServerActionReference } from "./createServerActionReference";
@@ -22,7 +22,6 @@ type FrameworkPluginConfig = {
 	routesDir?: string;
 };
 
-console.log(process.env.NODE_ENV);
 export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginOption {
 	const { routesDir = "./src/routes" } = config || {};
 
@@ -44,6 +43,7 @@ export default function frameworkPlugin(config?: FrameworkPluginConfig): PluginO
 					define: {
 						"process.env.IS_SERVER": JSON.stringify(isSsrBuild),
 						"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV ?? "production"),
+						"process.env": JSON.stringify({}),
 					},
 					external: isSsrBuild ? [/\.css$/] : [],
 					esbuild: {
